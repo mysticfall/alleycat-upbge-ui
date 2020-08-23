@@ -1,0 +1,18 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+"mypy" = "*"
+"pipenv-setup" = "*"
+"fake-bpy-module-2.82" = "*"
+"fake-bge-module-0.2.5" = "*"
+"pycairo" = "1.19.1"
+
+[packages]
+#"alleycat-reactive" = {editable = true, path = "../alleycat-reactive"}
+"alleycat-reactive" = "0.2.0"
+
+[requires]
+python_version = "3.8"
