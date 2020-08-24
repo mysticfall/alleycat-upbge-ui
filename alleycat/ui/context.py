@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 from abc import ABC
 from collections import Mapping
 from typing import Optional, Callable, Any, Dict, TYPE_CHECKING
@@ -12,6 +13,21 @@ if TYPE_CHECKING:
     from alleycat.ui import Toolkit, WindowManager
 
 ErrorHandler = Callable[[Exception], None]
+
+
+def catch_error(func: Callable[..., None]) -> Callable[..., None]:
+    @functools.wraps(func)
+    def safe_func(*args, **kwargs) -> None:
+        try:
+            func(*args, **kwargs)
+        except Exception as e:
+            args[0].error_handler(e)
+
+    return safe_func
+
+
+def default_error_handler(e: Exception) -> None:
+    print(e)
 
 
 class Context(EventLoopAware, EventDispatcher, InputLookup, Disposable):
@@ -30,7 +46,7 @@ class Context(EventLoopAware, EventDispatcher, InputLookup, Disposable):
         self._toolkit = toolkit
 
         self._window_manager = window_manager if window_manager is not None else WindowManager()
-        self._error_handler = error_handler if error_handler is not None else _handle_error
+        self._error_handler = error_handler if error_handler is not None else default_error_handler
 
         self._graphics = toolkit.create_graphics(self)
 
@@ -55,34 +71,32 @@ class Context(EventLoopAware, EventDispatcher, InputLookup, Disposable):
     def error_handler(self) -> ErrorHandler:
         return self._error_handler
 
+    @catch_error
     def process(self) -> None:
         self.process_inputs()
         self.process_draw()
 
+    @catch_error
     def process_inputs(self) -> None:
         for poller in self._pollers:
-            try:
-                poller.process()
-            except Exception as e:
-                self.error_handler(e)
+            poller.process()
 
+    @catch_error
     def process_draw(self) -> None:
-        try:
-            self._window_manager.draw(self._graphics)
-        except Exception as e:
-            self.error_handler(e)
+        self._window_manager.draw(self._graphics)
 
+    @catch_error
     def dispatch_event(self, event: Event) -> None:
-        print(event)
+        pass
 
     def dispose(self) -> None:
         super().dispose()
 
-        self._graphics.dispose()
-        self._window_manager.dispose()
+        catch_error(self._graphics.dispose)()
+        catch_error(self._window_manager.dispose)()
 
         for i in self.inputs.values():
-            i.dispose()
+            catch_error(i.dispose)()
 
 
 class ContextBuilder(ABC):
@@ -112,7 +126,3 @@ class ContextBuilder(ABC):
 
     def create_context(self) -> Context:
         return Context(self.toolkit, **self._args)
-
-
-def _handle_error(e: Exception) -> None:
-    print(e)
