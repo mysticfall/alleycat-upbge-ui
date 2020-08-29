@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Mapping, cast, TYPE_CHECKING, Final
 
-from alleycat.reactive import ReactiveView
+from alleycat.reactive import RV
 from alleycat.reactive import functions as rv
 from rx.disposable import Disposable
 
@@ -50,7 +50,7 @@ class InputLookup(ABC):
 class MouseInput(Input, ABC):
     ID: Final = "mouse"
 
-    position: ReactiveView[Point]
+    position: RV[Point]
 
     def __init__(self, context: Context):
         super().__init__(context)

@@ -11,8 +11,7 @@ verify_ssl = true
 "pycairo" = "1.19.1"
 
 [packages]
-#"alleycat-reactive" = {editable = true, path = "../alleycat-reactive"}
-"alleycat-reactive" = "0.2.0"
+"alleycat-reactive" = "0.2.1"
 
 [requires]
 python_version = "3.8"

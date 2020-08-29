@@ -1,7 +1,7 @@
 from typing import Iterable
 
 import gpu
-from alleycat.reactive import ReactiveObject
+from alleycat.reactive import ReactiveObject, RV
 from alleycat.reactive import functions as rv
 from bge.logic import mouse
 from gpu_extras.batch import batch_for_shader
@@ -48,7 +48,7 @@ class BlenderGraphics(Graphics):
 
 
 class BlenderMouseInput(MouseInput, ReactiveObject, EventLoopAware):
-    position = rv.new_view()
+    position: RV[Point] = rv.new_view()
 
     def __init__(self, context: Context) -> None:
         super().__init__(context)

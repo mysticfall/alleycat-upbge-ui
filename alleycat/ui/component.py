@@ -1,27 +1,23 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import Tuple, List
+from typing import Tuple, List, Sequence
 
 import rx
-from alleycat.reactive import ReactiveObject
+from alleycat.reactive import ReactiveObject, RP, RV
 from alleycat.reactive import functions as rv
 from returns.maybe import Nothing, Maybe, Some
 from rx import operators as ops
 
-from alleycat.ui import Drawable, Dimension, Event, EventDispatcher, Graphics
+from alleycat.ui import Drawable, Event, EventDispatcher, Graphics
 from alleycat.ui.bounded import Bounded
 from alleycat.ui.context import Context
 
 
 class Component(ReactiveObject, Drawable, Bounded, EventDispatcher):
-    visible = rv.from_value(True)
+    parent: RP[Maybe[Container]] = rv.from_value(Nothing)
 
-    min_size = rv.from_observable(rx.of(Dimension(0, 0)))
-
-    max_size = rv.from_observable(rx.of(Dimension(0, 0)))
-
-    preferred_size = rv.from_observable(rx.of(Dimension(0, 0)))
+    visible: RP[bool] = rv.from_value(True)
 
     def __init__(self, context: Context) -> None:
         if context is None:
@@ -48,7 +44,7 @@ class ComponentEvent(Event, ABC):
 
 
 class Container(Component):
-    children = rv.new_view()
+    children: RV[Sequence[Component]] = rv.new_view()
 
     def __init__(self, context: Context) -> None:
         super().__init__(context)

@@ -1,7 +1,7 @@
-from typing import List, Tuple
+from typing import List, Tuple, Sequence
 
 import rx
-from alleycat.reactive import functions as rv
+from alleycat.reactive import functions as rv, RV
 from rx import operators as ops
 from rx.disposable import Disposable
 from rx.subject import Subject
@@ -23,7 +23,7 @@ class Window(Container):
 
 
 class WindowManager(Disposable):
-    windows = rv.new_view()
+    windows: RV[Sequence[Window]] = rv.new_view()
 
     def __init__(self) -> None:
         super().__init__()
@@ -45,6 +45,7 @@ class WindowManager(Disposable):
 
             return children
 
+        # noinspection PyTypeChecker
         self.windows = changed_child.pipe(ops.scan(on_child_change, []), ops.distinct_until_changed())
 
     def add(self, child: Window) -> None:
@@ -60,5 +61,6 @@ class WindowManager(Disposable):
         self._removed_child.on_next(child)
 
     def draw(self, g: Graphics) -> None:
+        # noinspection PyTypeChecker
         for window in self.windows:
             window.draw(g)
