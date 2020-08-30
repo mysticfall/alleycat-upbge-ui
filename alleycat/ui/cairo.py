@@ -50,32 +50,32 @@ class CairoToolkit(Toolkit[CairoContext]):
     def create_graphics(self, context: CairoContext) -> Graphics:
         ctx = cairo.Context(context.surface)
 
-        return CairoGraphics(ctx)
+        return CairoGraphics(ctx, context)
 
     def create_inputs(self, context: Context) -> Iterable[Input]:
         return []
 
 
-class CairoGraphics(Graphics):
-    def __init__(self, context: cairo.Context) -> None:
-        if context is None:
-            raise ValueError("Argument 'context' is required.")
+class CairoGraphics(Graphics[CairoContext]):
+    def __init__(self, g: cairo.Context, context: CairoContext) -> None:
+        if cairo is None:
+            raise ValueError("Argument 'g' is required.")
 
-        super().__init__()
+        super().__init__(context)
 
-        self._context = context
+        self._g = g
 
     @property
-    def context(self) -> cairo.Context:
-        return self._context
+    def g(self) -> cairo.Context:
+        return self._g
 
     def fill_rect(self, bounds: Bounds) -> Graphics:
-        self.context.rectangle(bounds.x, bounds.y, bounds.width, bounds.height)
+        self.g.rectangle(bounds.x, bounds.y, bounds.width, bounds.height)
 
         (r, g, b, a) = self.color
 
-        self.context.set_source_rgba(r, g, b, a)
-        self.context.fill()
+        self.g.set_source_rgba(r, g, b, a)
+        self.g.fill()
 
         return self
 

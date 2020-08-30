@@ -36,6 +36,12 @@ class BlenderContext(Context):
         # noinspection PyTypeChecker
         self.window_size = self._resolution.pipe(ops.distinct_until_changed())
 
+    def translate(self, point: Point) -> Point:
+        if point is None:
+            raise ValueError("Argument 'point' is required.")
+
+        return point.copy(y=self.window_size.height - point.y)
+
     def process_draw(self) -> None:
         self._resolution.on_next(get_window_size())
 
@@ -45,18 +51,18 @@ class BlenderContext(Context):
 class BlenderToolkit(Toolkit[BlenderContext]):
 
     def create_graphics(self, context: BlenderContext) -> Graphics:
-        return BlenderGraphics()
+        return BlenderGraphics(context)
 
     def create_inputs(self, context: BlenderContext) -> Iterable[Input]:
         return [BlenderMouseInput(context)]
 
 
-class BlenderGraphics(Graphics):
+class BlenderGraphics(Graphics[BlenderContext]):
     # noinspection PyUnresolvedReferences
     shader = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
     def fill_rect(self, bounds: Bounds) -> Graphics:
-        vertices = tuple(map(lambda p: p.tuple, bounds.points))
+        vertices = tuple(map(lambda p: p.tuple, map(self.context.translate, bounds.points)))
         indices = ((0, 1, 3), (3, 1, 2))
 
         self.shader.bind()
