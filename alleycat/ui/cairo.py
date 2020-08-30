@@ -12,27 +12,6 @@ from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, Dimension, Lo
 from alleycat.ui.context import ContextBuilder, ErrorHandler
 
 
-class UI(ContextBuilder):
-
-    def __init__(self) -> None:
-        super().__init__(CairoToolkit())
-
-        self._surface: Optional[Surface] = None
-
-    def with_surface(self, surface: Surface) -> UI:
-        if surface is None:
-            raise ValueError("Argument 'surface' is required.")
-
-        self._surface = surface
-
-        return self
-
-    def create_context(self) -> Context:
-        surface = self._surface if self._surface is not None else ImageSurface(Format.ARGB32, 640, 480)
-
-        return CairoContext(cast(CairoToolkit, self.toolkit), surface, **self.args)
-
-
 class CairoContext(Context):
     window_size: RV[Dimension] = rv.new_view()
 
@@ -78,7 +57,7 @@ class CairoToolkit(Toolkit[CairoContext]):
 
 
 class CairoGraphics(Graphics):
-    def __init__(self, context: cairo.Context):
+    def __init__(self, context: cairo.Context) -> None:
         if context is None:
             raise ValueError("Argument 'context' is required.")
 
@@ -92,3 +71,24 @@ class CairoGraphics(Graphics):
 
     def fill_rect(self, bounds: Bounds) -> Graphics:
         return self
+
+
+class UI(ContextBuilder[CairoContext]):
+
+    def __init__(self) -> None:
+        super().__init__(CairoToolkit())
+
+        self._surface: Optional[Surface] = None
+
+    def with_surface(self, surface: Surface) -> UI:
+        if surface is None:
+            raise ValueError("Argument 'surface' is required.")
+
+        self._surface = surface
+
+        return self
+
+    def create_context(self) -> CairoContext:
+        surface = self._surface if self._surface is not None else ImageSurface(Format.ARGB32, 640, 480)
+
+        return CairoContext(cast(CairoToolkit, self.toolkit), surface, **self.args)

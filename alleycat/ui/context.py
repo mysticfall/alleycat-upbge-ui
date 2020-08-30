@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 from abc import ABC, abstractmethod
 from collections import Mapping
-from typing import Optional, Callable, Any, Dict, TYPE_CHECKING
+from typing import Optional, Callable, Any, Dict, TYPE_CHECKING, TypeVar, Generic
 
 from alleycat.reactive import ReactiveObject, RV
 
@@ -106,9 +106,12 @@ class Context(ReactiveObject, EventLoopAware, EventDispatcher, InputLookup, ABC)
             catch_error(i.dispose)()
 
 
-class ContextBuilder(ABC):
+T = TypeVar("T", bound=Context, covariant=True)
 
-    def __init__(self, toolkit: Toolkit) -> None:
+
+class ContextBuilder(ABC, Generic[T]):
+
+    def __init__(self, toolkit: Toolkit[T]) -> None:
         if toolkit is None:
             raise ValueError("Argument 'toolkit' is required.")
 
@@ -144,5 +147,5 @@ class ContextBuilder(ABC):
         return self
 
     @abstractmethod
-    def create_context(self) -> Context:
+    def create_context(self) -> T:
         pass

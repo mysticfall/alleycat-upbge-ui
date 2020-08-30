@@ -21,15 +21,6 @@ def get_window_size() -> Dimension:
     return Dimension(bge.render.getWindowWidth(), bge.render.getWindowHeight())
 
 
-class UI(ContextBuilder):
-
-    def __init__(self) -> None:
-        super().__init__(BlenderToolkit())
-
-    def create_context(self) -> Context:
-        return BlenderContext(cast(BlenderToolkit, self.toolkit), **self.args)
-
-
 class BlenderContext(Context):
     window_size: RV[Dimension] = rv.new_view()
 
@@ -78,6 +69,15 @@ class BlenderGraphics(Graphics):
 
     def dispose(self) -> None:
         super().dispose()
+
+
+class UI(ContextBuilder[BlenderContext]):
+
+    def __init__(self) -> None:
+        super().__init__(BlenderToolkit())
+
+    def create_context(self) -> Context:
+        return BlenderContext(cast(BlenderToolkit, self.toolkit), **self.args)
 
 
 class BlenderMouseInput(MouseInput, ReactiveObject, EventLoopAware):
