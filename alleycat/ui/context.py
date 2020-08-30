@@ -5,7 +5,7 @@ from abc import ABC
 from collections import Mapping
 from typing import Optional, Callable, Any, Dict, TYPE_CHECKING
 
-from rx.disposable import Disposable
+from alleycat.reactive import ReactiveObject
 
 from alleycat.ui import EventDispatcher, EventLoopAware, Event, InputLookup, Input
 
@@ -30,7 +30,7 @@ def default_error_handler(e: Exception) -> None:
     print(e)
 
 
-class Context(EventLoopAware, EventDispatcher, InputLookup, Disposable):
+class Context(ReactiveObject, EventLoopAware, EventDispatcher, InputLookup):
 
     def __init__(self,
                  toolkit: Toolkit,
