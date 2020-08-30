@@ -70,7 +70,17 @@ class CairoGraphics(Graphics):
         return self._context
 
     def fill_rect(self, bounds: Bounds) -> Graphics:
+        self.context.rectangle(bounds.x, bounds.y, bounds.width, bounds.height)
+
+        (r, g, b, a) = self.color
+
+        self.context.set_source_rgba(r, g, b, a)
+        self.context.fill()
+
         return self
+
+    def clear(self) -> Graphics:
+        pass
 
 
 class UI(ContextBuilder[CairoContext]):

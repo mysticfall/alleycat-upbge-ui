@@ -60,11 +60,14 @@ class BlenderGraphics(Graphics):
         indices = ((0, 1, 3), (3, 1, 2))
 
         self.shader.bind()
-        self.shader.uniform_float("color", (0, 0.5, 0.5, 1.0))
+        self.shader.uniform_float("color", self.color.tuple)
 
         batch = batch_for_shader(self.shader, "TRIS", {"pos": vertices}, indices=indices)
         batch.draw(self.shader)
 
+        return self
+
+    def clear(self) -> Graphics:
         return self
 
     def dispose(self) -> None:
