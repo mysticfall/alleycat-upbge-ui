@@ -10,7 +10,7 @@ from rx.disposable import Disposable
 from alleycat.ui import EventDispatcher, EventLoopAware, Event, InputLookup, Input
 
 if TYPE_CHECKING:
-    from alleycat.ui import Toolkit, WindowManager
+    from alleycat.ui import LookAndFeel, Toolkit, WindowManager
 
 ErrorHandler = Callable[[Exception], None]
 
@@ -34,6 +34,7 @@ class Context(EventLoopAware, EventDispatcher, InputLookup, Disposable):
 
     def __init__(self,
                  toolkit: Toolkit,
+                 look_and_feel: Optional[LookAndFeel] = None,
                  window_manager: Optional[WindowManager] = None,
                  error_handler: Optional[ErrorHandler] = None) -> None:
         if toolkit is None:
@@ -41,10 +42,11 @@ class Context(EventLoopAware, EventDispatcher, InputLookup, Disposable):
 
         super().__init__()
 
-        from alleycat.ui import WindowManager
+        from alleycat.ui import GlassLookAndFeel, WindowManager
 
         self._toolkit = toolkit
 
+        self._look_and_feel = look_and_feel if look_and_feel is not None else GlassLookAndFeel()
         self._window_manager = window_manager if window_manager is not None else WindowManager()
         self._error_handler = error_handler if error_handler is not None else default_error_handler
 
@@ -62,6 +64,10 @@ class Context(EventLoopAware, EventDispatcher, InputLookup, Disposable):
     @property
     def inputs(self) -> Mapping[str, Input]:
         return self._inputs
+
+    @property
+    def look_and_feel(self) -> LookAndFeel:
+        return self._look_and_feel
 
     @property
     def window_manager(self) -> WindowManager:
@@ -121,6 +127,14 @@ class ContextBuilder(ABC):
             raise ValueError("Argument 'handler' is required.")
 
         self._args["error_handler"] = handler
+
+        return self
+
+    def with_look_and_feel(self, laf: LookAndFeel) -> ContextBuilder:
+        if laf is None:
+            raise ValueError("Argument 'laf' is required.")
+
+        self._args["look_and_feel"] = laf
 
         return self
 

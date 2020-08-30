@@ -16,11 +16,6 @@ class Window(Container):
 
         context.window_manager.add(self)
 
-    def draw(self, g: Graphics) -> None:
-        super().draw(g)
-
-        g.fill_rect(self.bounds)
-
 
 class WindowManager(Disposable):
     windows: RV[Sequence[Window]] = rv.new_view()

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import Tuple, List, Sequence
+from typing import Tuple, List, Sequence, TYPE_CHECKING
 
 import rx
 from alleycat.reactive import ReactiveObject, RP, RV
@@ -12,6 +12,9 @@ from rx import operators as ops
 from alleycat.ui import Drawable, Event, EventDispatcher, Graphics
 from alleycat.ui.bounded import Bounded
 from alleycat.ui.context import Context
+
+if TYPE_CHECKING:
+    from alleycat.ui import ComponentUI
 
 
 class Component(ReactiveObject, Drawable, Bounded, EventDispatcher):
@@ -26,13 +29,20 @@ class Component(ReactiveObject, Drawable, Bounded, EventDispatcher):
         super().__init__()
 
         self._context = context
+        self._ui = context.look_and_feel.create_ui(self)
+
+        assert self._ui is not None
 
     @property
     def context(self) -> Context:
         return self._context
 
+    @property
+    def ui(self) -> ComponentUI:
+        return self._ui
+
     def draw(self, g: Graphics) -> None:
-        pass
+        self.ui.draw(g, self)
 
     def dispatch_event(self, event: Event) -> None:
         pass
