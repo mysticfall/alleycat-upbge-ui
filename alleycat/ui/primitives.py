@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import reduce
-from typing import Any, Tuple, Union, Optional
+from typing import Any, Tuple, Union, Optional, Iterable, Iterator
 
 
 @dataclass(frozen=True)
-class Point:
+class Point(Iterable):
     x: float
 
     y: float
@@ -39,9 +39,12 @@ class Point:
     def __neg__(self) -> Point:
         return Point(-self.x, -self.y)
 
+    def __iter__(self) -> Iterator[float]:
+        return iter(self.tuple)
+
 
 @dataclass(frozen=True)
-class Dimension:
+class Dimension(Iterable):
     width: float
 
     height: float
@@ -73,13 +76,16 @@ class Dimension:
     def __truediv__(self, number: float) -> Dimension:
         return Dimension(self.width / number, self.height / number)
 
+    def __iter__(self) -> Iterator[float]:
+        return iter(self.tuple)
+
     def __post_init__(self):
         _ensure_non_negative(self, "width")
         _ensure_non_negative(self, "height")
 
 
 @dataclass(frozen=True)
-class Bounds:
+class Bounds(Iterable):
     x: float
 
     y: float
@@ -128,6 +134,9 @@ class Bounds:
     def __truediv__(self, number: float) -> Bounds:
         return Bounds(self.x, self.y, self.width / number, self.height / number)
 
+    def __iter__(self) -> Iterator[float]:
+        return iter(self.tuple)
+
     def __post_init__(self):
         _ensure_non_negative(self, "width")
         _ensure_non_negative(self, "height")
@@ -149,7 +158,7 @@ class Bounds:
 
 
 @dataclass(frozen=True)
-class RGBA:
+class RGBA(Iterable):
     r: float
 
     g: float
@@ -178,6 +187,9 @@ class RGBA:
             g if g is not None else self.g,
             b if b is not None else self.b,
             a if a is not None else self.a)
+
+    def __iter__(self) -> Iterator[float]:
+        return iter(self.tuple)
 
     def __post_init__(self):
         _ensure_range(self, "r")

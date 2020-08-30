@@ -10,6 +10,12 @@ class PrimitivesTest(unittest.TestCase):
         self.assertEqual(10.5, point.x)
         self.assertEqual(-20.2, point.y)
 
+    def test_point_unpack(self):
+        (x, y) = Point(20.2, 15.3)
+
+        self.assertEqual(20.2, x)
+        self.assertEqual(15.3, y)
+
     def test_point_operations(self):
         self.assertEqual(Point(-5, 8), Point(-10, 6) + Point(5, 2))
         self.assertEqual(Point(4., -2.5), Point(6.3, 0) - Point(2.3, 2.5))
@@ -43,6 +49,12 @@ class PrimitivesTest(unittest.TestCase):
             Dimension(30, -10)
 
         self.assertEqual("Argument 'height' must be zero or a positive number.", cm_height.exception.args[0])
+
+    def test_dimension_unpack(self):
+        (width, height) = Dimension(20, 10)
+
+        self.assertEqual(20, width)
+        self.assertEqual(10, height)
 
     def test_dimension_to_tuple(self):
         self.assertEqual((30, 20), Dimension(30, 20).tuple)
@@ -79,6 +91,14 @@ class PrimitivesTest(unittest.TestCase):
             Bounds(-20, 30, 30, -10)
 
         self.assertEqual("Argument 'height' must be zero or a positive number.", cm_height.exception.args[0])
+
+    def test_bounds_unpack(self):
+        (x, y, width, height) = Bounds(10, -30, 150, 200)
+
+        self.assertEqual(10, x)
+        self.assertEqual(-30, y)
+        self.assertEqual(150, width)
+        self.assertEqual(200, height)
 
     def test_bounds_to_tuple(self):
         self.assertEqual((30, 20, 100, 200), Bounds(30, 20, 100, 200).tuple)
@@ -134,6 +154,14 @@ class PrimitivesTest(unittest.TestCase):
                     RGBA(**args)
 
                 self.assertEqual(f"Argument '{attr}' must be between 0 and 1.", cm.exception.args[0])
+
+    def test_rgba_unpack(self):
+        (r, g, b, a) = RGBA(0.1, 0.2, 0.8, 1.0)
+
+        self.assertEqual(0.1, r)
+        self.assertEqual(0.2, g)
+        self.assertEqual(0.8, b)
+        self.assertEqual(1.0, a)
 
     def test_rgba_to_tuple(self):
         self.assertEqual((0.1, 0.2, 0.8, 1.0), RGBA(0.1, 0.2, 0.8, 1.0).tuple)
