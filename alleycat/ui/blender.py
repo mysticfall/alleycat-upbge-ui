@@ -1,29 +1,62 @@
-from typing import Iterable
+from __future__ import annotations
 
+from typing import Iterable, cast, Optional
+
+import bge
 import gpu
 from alleycat.reactive import ReactiveObject, RV
 from alleycat.reactive import functions as rv
 from bge.logic import mouse
 from gpu_extras.batch import batch_for_shader
 from rx import operators as ops
-from rx.subject import Subject
+from rx.subject import Subject, BehaviorSubject
 
-from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, MouseInput, Point
-from alleycat.ui.context import ContextBuilder
+from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, MouseInput, Point, LookAndFeel, WindowManager, \
+    Dimension
+from alleycat.ui.context import ContextBuilder, ErrorHandler
 from alleycat.ui.event import EventLoopAware
 
 
+def get_window_size() -> Dimension:
+    return Dimension(bge.render.getWindowWidth(), bge.render.getWindowHeight())
+
+
 class UI(ContextBuilder):
+
     def __init__(self) -> None:
         super().__init__(BlenderToolkit())
 
+    def create_context(self) -> Context:
+        return BlenderContext(cast(BlenderToolkit, self.toolkit), **self.args)
 
-class BlenderToolkit(Toolkit):
 
-    def create_graphics(self, context: Context) -> Graphics:
+class BlenderContext(Context):
+    window_size: RV[Dimension] = rv.new_view()
+
+    def __init__(self,
+                 toolkit: BlenderToolkit,
+                 look_and_feel: Optional[LookAndFeel] = None,
+                 window_manager: Optional[WindowManager] = None,
+                 error_handler: Optional[ErrorHandler] = None) -> None:
+        super().__init__(toolkit, look_and_feel, window_manager, error_handler)
+
+        self._resolution = BehaviorSubject(get_window_size())
+
+        # noinspection PyTypeChecker
+        self.window_size = self._resolution.pipe(ops.distinct_until_changed())
+
+    def process_draw(self) -> None:
+        self._resolution.on_next(get_window_size())
+
+        super().process_draw()
+
+
+class BlenderToolkit(Toolkit[BlenderContext]):
+
+    def create_graphics(self, context: BlenderContext) -> Graphics:
         return BlenderGraphics()
 
-    def create_inputs(self, context: Context) -> Iterable[Input]:
+    def create_inputs(self, context: BlenderContext) -> Iterable[Input]:
         return [BlenderMouseInput(context)]
 
 
@@ -50,7 +83,7 @@ class BlenderGraphics(Graphics):
 class BlenderMouseInput(MouseInput, ReactiveObject, EventLoopAware):
     position: RV[Point] = rv.new_view()
 
-    def __init__(self, context: Context) -> None:
+    def __init__(self, context: BlenderContext) -> None:
         super().__init__(context)
 
         self._position = Subject()

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import functools
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections import Mapping
 from typing import Optional, Callable, Any, Dict, TYPE_CHECKING
 
-from alleycat.reactive import ReactiveObject
+from alleycat.reactive import ReactiveObject, RV
 
-from alleycat.ui import EventDispatcher, EventLoopAware, Event, InputLookup, Input
+from alleycat.ui import EventDispatcher, EventLoopAware, Event, InputLookup, Input, Dimension
 
 if TYPE_CHECKING:
     from alleycat.ui import LookAndFeel, Toolkit, WindowManager
@@ -30,7 +30,8 @@ def default_error_handler(e: Exception) -> None:
     print(e)
 
 
-class Context(ReactiveObject, EventLoopAware, EventDispatcher, InputLookup):
+class Context(ReactiveObject, EventLoopAware, EventDispatcher, InputLookup, ABC):
+    window_size: RV[Dimension]
 
     def __init__(self,
                  toolkit: Toolkit,
@@ -114,6 +115,10 @@ class ContextBuilder(ABC):
         self.toolkit = toolkit
         self._args: Dict[str, Any] = dict()
 
+    @property
+    def args(self) -> Dict[str, Any]:
+        return self._args
+
     def with_window_manager(self, manager: WindowManager) -> ContextBuilder:
         if manager is None:
             raise ValueError("Argument 'manager' is required.")
@@ -138,5 +143,6 @@ class ContextBuilder(ABC):
 
         return self
 
+    @abstractmethod
     def create_context(self) -> Context:
-        return Context(self.toolkit, **self._args)
+        pass
