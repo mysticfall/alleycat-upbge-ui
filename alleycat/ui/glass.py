@@ -1,6 +1,6 @@
 from typing import TypeVar
 
-from alleycat.ui import LookAndFeel, Component, ComponentUI, Panel, Graphics, Window, RGBA
+from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window
 
 T = TypeVar("T", bound=Component, contravariant=True)
 
@@ -24,6 +24,6 @@ class GlassPanelUI(ComponentUI[Panel]):
 
 
 class GlassWindowUI(ComponentUI[Window]):
-    def draw(self, g: Graphics, component: Panel) -> None:
-        g.color = RGBA(0, 0, 0, 1)
+    def draw(self, g: Graphics, component: Window) -> None:
+        g.color = RGBA(0, 0, 0, 0.5)
         g.fill_rect(component.bounds)

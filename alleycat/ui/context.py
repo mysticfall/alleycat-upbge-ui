@@ -43,7 +43,8 @@ class Context(ReactiveObject, EventLoopAware, EventDispatcher, InputLookup, ABC)
 
         super().__init__()
 
-        from alleycat.ui import GlassLookAndFeel, WindowManager
+        from alleycat.ui import WindowManager
+        from alleycat.ui.glass import GlassLookAndFeel
 
         self._toolkit = toolkit
 

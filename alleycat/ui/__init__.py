@@ -11,4 +11,3 @@ from .component import Component, Container
 from .panel import Panel
 from .window import Window, WindowManager
 from .laf import ComponentUI, LookAndFeel
-from .laf_glass import GlassLookAndFeel
