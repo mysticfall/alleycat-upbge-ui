@@ -7,6 +7,7 @@ from .bounded import Bounded
 from .graphics import Graphics
 from .drawable import Drawable
 from .toolkit import Toolkit
+from .style import StyleLookup, StyleKey, ColorKey
 from .component import Component, Container
 from .panel import Panel
 from .window import Window, WindowManager

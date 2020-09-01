@@ -9,15 +9,13 @@ from alleycat.reactive import functions as rv
 from returns.maybe import Nothing, Maybe, Some
 from rx import operators as ops
 
-from alleycat.ui import Drawable, Event, EventDispatcher, Graphics
-from alleycat.ui.bounded import Bounded
-from alleycat.ui.context import Context
+from alleycat.ui import Bounded, Context, Drawable, Event, EventDispatcher, Graphics, StyleLookup
 
 if TYPE_CHECKING:
     from alleycat.ui import ComponentUI
 
 
-class Component(ReactiveObject, Drawable, Bounded, EventDispatcher):
+class Component(ReactiveObject, Drawable, Bounded, EventDispatcher, StyleLookup):
     parent: RP[Maybe[Container]] = rv.from_value(Nothing)
 
     visible: RP[bool] = rv.from_value(True)
@@ -46,6 +44,10 @@ class Component(ReactiveObject, Drawable, Bounded, EventDispatcher):
 
     def dispatch_event(self, event: Event) -> None:
         pass
+
+    @property
+    def style_fallback(self) -> Maybe[StyleLookup]:
+        return Some(self.context.look_and_feel)
 
 
 class ComponentEvent(Event, ABC):

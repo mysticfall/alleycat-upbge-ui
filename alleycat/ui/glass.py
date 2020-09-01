@@ -1,11 +1,16 @@
-from typing import TypeVar
+from typing import TypeVar, Final
 
-from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window
+from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window, ColorKey
 
 T = TypeVar("T", bound=Component, contravariant=True)
 
 
 class GlassLookAndFeel(LookAndFeel):
+
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.set_color(ColorKeys.Background, RGBA(0, 0, 0, 0.8))
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def create_ui(self, component: T) -> ComponentUI[T]:
@@ -19,11 +24,15 @@ class GlassLookAndFeel(LookAndFeel):
 
 class GlassPanelUI(ComponentUI[Panel]):
     def draw(self, g: Graphics, component: Panel) -> None:
-        g.color = RGBA(0, 0, 0, 1)
+        g.color = component.get_color(ColorKeys.Background).or_else_call(lambda _: RGBA(0, 0, 0, 1))
         g.fill_rect(component.bounds)
 
 
 class GlassWindowUI(ComponentUI[Window]):
     def draw(self, g: Graphics, component: Window) -> None:
-        g.color = RGBA(0, 0, 0, 0.5)
+        g.color = component.get_color(ColorKeys.Background).or_else_call(lambda _: RGBA(0, 0, 0, 1))
         g.fill_rect(component.bounds)
+
+
+class ColorKeys:
+    Background: Final = ColorKey()
