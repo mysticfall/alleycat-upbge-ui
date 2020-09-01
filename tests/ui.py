@@ -16,6 +16,15 @@ class UITestCase(unittest.TestCase, ABC):
         self.output_dir = output_dir if output_dir is not None else Path("output", self.__module__)
 
     def assertImage(self, name: str, context: CairoContext, tolerance: int = 0):
+        if name is None:
+            raise ValueError("Argument 'name' is required.")
+
+        if context is None:
+            raise ValueError("Argument 'context' is required.")
+
+        if tolerance < 0:
+            raise ValueError("Argument 'tolerance' should be zero or a positive number.")
+
         surface = context.surface
 
         fixture_path = self.fixture_dir / (name + ".png")

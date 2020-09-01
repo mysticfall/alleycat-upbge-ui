@@ -14,6 +14,8 @@ class GlassLookAndFeel(LookAndFeel):
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def create_ui(self, component: T) -> ComponentUI[T]:
+        assert component is not None
+
         if isinstance(component, Panel):
             return GlassPanelUI()
         elif isinstance(component, Window):
@@ -24,12 +26,18 @@ class GlassLookAndFeel(LookAndFeel):
 
 class GlassPanelUI(ComponentUI[Panel]):
     def draw(self, g: Graphics, component: Panel) -> None:
+        assert g is not None
+        assert component is not None
+
         g.color = component.get_color(ColorKeys.Background).or_else_call(lambda _: RGBA(0, 0, 0, 1))
         g.fill_rect(component.bounds)
 
 
 class GlassWindowUI(ComponentUI[Window]):
     def draw(self, g: Graphics, component: Window) -> None:
+        assert g is not None
+        assert component is not None
+
         g.color = component.get_color(ColorKeys.Background).or_else_call(lambda _: RGBA(0, 0, 0, 1))
         g.fill_rect(component.bounds)
 

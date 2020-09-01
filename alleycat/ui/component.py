@@ -8,6 +8,7 @@ from alleycat.reactive import ReactiveObject, RP, RV
 from alleycat.reactive import functions as rv
 from returns.maybe import Nothing, Maybe, Some
 from rx import operators as ops
+from rx.subject import Subject
 
 from alleycat.ui import Bounded, Context, Drawable, Event, EventDispatcher, Graphics, StyleLookup
 
@@ -61,7 +62,6 @@ class Container(Component):
     def __init__(self, context: Context) -> None:
         super().__init__(context)
 
-        from rx.subject import Subject
         self._added_child = Subject()
         self._removed_child = Subject()
 

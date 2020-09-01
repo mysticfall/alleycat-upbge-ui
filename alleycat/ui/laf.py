@@ -22,5 +22,5 @@ class ComponentUI(ABC, Generic[T]):
 
 
 class NoUI(ComponentUI[Component]):
-    def draw(self, graphics: Graphics, component: T) -> None:
+    def draw(self, graphics: Graphics, component: Component) -> None:
         pass

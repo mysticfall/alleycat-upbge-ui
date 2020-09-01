@@ -23,7 +23,7 @@ class Graphics(Disposable, ABC, Generic[T]):
         self.color = RGBA(0, 0, 0, 0)
 
     @property
-    def context(self) -> T:
+    def context(self) -> Context:
         return self._context
 
     @abstractmethod

@@ -58,7 +58,7 @@ class CairoToolkit(Toolkit[CairoContext]):
 
 class CairoGraphics(Graphics[CairoContext]):
     def __init__(self, g: cairo.Context, context: CairoContext) -> None:
-        if cairo is None:
+        if g is None:
             raise ValueError("Argument 'g' is required.")
 
         super().__init__(context)
@@ -70,6 +70,9 @@ class CairoGraphics(Graphics[CairoContext]):
         return self._g
 
     def fill_rect(self, bounds: Bounds) -> Graphics:
+        if bounds is None:
+            raise ValueError("Argument 'bounds' is required.")
+
         self.g.rectangle(bounds.x, bounds.y, bounds.width, bounds.height)
 
         (r, g, b, a) = self.color

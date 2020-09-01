@@ -62,7 +62,11 @@ class BlenderGraphics(Graphics[BlenderContext]):
     shader = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
     def fill_rect(self, bounds: Bounds) -> Graphics:
-        vertices = tuple(map(lambda p: p.tuple, map(self.context.translate, bounds.points)))
+        if bounds is None:
+            raise ValueError("Argument 'bounds' is required.")
+
+        bc = cast(BlenderContext, self.context)
+        vertices = tuple(map(lambda p: p.tuple, map(bc.translate, bounds.points)))
         indices = ((0, 1, 3), (3, 1, 2))
 
         self.shader.bind()
