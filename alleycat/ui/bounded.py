@@ -2,9 +2,8 @@ from abc import ABC
 
 from alleycat.reactive import RV, RP
 from alleycat.reactive import functions as rv
-from rx import operators as ops
 
-from alleycat.ui import Bounds, Dimension, Point
+from alleycat.ui import Bounds, Dimension
 
 
 class Bounded(ABC):
@@ -18,6 +17,6 @@ class Bounded(ABC):
 
     height: RV[float] = bounds.as_view().map(lambda b: b.height)
 
-    location: RV[float] = rv.combine_latest(x, y)(ops.map(lambda v: Point(v[0], v[1])))
+    location: RV[float] = bounds.as_view().map(lambda b: b.location)
 
-    size: RV[Dimension] = rv.combine_latest(width, height)(ops.map(lambda v: Dimension(v[0], v[1])))
+    size: RV[Dimension] = bounds.as_view().map(lambda b: b.size)
