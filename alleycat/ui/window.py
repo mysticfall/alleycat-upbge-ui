@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Iterator
 
 from alleycat.reactive import functions as rv, RP
-from returns.maybe import Maybe, Nothing
+from returns.maybe import Maybe, Nothing, Some
 
-from alleycat.ui import Context, Graphics, Container, LayoutContainer, Layout, Drawable
+from alleycat.ui import Context, Graphics, Container, LayoutContainer, Layout, Drawable, Point
 
 
 class Window(LayoutContainer):
@@ -28,6 +28,18 @@ class WindowManager(Container[Window], Drawable):
         super().remove(child)
 
         child.parent = Nothing
+
+    def window_at(self, location: Point) -> Maybe[Window]:
+        if location is None:
+            raise ValueError("Argument 'location' is required.")
+
+        try:
+            # noinspection PyTypeChecker
+            children: Iterator[Window] = reversed(self.children)
+
+            return Some(next(c for c in children if c.bounds.contains(location)))
+        except StopIteration:
+            return Nothing
 
     def draw(self, g: Graphics) -> None:
         # noinspection PyTypeChecker
