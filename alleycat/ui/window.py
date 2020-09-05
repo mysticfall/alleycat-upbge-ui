@@ -1,60 +1,35 @@
-from typing import Tuple, Sequence
+from __future__ import annotations
 
-import rx
-from alleycat.reactive import functions as rv, RV
-from rx import operators as ops
-from rx.disposable import Disposable
-from rx.subject import Subject
+from typing import Optional
 
-from alleycat.ui import Context, Container, Graphics
+from alleycat.reactive import functions as rv, RP
+from returns.maybe import Maybe, Nothing
+
+from alleycat.ui import Context, Graphics, Container, LayoutContainer, Layout, Drawable
 
 
-class Window(Container):
+class Window(LayoutContainer):
+    parent: RP[Maybe[Container[Window]]] = rv.from_value(Nothing)
 
-    def __init__(self, context: Context) -> None:
-        super().__init__(context)
+    def __init__(self, context: Context, layout: Optional[Layout] = None) -> None:
+        super().__init__(context, layout)
 
         context.window_manager.add(self)
 
 
-class WindowManager(Disposable):
-    windows: RV[Sequence[Window]] = rv.new_view()
-
-    def __init__(self) -> None:
-        super().__init__()
-
-        self._added_child = Subject()
-        self._removed_child = Subject()
-
-        changed_child = rx.merge(
-            self._added_child.pipe(ops.map(lambda v: (v, True))),
-            self._removed_child.pipe(ops.map(lambda v: (v, False))))
-
-        def on_child_change(children: Tuple[Window, ...], event: Tuple[Window, bool]):
-            (child, added) = event
-
-            if added and child not in children:
-                return children + (child,)
-            elif not added and child in children:
-                return tuple(c for c in children if c is not child)
-
-        # noinspection PyTypeChecker
-        self.windows = changed_child.pipe(
-            ops.scan(on_child_change, ()), ops.start_with(()), ops.distinct_until_changed())
+class WindowManager(Container[Window], Drawable):
 
     def add(self, child: Window) -> None:
-        if child is None:
-            raise ValueError("Argument 'child' is required.")
+        super().add(child)
 
-        self._added_child.on_next(child)
+        child.parent = self
 
     def remove(self, child: Window) -> None:
-        if child is None:
-            raise ValueError("Argument 'child' is required.")
+        super().remove(child)
 
-        self._removed_child.on_next(child)
+        child.parent = Nothing
 
     def draw(self, g: Graphics) -> None:
         # noinspection PyTypeChecker
-        for window in self.windows:
-            window.draw(g)
+        for child in self.children:
+            child.draw(g)

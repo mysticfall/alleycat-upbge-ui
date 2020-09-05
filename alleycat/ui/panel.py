@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from alleycat.ui import Context, Container
+from typing import Optional
+
+from alleycat.ui import Context, Layout, LayoutContainer
 
 
-class Panel(Container):
+class Panel(LayoutContainer):
 
-    def __init__(self, context: Context) -> None:
-        super().__init__(context)
+    def __init__(self, context: Context, layout: Optional[Layout] = None) -> None:
+        super().__init__(context, layout)

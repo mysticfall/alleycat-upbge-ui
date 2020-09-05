@@ -8,7 +8,9 @@ from .graphics import Graphics
 from .drawable import Drawable
 from .toolkit import Toolkit
 from .style import StyleLookup, StyleKey, ColorKey
-from .component import Component, Container
+from .container import Container
+from .component import Component
+from .layout import Layout, LayoutContainer
 from .panel import Panel
 from .window import Window, WindowManager
 from .laf import ComponentUI, LookAndFeel
