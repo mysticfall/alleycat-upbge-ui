@@ -29,7 +29,7 @@ class GlassPanelUI(ComponentUI[Panel]):
         assert g is not None
         assert component is not None
 
-        g.color = component.get_color(ColorKeys.Background).or_else_call(lambda _: RGBA(0, 0, 0, 1))
+        g.color = component.get_color(ColorKeys.Background).or_else_call(lambda: RGBA(0, 0, 0, 1))
         g.fill_rect(component.bounds)
 
 
@@ -38,7 +38,7 @@ class GlassWindowUI(ComponentUI[Window]):
         assert g is not None
         assert component is not None
 
-        g.color = component.get_color(ColorKeys.Background).or_else_call(lambda _: RGBA(0, 0, 0, 1))
+        g.color = component.get_color(ColorKeys.Background).or_else_call(lambda: RGBA(0, 0, 0, 1))
         g.fill_rect(component.bounds)
 
 

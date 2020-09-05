@@ -6,6 +6,7 @@ from collections import Mapping
 from typing import Optional, Callable, Any, Dict, TYPE_CHECKING, TypeVar, Generic
 
 from alleycat.reactive import ReactiveObject, RV
+from returns.maybe import Maybe
 
 from alleycat.ui import EventDispatcher, EventLoopAware, Event, InputLookup, Input, Dimension
 
@@ -48,9 +49,9 @@ class Context(ReactiveObject, EventLoopAware, EventDispatcher, InputLookup, ABC)
 
         self._toolkit = toolkit
 
-        self._look_and_feel = look_and_feel if look_and_feel is not None else GlassLookAndFeel()
-        self._window_manager = window_manager if window_manager is not None else WindowManager()
-        self._error_handler = error_handler if error_handler is not None else default_error_handler
+        self._look_and_feel = Maybe.from_value(look_and_feel).or_else_call(GlassLookAndFeel)
+        self._window_manager = Maybe.from_value(window_manager).or_else_call(WindowManager)
+        self._error_handler = Maybe.from_value(error_handler).value_or(default_error_handler)
 
         self._graphics = toolkit.create_graphics(self)
 
