@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Optional, cast
+from typing import Optional, cast, Sequence
 
 import cairo
 import rx
@@ -47,13 +47,16 @@ class CairoContext(Context):
 
 class CairoToolkit(Toolkit[CairoContext]):
 
+    def __init__(self, inputs: Sequence[Input] = ()):
+        self.inputs = inputs
+
     def create_graphics(self, context: CairoContext) -> Graphics:
         ctx = cairo.Context(context.surface)
 
         return CairoGraphics(ctx, context)
 
-    def create_inputs(self, context: Context) -> Iterable[Input]:
-        return []
+    def create_inputs(self, context: Context) -> Sequence[Input]:
+        return self.inputs
 
 
 class CairoGraphics(Graphics[CairoContext]):
@@ -88,8 +91,8 @@ class CairoGraphics(Graphics[CairoContext]):
 
 class UI(ContextBuilder[CairoContext]):
 
-    def __init__(self) -> None:
-        super().__init__(CairoToolkit())
+    def __init__(self, inputs: Sequence[Input] = ()) -> None:
+        super().__init__(CairoToolkit(inputs))
 
         self._surface: Optional[Surface] = None
 

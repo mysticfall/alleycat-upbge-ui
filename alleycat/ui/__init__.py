@@ -1,7 +1,7 @@
 # Import order should not be changed to avoid a circular dependency.
 from .primitives import Point, Dimension, Bounds, RGBA
 from .event import Event, EventDispatcher, EventLoopAware, MouseEvent, MouseMoveEvent
-from .input import Input, InputLookup, MouseInput
+from .input import Input, InputLookup, MouseInput, FakeMouseInput
 from .context import Context, ErrorHandler
 from .bounded import Bounded
 from .graphics import Graphics

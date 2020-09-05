@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Mapping, cast, TYPE_CHECKING, Final
 
-from alleycat.reactive import RV
+from alleycat.reactive import RV, RP
 from alleycat.reactive import functions as rv
 from rx.disposable import Disposable
 
@@ -63,3 +63,16 @@ class MouseInput(Input, ABC):
 
     def id(self) -> str:
         return self.ID
+
+
+class FakeMouseInput(MouseInput):
+    _position: RP[Point] = rv.new_property()
+
+    position: RV[Point] = _position.as_view()
+
+    def move_to(self, location: Point) -> None:
+        if location is None:
+            raise ValueError("Argument 'location' is required.")
+
+        # noinspection PyTypeChecker
+        self._position = location

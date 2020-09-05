@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Iterable, TypeVar, Generic
+from typing import TypeVar, Generic, Sequence
 
 from alleycat.ui import Graphics, Context, Input
 
@@ -13,5 +13,5 @@ class Toolkit(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def create_inputs(self, context: T) -> Iterable[Input]:
+    def create_inputs(self, context: T) -> Sequence[Input]:
         pass

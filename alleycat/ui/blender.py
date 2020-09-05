@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, cast, Optional
+from typing import cast, Optional, Sequence
 
 import bge
 import gpu
@@ -53,8 +53,8 @@ class BlenderToolkit(Toolkit[BlenderContext]):
     def create_graphics(self, context: BlenderContext) -> Graphics:
         return BlenderGraphics(context)
 
-    def create_inputs(self, context: BlenderContext) -> Iterable[Input]:
-        return [BlenderMouseInput(context)]
+    def create_inputs(self, context: BlenderContext) -> Sequence[Input]:
+        return BlenderMouseInput(context),
 
 
 class BlenderGraphics(Graphics[BlenderContext]):
