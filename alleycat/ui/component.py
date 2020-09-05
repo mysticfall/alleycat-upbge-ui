@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import Tuple, List, Sequence, TYPE_CHECKING
+from typing import Tuple, Sequence, TYPE_CHECKING
 
 import rx
 from alleycat.reactive import ReactiveObject, RP, RV
@@ -69,18 +69,17 @@ class Container(Component):
             self._added_child.pipe(ops.map(lambda v: (v, True))),
             self._removed_child.pipe(ops.map(lambda v: (v, False))))
 
-        def on_child_change(children: List[Component], event: Tuple[Component, bool]):
+        def on_child_change(children: Tuple[Component, ...], event: Tuple[Component, bool]):
             (child, added) = event
 
             if added and child not in children:
-                children.append(child)
+                return children + (child,)
             elif not added and child in children:
-                children.remove(child)
-
-            return children
+                return tuple(c for c in children if c is not child)
 
         # noinspection PyTypeChecker
-        self.children = changed_child.pipe(ops.scan(on_child_change, []), ops.distinct_until_changed())
+        self.children = changed_child.pipe(
+            ops.scan(on_child_change, ()), ops.start_with(()), ops.distinct_until_changed())
 
     def add(self, child: Component) -> None:
         if child is None:

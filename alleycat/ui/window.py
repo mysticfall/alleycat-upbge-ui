@@ -1,4 +1,4 @@
-from typing import List, Tuple, Sequence
+from typing import Tuple, Sequence
 
 import rx
 from alleycat.reactive import functions as rv, RV
@@ -30,18 +30,17 @@ class WindowManager(Disposable):
             self._added_child.pipe(ops.map(lambda v: (v, True))),
             self._removed_child.pipe(ops.map(lambda v: (v, False))))
 
-        def on_child_change(children: List[Window], event: Tuple[Window, bool]):
+        def on_child_change(children: Tuple[Window, ...], event: Tuple[Window, bool]):
             (child, added) = event
 
             if added and child not in children:
-                children.append(child)
+                return children + (child,)
             elif not added and child in children:
-                children.remove(child)
-
-            return children
+                return tuple(c for c in children if c is not child)
 
         # noinspection PyTypeChecker
-        self.windows = changed_child.pipe(ops.scan(on_child_change, []), ops.distinct_until_changed())
+        self.windows = changed_child.pipe(
+            ops.scan(on_child_change, ()), ops.start_with(()), ops.distinct_until_changed())
 
     def add(self, child: Window) -> None:
         if child is None:
