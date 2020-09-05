@@ -137,6 +137,12 @@ class PrimitivesTest(unittest.TestCase):
 
         self.assertEqual(points, Bounds(-10, 20, 80, 40).points)
 
+    def test_bounds_contains(self):
+        self.assertTrue(Bounds(10, 20, 100, 50).contains(Point(60, 40)))
+        self.assertFalse(Bounds(10, 20, 100, 50).contains(Point(0, 40)))
+        self.assertTrue(Bounds(-50, -40, 100, 80).contains(Point(50, 0)))
+        self.assertFalse(Bounds(-50, -40, 100, 80).contains(Point(51, 0)))
+
     def test_rgba_init(self):
         self.assertEqual(0.5, RGBA(0.5, 0.12, 0.2, 1).r)
         self.assertEqual(0.12, RGBA(0.5, 0.12, 0.2, 1).g)

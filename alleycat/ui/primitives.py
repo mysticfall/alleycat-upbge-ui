@@ -137,6 +137,9 @@ class Bounds(Iterable):
             width if width is not None else self.width,
             height if height is not None else self.height)
 
+    def contains(self, point: Point) -> bool:
+        return self.x <= point.x <= self.x + self.width and self.y <= point.y <= self.y + self.height
+
     def __add__(self, other: Union[Point, Bounds]) -> Bounds:
         if other is None:
             raise ValueError("Cannot perform the operation on None.")
