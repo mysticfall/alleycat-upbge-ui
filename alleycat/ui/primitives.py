@@ -19,15 +19,24 @@ class Point(Iterable):
 
     @staticmethod
     def from_tuple(value: Tuple[float, float]) -> Point:
+        if value is None:
+            raise ValueError("Argument 'value' is required.")
+
         return Point(value[0], value[1])
 
     def copy(self, x: Optional[float] = None, y: Optional[float] = None) -> Point:
         return Point(x if x is not None else self.x, y if y is not None else self.y)
 
     def __add__(self, other: Point) -> Point:
+        if other is None:
+            raise ValueError("Cannot perform the operation on None.")
+
         return Point(self.x + other.x, self.y + other.y)
 
     def __sub__(self, other: Point) -> Point:
+        if other is None:
+            raise ValueError("Cannot perform the operation on None.")
+
         return self + (-other)
 
     def __mul__(self, number: float) -> Point:
@@ -57,6 +66,9 @@ class Dimension(Iterable):
 
     @staticmethod
     def from_tuple(value: Tuple[float, float]) -> Dimension:
+        if value is None:
+            raise ValueError("Argument 'value' is required.")
+
         return Dimension(value[0], value[1])
 
     def copy(self, width: Optional[float] = None, height: Optional[float] = None) -> Dimension:
@@ -65,9 +77,15 @@ class Dimension(Iterable):
             height if height is not None else self.height)
 
     def __add__(self, other: Dimension) -> Dimension:
+        if other is None:
+            raise ValueError("Cannot perform the operation on None.")
+
         return Dimension(self.width + other.width, self.height + other.height)
 
     def __sub__(self, other: Dimension) -> Dimension:
+        if other is None:
+            raise ValueError("Cannot perform the operation on None.")
+
         return Dimension(max(self.width - other.width, 0), max(self.height - other.height, 0))
 
     def __mul__(self, number: float) -> Dimension:
@@ -102,6 +120,9 @@ class Bounds(Iterable):
 
     @staticmethod
     def from_tuple(value: Tuple[float, float, float, float]) -> Bounds:
+        if value is None:
+            raise ValueError("Argument 'value' is required.")
+
         return Bounds(value[0], value[1], value[2], value[3])
 
     def copy(self,
@@ -117,6 +138,9 @@ class Bounds(Iterable):
             height if height is not None else self.height)
 
     def __add__(self, other: Union[Point, Bounds]) -> Bounds:
+        if other is None:
+            raise ValueError("Cannot perform the operation on None.")
+
         if isinstance(other, Point):
             return Bounds(
                 min(self.x, other.x),
@@ -175,6 +199,9 @@ class RGBA(Iterable):
 
     @staticmethod
     def from_tuple(value: Tuple[float, float, float, float]) -> RGBA:
+        if value is None:
+            raise ValueError("Argument 'value' is required.")
+
         return RGBA(value[0], value[1], value[2], value[3])
 
     def copy(self,
