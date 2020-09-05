@@ -10,7 +10,7 @@ from returns.maybe import Nothing, Maybe, Some
 from rx import operators as ops
 from rx.subject import Subject
 
-from alleycat.ui import Bounded, Context, Drawable, Event, EventDispatcher, Graphics, StyleLookup
+from alleycat.ui import Bounded, Context, Drawable, Event, EventDispatcher, Graphics, StyleLookup, Point
 
 if TYPE_CHECKING:
     from alleycat.ui import ComponentUI
@@ -96,3 +96,21 @@ class Container(Component):
         child.parent = None
 
         self._removed_child.on_next(child)
+
+    def component_at(self, location: Point) -> Maybe[Component]:
+        if location is None:
+            raise ValueError("Argument 'location' is required.")
+
+        if self.bounds.contains(location):
+            try:
+                # noinspection PyTypeChecker
+                child = next(c for c in self.children if c.bounds.contains(location - self.location))
+
+                if isinstance(child, Container):
+                    return child.component_at(location - self.location)
+                else:
+                    return Some(child)
+            except StopIteration:
+                return Some(self)
+
+        return Nothing
