@@ -8,7 +8,7 @@ from alleycat.ui.cairo import UI
 
 class LayoutContainerTest(unittest.TestCase):
 
-    def test_component_at(self):
+    def test_component_at_with_hierarchy(self):
         context = UI().create_context()
 
         parent = LayoutContainer(context)
@@ -47,6 +47,41 @@ class LayoutContainerTest(unittest.TestCase):
         self.assertEqual(Some(child), parent.component_at(Point(125, 74)))
         self.assertEqual(Some(child), parent.component_at(Point(126, 125)))
         self.assertEqual(Some(child), parent.component_at(Point(75, 126)))
+
+    def test_component_at_with_layers(self):
+        context = UI().create_context()
+
+        parent = LayoutContainer(context)
+        parent.bounds = Bounds(0, 0, 200, 200)
+
+        bottom = LayoutContainer(context)
+        bottom.bounds = Bounds(0, 0, 100, 100)
+
+        middle = LayoutContainer(context)
+        middle.bounds = Bounds(100, 100, 100, 100)
+
+        top = LayoutContainer(context)
+        top.bounds = Bounds(50, 50, 100, 100)
+
+        parent.add(bottom)
+        parent.add(middle)
+        parent.add(top)
+
+        self.assertEqual(Some(parent), parent.component_at(Point(200, 0)))
+        self.assertEqual(Some(parent), parent.component_at(Point(0, 200)))
+
+        self.assertEqual(Some(bottom), parent.component_at(Point(0, 0)))
+        self.assertEqual(Some(bottom), parent.component_at(Point(100, 0)))
+        self.assertEqual(Some(bottom), parent.component_at(Point(0, 100)))
+
+        self.assertEqual(Some(middle), parent.component_at(Point(200, 100)))
+        self.assertEqual(Some(middle), parent.component_at(Point(200, 200)))
+        self.assertEqual(Some(middle), parent.component_at(Point(100, 200)))
+
+        self.assertEqual(Some(top), parent.component_at(Point(100, 100)))
+        self.assertEqual(Some(top), parent.component_at(Point(150, 150)))
+        self.assertEqual(Some(top), parent.component_at(Point(150, 50)))
+        self.assertEqual(Some(top), parent.component_at(Point(50, 150)))
 
 
 if __name__ == '__main__':

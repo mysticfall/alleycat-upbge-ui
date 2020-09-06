@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Optional
+from typing import Optional, Iterator
 
 from returns.maybe import Maybe, Nothing, Some
 
@@ -32,7 +32,9 @@ class LayoutContainer(Component, Container[Component]):
         if self.bounds.contains(location):
             try:
                 # noinspection PyTypeChecker
-                child = next(c for c in self.children if c.bounds.contains(location - self.location))
+                children: Iterator[Component] = reversed(self.children)
+
+                child = next(c for c in children if c.bounds.contains(location - self.location))
 
                 if isinstance(child, LayoutContainer):
                     return child.component_at(location - self.location)
