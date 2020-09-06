@@ -52,6 +52,7 @@ class LayoutContainer(Component, Container[Component]):
     def add(self, child: Component) -> None:
         super().add(child)
 
+        child.parent.map(lambda p: p.remove(child))
         child.parent = Some(self)
 
     def remove(self, child: Component) -> None:

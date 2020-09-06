@@ -1,8 +1,9 @@
 import unittest
 
+from alleycat.reactive import functions as rv
 from returns.maybe import Some, Nothing
 
-from alleycat.ui import Bounds, Point, LayoutContainer
+from alleycat.ui import Bounds, Point, LayoutContainer, Component
 from alleycat.ui.cairo import UI
 
 
@@ -82,6 +83,41 @@ class LayoutContainerTest(unittest.TestCase):
         self.assertEqual(Some(top), parent.component_at(Point(150, 150)))
         self.assertEqual(Some(top), parent.component_at(Point(150, 50)))
         self.assertEqual(Some(top), parent.component_at(Point(50, 150)))
+
+    def test_component_parent(self):
+        context = UI().create_context()
+
+        parents = []
+
+        parent1 = LayoutContainer(context)
+        parent2 = LayoutContainer(context)
+
+        component = Component(context)
+
+        rv.observe(component.parent).subscribe(parents.append)
+
+        self.assertEqual(Nothing, component.parent)
+        self.assertEqual([Nothing], parents)
+
+        parent1.add(component)
+
+        self.assertIn(component, parent1.children)
+
+        self.assertEqual(Some(parent1), component.parent)
+        self.assertEqual([Nothing, Some(parent1)], parents)
+
+        parent2.add(component)
+
+        self.assertIn(component, parent2.children)
+        self.assertNotIn(component, parent1.children)
+
+        self.assertEqual(Some(parent2), component.parent)
+        self.assertEqual([Nothing, Some(parent1), Nothing, Some(parent2)], parents)
+
+        parent2.remove(component)
+
+        self.assertEqual(Nothing, component.parent)
+        self.assertEqual([Nothing, Some(parent1), Nothing, Some(parent2), Nothing], parents)
 
 
 if __name__ == '__main__':
