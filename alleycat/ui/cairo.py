@@ -104,6 +104,12 @@ class UI(ContextBuilder[CairoContext]):
 
         return self
 
+    def with_image_surface(self, size: Dimension = Dimension(640, 480)) -> UI:
+        if size is None:
+            raise ValueError("Argument 'size' is required.")
+
+        return self.with_surface(ImageSurface(Format.ARGB32, int(size.width), int(size.height)))
+
     def create_context(self) -> CairoContext:
         surface = self._surface if self._surface is not None else ImageSurface(Format.ARGB32, 640, 480)
 
