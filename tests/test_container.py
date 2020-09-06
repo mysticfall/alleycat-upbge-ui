@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 import unittest
 
 from alleycat.reactive import functions as rv
 
-from alleycat.ui import Container, Component
-from alleycat.ui.cairo import UI
+from alleycat.ui import Container
 
 
 class ContainerTest(unittest.TestCase):
