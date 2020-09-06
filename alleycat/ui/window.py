@@ -2,14 +2,12 @@ from __future__ import annotations
 
 from typing import Optional, Iterator
 
-from alleycat.reactive import functions as rv, RP
 from returns.maybe import Maybe, Nothing, Some
 
 from alleycat.ui import Context, Graphics, Container, LayoutContainer, Layout, Drawable, Point
 
 
 class Window(LayoutContainer):
-    parent: RP[Maybe[Container[Window]]] = rv.from_value(Nothing)
 
     def __init__(self, context: Context, layout: Optional[Layout] = None) -> None:
         super().__init__(context, layout)
@@ -21,16 +19,6 @@ class WindowManager(Drawable, Container[Window]):
 
     def __init__(self) -> None:
         super().__init__()
-
-    def add(self, child: Window) -> None:
-        super().add(child)
-
-        child.parent = Some(self)
-
-    def remove(self, child: Window) -> None:
-        super().remove(child)
-
-        child.parent = Nothing
 
     def window_at(self, location: Point) -> Maybe[Window]:
         if location is None:
