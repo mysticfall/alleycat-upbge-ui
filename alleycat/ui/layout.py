@@ -52,7 +52,7 @@ class LayoutContainer(Component, Container[Component]):
     def add(self, child: Component) -> None:
         super().add(child)
 
-        child.parent = self
+        child.parent = Some(self)
 
     def remove(self, child: Component) -> None:
         super().remove(child)

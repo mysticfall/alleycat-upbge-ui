@@ -25,7 +25,7 @@ class WindowManager(Drawable, Container[Window]):
     def add(self, child: Window) -> None:
         super().add(child)
 
-        child.parent = self
+        child.parent = Some(self)
 
     def remove(self, child: Window) -> None:
         super().remove(child)
