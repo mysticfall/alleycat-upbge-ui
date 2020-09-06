@@ -9,8 +9,13 @@ from alleycat.ui import Point
 class Event(ABC):
     source: Any
 
-    def __init__(self):
+    def __init__(self, source: Any) -> None:
+        if source is None:
+            raise ValueError("Argument 'source' is required.")
+
         super().__init__()
+
+        self.source = source
 
     def __post_init__(self) -> None:
         if self.source is None:
@@ -20,13 +25,13 @@ class Event(ABC):
 class PositionalEvent(Event, ABC):
     position: Point
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, source: Any) -> None:
+        super().__init__(source)
 
 
 class EventLoopAware(ABC):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod
@@ -36,7 +41,7 @@ class EventLoopAware(ABC):
 
 class EventDispatcher(ABC):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod
@@ -46,8 +51,8 @@ class EventDispatcher(ABC):
 
 class MouseEvent(PositionalEvent, ABC):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, source: Any):
+        super().__init__(source)
 
 
 @dataclass

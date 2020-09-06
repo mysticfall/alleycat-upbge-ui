@@ -26,7 +26,7 @@ class GlassLookAndFeel(LookAndFeel):
 
 class GlassPanelUI(ComponentUI[Panel]):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     def draw(self, g: Graphics, component: Panel) -> None:
@@ -39,7 +39,7 @@ class GlassPanelUI(ComponentUI[Panel]):
 
 class GlassWindowUI(ComponentUI[Window]):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     def draw(self, g: Graphics, component: Window) -> None:

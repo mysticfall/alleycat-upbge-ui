@@ -8,13 +8,13 @@ from alleycat.ui import Component, Container, Point, Graphics, Context
 
 class Layout(ABC):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 
 class AbsoluteLayout(Layout):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 

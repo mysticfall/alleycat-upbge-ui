@@ -50,7 +50,7 @@ class BlenderContext(Context):
 
 class BlenderToolkit(Toolkit[BlenderContext]):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     def create_graphics(self, context: BlenderContext) -> Graphics:

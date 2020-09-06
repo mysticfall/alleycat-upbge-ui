@@ -10,7 +10,7 @@ T = TypeVar("T", bound=Component, contravariant=True)
 
 class LookAndFeel(StyleLookup, ABC):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
@@ -20,7 +20,7 @@ class LookAndFeel(StyleLookup, ABC):
 
 class ComponentUI(ABC, Generic[T]):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod
@@ -30,7 +30,7 @@ class ComponentUI(ABC, Generic[T]):
 
 class NoUI(ComponentUI[Component]):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     def draw(self, graphics: Graphics, component: Component) -> None:

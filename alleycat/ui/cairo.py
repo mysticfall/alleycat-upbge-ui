@@ -47,7 +47,7 @@ class CairoContext(Context):
 
 class CairoToolkit(Toolkit[CairoContext]):
 
-    def __init__(self, inputs: Sequence[Input] = ()):
+    def __init__(self, inputs: Sequence[Input] = ()) -> None:
         super().__init__()
 
         self.inputs = inputs

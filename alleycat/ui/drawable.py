@@ -5,7 +5,7 @@ from alleycat.ui import Graphics
 
 class Drawable(ABC):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod

@@ -8,7 +8,7 @@ T = TypeVar("T", bound=Context, contravariant=True)
 
 class Toolkit(ABC, Generic[T]):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod

@@ -19,7 +19,7 @@ class Window(LayoutContainer):
 
 class WindowManager(Drawable, Container[Window]):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     def add(self, child: Window) -> None:

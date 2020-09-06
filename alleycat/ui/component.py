@@ -52,5 +52,6 @@ class Component(Bounded, Drawable, StyleLookup, EventDispatcher, ReactiveObject)
 
 
 class ComponentEvent(Event, ABC):
+
     def __init__(self, source: Component) -> None:
         super().__init__(source)

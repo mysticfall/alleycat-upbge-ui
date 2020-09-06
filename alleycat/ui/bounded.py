@@ -8,7 +8,7 @@ from alleycat.ui import Bounds, Dimension
 
 class Bounded(ABC):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     bounds: RP[Bounds] = rv.from_value(Bounds(0, 0, 0, 0))
