@@ -68,8 +68,12 @@ class BlenderGraphics(Graphics[BlenderContext]):
         if bounds is None:
             raise ValueError("Argument 'bounds' is required.")
 
+        (dx, dy) = self.offset
+
+        points = bounds.copy(x=bounds.x + dx, y=bounds.y + dy).points
+
         bc = cast(BlenderContext, self.context)
-        vertices = tuple(map(lambda p: p.tuple, map(bc.translate, bounds.points)))
+        vertices = tuple(map(lambda p: p.tuple, map(bc.translate, points)))
         indices = ((0, 1, 3), (3, 1, 2))
 
         self.shader.bind()

@@ -79,7 +79,9 @@ class CairoGraphics(Graphics[CairoContext]):
         if bounds is None:
             raise ValueError("Argument 'bounds' is required.")
 
-        self.g.rectangle(bounds.x, bounds.y, bounds.width, bounds.height)
+        (dx, dy) = self.offset
+
+        self.g.rectangle(bounds.x + dx, bounds.y + dx, bounds.width, bounds.height)
 
         (r, g, b, a) = self.color
 
