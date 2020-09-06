@@ -7,11 +7,15 @@ from alleycat.ui import Component, Container, Point, Graphics, Context
 
 
 class Layout(ABC):
-    pass
+
+    def __init__(self):
+        super().__init__()
 
 
 class AbsoluteLayout(Layout):
-    pass
+
+    def __init__(self):
+        super().__init__()
 
 
 class LayoutContainer(Component, Container[Component]):

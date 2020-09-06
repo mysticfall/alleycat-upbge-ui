@@ -7,6 +7,10 @@ from alleycat.ui import Bounds, Dimension
 
 
 class Bounded(ABC):
+
+    def __init__(self):
+        super().__init__()
+
     bounds: RP[Bounds] = rv.from_value(Bounds(0, 0, 0, 0))
 
     x: RV[float] = bounds.as_view().map(lambda b: b.x)

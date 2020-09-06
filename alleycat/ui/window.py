@@ -17,7 +17,10 @@ class Window(LayoutContainer):
         context.window_manager.add(self)
 
 
-class WindowManager(Container[Window], Drawable):
+class WindowManager(Drawable, Container[Window]):
+
+    def __init__(self):
+        super().__init__()
 
     def add(self, child: Window) -> None:
         super().add(child)

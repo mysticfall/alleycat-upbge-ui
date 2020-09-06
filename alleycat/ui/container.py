@@ -15,6 +15,8 @@ class Container(ReactiveObject, Generic[T]):
     children: RV[Sequence[T]] = rv.new_view()
 
     def __init__(self) -> None:
+        super().__init__()
+
         self._added_child = Subject()
         self._removed_child = Subject()
 

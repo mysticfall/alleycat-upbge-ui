@@ -8,6 +8,9 @@ T = TypeVar("T", bound=Context, contravariant=True)
 
 class Toolkit(ABC, Generic[T]):
 
+    def __init__(self):
+        super().__init__()
+
     @abstractmethod
     def create_graphics(self, context: T) -> Graphics:
         pass

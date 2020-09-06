@@ -31,7 +31,7 @@ def default_error_handler(e: Exception) -> None:
     print(e)
 
 
-class Context(ReactiveObject, EventLoopAware, EventDispatcher, InputLookup, ABC):
+class Context(EventLoopAware, EventDispatcher, InputLookup, ReactiveObject, ABC):
     window_size: RV[Dimension]
 
     def __init__(self,

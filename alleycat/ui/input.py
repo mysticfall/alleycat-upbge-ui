@@ -34,6 +34,10 @@ class Input(Disposable, ABC):
 
 
 class InputLookup(ABC):
+
+    def __init__(self):
+        super().__init__()
+
     @property
     @abstractmethod
     def inputs(self) -> Mapping[str, Input]:
@@ -64,11 +68,21 @@ class MouseInput(Input, ABC):
     def id(self) -> str:
         return self.ID
 
+    def dispatch(self, location: Point) -> None:
+        window = self.context.window_manager.window_at(location)
+        component = window.bind(lambda w: w.component_at(location))
+
+        event = component.map(lambda c: MouseMoveEvent(c, location))
+        print(event)
+
 
 class FakeMouseInput(MouseInput):
     _position: RP[Point] = rv.new_property()
 
     position: RV[Point] = _position.as_view()
+
+    def __init__(self, context: Context):
+        super().__init__(context)
 
     def move_to(self, location: Point) -> None:
         if location is None:

@@ -12,6 +12,8 @@ from alleycat.ui import RGBA
 class StyleLookup:
 
     def __init__(self) -> None:
+        super().__init__()
+
         self._colors: Dict[ColorKey, RGBA] = dict()
 
     @property

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from alleycat.ui import ComponentUI, LayoutContainer
 
 
-class Component(ReactiveObject, Drawable, Bounded, EventDispatcher, StyleLookup):
+class Component(Bounded, Drawable, StyleLookup, EventDispatcher, ReactiveObject):
     visible: RP[bool] = rv.from_value(True)
 
     parent: RP[Maybe[LayoutContainer]] = rv.from_value(Nothing)

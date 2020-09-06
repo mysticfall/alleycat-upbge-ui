@@ -48,6 +48,8 @@ class CairoContext(Context):
 class CairoToolkit(Toolkit[CairoContext]):
 
     def __init__(self, inputs: Sequence[Input] = ()):
+        super().__init__()
+
         self.inputs = inputs
 
     def create_graphics(self, context: CairoContext) -> Graphics:
@@ -60,6 +62,7 @@ class CairoToolkit(Toolkit[CairoContext]):
 
 
 class CairoGraphics(Graphics[CairoContext]):
+
     def __init__(self, g: cairo.Context, context: CairoContext) -> None:
         if g is None:
             raise ValueError("Argument 'g' is required.")
