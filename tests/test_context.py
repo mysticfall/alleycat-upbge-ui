@@ -3,7 +3,7 @@ from typing import Sequence
 
 from cairo import ImageSurface, Format
 
-from alleycat.ui import Context, Input, FakeMouseInput
+from alleycat.ui import Context, Input, FakeMouseInput, MouseInput
 from alleycat.ui.cairo import CairoToolkit, CairoContext
 
 
@@ -20,7 +20,7 @@ class ContextTest(unittest.TestCase):
         toolkit = TestToolkit()
         context = CairoContext(toolkit, ImageSurface(Format.ARGB32, 10, 10))
 
-        mouse_input = context.mouse_input
+        mouse_input = MouseInput.input(context)
 
         self.assertIsNotNone(mouse_input)
         self.assertIs(TestMouseInput, type(mouse_input))

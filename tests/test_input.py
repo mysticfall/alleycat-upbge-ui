@@ -1,7 +1,7 @@
 import unittest
 from typing import cast
 
-from alleycat.ui import Bounds, Component, FakeMouseInput, Point, Window, MouseMoveEvent
+from alleycat.ui import Bounds, Component, FakeMouseInput, Point, Window, MouseMoveEvent, MouseInput
 from alleycat.ui.cairo import UI
 
 
@@ -10,7 +10,7 @@ class InputTest(unittest.TestCase):
     def test_mouse_move(self):
         context = UI().create_context()
 
-        mouse_input = cast(FakeMouseInput, context.mouse_input)
+        mouse_input = cast(FakeMouseInput, MouseInput.input(context))
 
         parent = Window(context)
         parent.bounds = Bounds(20, 20, 60, 60)

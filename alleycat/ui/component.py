@@ -9,8 +9,8 @@ from returns.functions import identity
 from returns.maybe import Maybe, Some, Nothing
 from rx import operators as ops
 
-from alleycat.ui import Bounded, Context, Drawable, Event, EventDispatcher, Graphics, StyleLookup, Point
-from alleycat.ui.event import PositionalEvent, MouseEventHandler
+from alleycat.ui import Bounded, Context, Drawable, Event, EventDispatcher, Graphics, StyleLookup, Point, \
+    PositionalEvent, MouseEventHandler
 
 if TYPE_CHECKING:
     from alleycat.ui import ComponentUI, LayoutContainer
