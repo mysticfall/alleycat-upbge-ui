@@ -109,7 +109,10 @@ class BlenderMouseInput(MouseInput, ReactiveObject, EventLoopAware):
         self._position = Subject()
 
         # noinspection PyTypeChecker
-        self.position = self._position.pipe(ops.distinct_until_changed(), ops.map(Point.from_tuple))
+        self.position = self._position.pipe(
+            ops.distinct_until_changed(),
+            ops.map(lambda v: tuple(p * s for p, s in zip(v, context.window_size.tuple))),
+            ops.map(Point.from_tuple))
 
     def process(self) -> None:
         self._position.on_next(mouse.position)
