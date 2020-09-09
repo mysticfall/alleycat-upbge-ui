@@ -8,7 +8,7 @@ from alleycat.reactive import RV
 from alleycat.reactive import functions as rv
 from cairo import Surface, Format, ImageSurface
 
-from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, Dimension, LookAndFeel, WindowManager
+from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, Dimension, LookAndFeel, WindowManager, FakeMouseInput
 from alleycat.ui.context import ContextBuilder, ErrorHandler
 
 
@@ -47,10 +47,8 @@ class CairoContext(Context):
 
 class CairoToolkit(Toolkit[CairoContext]):
 
-    def __init__(self, inputs: Sequence[Input] = ()) -> None:
+    def __init__(self) -> None:
         super().__init__()
-
-        self.inputs = inputs
 
     def create_graphics(self, context: CairoContext) -> Graphics:
         ctx = cairo.Context(context.surface)
@@ -58,7 +56,7 @@ class CairoToolkit(Toolkit[CairoContext]):
         return CairoGraphics(ctx, context)
 
     def create_inputs(self, context: Context) -> Sequence[Input]:
-        return self.inputs
+        return FakeMouseInput(context),
 
 
 class CairoGraphics(Graphics[CairoContext]):
@@ -96,8 +94,8 @@ class CairoGraphics(Graphics[CairoContext]):
 
 class UI(ContextBuilder[CairoContext]):
 
-    def __init__(self, inputs: Sequence[Input] = ()) -> None:
-        super().__init__(CairoToolkit(inputs))
+    def __init__(self) -> None:
+        super().__init__(CairoToolkit())
 
         self._surface: Optional[Surface] = None
 
