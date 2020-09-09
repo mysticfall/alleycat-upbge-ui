@@ -65,6 +65,10 @@ class Context(EventLoopAware, InputLookup, ReactiveObject, ABC):
         self._pollers = [i for i in inputs if isinstance(i, EventLoopAware)]
 
     @property
+    def toolkit(self) -> Toolkit:
+        return self._toolkit
+
+    @property
     def inputs(self) -> Mapping[str, Input]:
         return self._inputs
 
