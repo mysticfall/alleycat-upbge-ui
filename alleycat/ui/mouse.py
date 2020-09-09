@@ -87,7 +87,7 @@ class MouseInput(Input, ABC):
 
 
 class FakeMouseInput(MouseInput):
-    _position: RP[Point] = rv.new_property()
+    _position: RP[Point] = rv.from_value(Point(0, 0))
 
     position: RV[Point] = _position.as_view()
 
