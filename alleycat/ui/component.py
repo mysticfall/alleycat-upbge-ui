@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from abc import ABC
 from typing import TYPE_CHECKING
 
 import rx
@@ -66,9 +65,3 @@ class Component(Bounded, Drawable, StyleLookup, EventDispatcher, ReactiveObject)
     @property
     def style_fallback(self) -> Maybe[StyleLookup]:
         return Some(self.context.look_and_feel)
-
-
-class ComponentEvent(Event, ABC):
-
-    def __init__(self, source: Component) -> None:
-        super().__init__(source)
