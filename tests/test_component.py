@@ -1,6 +1,6 @@
 import unittest
 
-from alleycat.ui import Component, Panel, Bounds, Point
+from alleycat.ui import Component, Panel, Bounds, Point, MouseMoveEvent, LayoutContainer
 from alleycat.ui.cairo import UI
 
 
@@ -12,7 +12,7 @@ class ComponentTest(unittest.TestCase):
         parent = Panel(context)
         parent.bounds = Bounds(10, 20, 80, 60)
 
-        grand_parent = Panel(context)
+        grand_parent = LayoutContainer(context)
         grand_parent.bounds = Bounds(20, 10, 40, 20)
 
         component = Component(context)
@@ -39,6 +39,21 @@ class ComponentTest(unittest.TestCase):
         grand_parent.bounds = grand_parent.bounds.copy(x=-10, y=50)
 
         self.assertEqual(Point(20, 40), component.offset)
+
+    def test_position_of(self):
+        context = UI().create_context()
+
+        parent = LayoutContainer(context)
+        parent.bounds = Bounds(10, 20, 80, 60)
+
+        component = Component(context)
+        component.bounds = Bounds(5, 5, 10, 10)
+
+        parent.add(component)
+
+        event = MouseMoveEvent(component, Point(30, 40))
+
+        self.assertEqual(Point(20, 20), component.position_of(event))
 
 
 if __name__ == '__main__':

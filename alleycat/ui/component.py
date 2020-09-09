@@ -3,19 +3,20 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import rx
-from returns.functions import identity
-from rx import operators as ops
 from alleycat.reactive import ReactiveObject, RP, RV
 from alleycat.reactive import functions as rv
+from returns.functions import identity
 from returns.maybe import Maybe, Some, Nothing
+from rx import operators as ops
 
 from alleycat.ui import Bounded, Context, Drawable, Event, EventDispatcher, Graphics, StyleLookup, Point
+from alleycat.ui.event import PositionalEvent, MouseEventHandler
 
 if TYPE_CHECKING:
     from alleycat.ui import ComponentUI, LayoutContainer
 
 
-class Component(Bounded, Drawable, StyleLookup, EventDispatcher, ReactiveObject):
+class Component(Bounded, Drawable, StyleLookup, MouseEventHandler, EventDispatcher, ReactiveObject):
     visible: RP[bool] = rv.from_value(True)
 
     parent: RP[Maybe[LayoutContainer]] = rv.from_value(Nothing)
@@ -60,7 +61,19 @@ class Component(Bounded, Drawable, StyleLookup, EventDispatcher, ReactiveObject)
         self.ui.draw(g, self)
 
     def dispatch_event(self, event: Event) -> None:
-        pass
+        if event is None:
+            raise ValueError("Argument 'event' is required.")
+
+        super().dispatch_event(event)
+
+        if not event.propagation_stopped:
+            self.parent.map(lambda p: p.dispatch_event(event))
+
+    def position_of(self, event: PositionalEvent) -> Point:
+        if event is None:
+            raise ValueError("Argument 'event' is required.")
+
+        return event.position - self.offset
 
     @property
     def style_fallback(self) -> Maybe[StyleLookup]:

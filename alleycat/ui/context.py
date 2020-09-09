@@ -8,7 +8,7 @@ from typing import Optional, Callable, Any, Dict, TYPE_CHECKING, TypeVar, Generi
 from alleycat.reactive import ReactiveObject, RV
 from returns.maybe import Maybe
 
-from alleycat.ui import EventDispatcher, EventLoopAware, Event, InputLookup, Input, Dimension
+from alleycat.ui import EventLoopAware, InputLookup, Input, Dimension
 
 if TYPE_CHECKING:
     from alleycat.ui import LookAndFeel, Toolkit, WindowManager
@@ -31,7 +31,7 @@ def default_error_handler(e: Exception) -> None:
     print(e)
 
 
-class Context(EventLoopAware, EventDispatcher, InputLookup, ReactiveObject, ABC):
+class Context(EventLoopAware, InputLookup, ReactiveObject, ABC):
     window_size: RV[Dimension]
 
     def __init__(self,
@@ -93,10 +93,6 @@ class Context(EventLoopAware, EventDispatcher, InputLookup, ReactiveObject, ABC)
     @catch_error
     def process_draw(self) -> None:
         self._window_manager.draw(self._graphics)
-
-    @catch_error
-    def dispatch_event(self, event: Event) -> None:
-        pass
 
     def dispose(self) -> None:
         super().dispose()

@@ -59,12 +59,9 @@ class MouseInput(Input, ABC):
     def __init__(self, context: Context):
         super().__init__(context)
 
-        def dispatch_mouse_move(pos: Point):
-            event = MouseMoveEvent(self.context, pos)
-            self.context.dispatch_event(event)
+        rv.observe(self, "position").subscribe(self.dispatch)
 
-        rv.observe(self, "position").subscribe(dispatch_mouse_move)
-
+    @property
     def id(self) -> str:
         return self.ID
 
@@ -72,8 +69,7 @@ class MouseInput(Input, ABC):
         window = self.context.window_manager.window_at(location)
         component = window.bind(lambda w: w.component_at(location))
 
-        event = component.map(lambda c: MouseMoveEvent(c, location))
-        print(event)
+        component.map(lambda c: c.dispatch_event(MouseMoveEvent(c, location)))
 
 
 class FakeMouseInput(MouseInput):
