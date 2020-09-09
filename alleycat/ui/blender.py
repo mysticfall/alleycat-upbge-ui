@@ -3,10 +3,12 @@ from __future__ import annotations
 from typing import cast, Optional, Sequence
 
 import bge
+import bgl
 import gpu
 from alleycat.reactive import ReactiveObject, RV
 from alleycat.reactive import functions as rv
 from bge.logic import mouse
+from bgl import GL_BLEND
 from gpu_extras.batch import batch_for_shader
 from rx import operators as ops
 from rx.subject import Subject, BehaviorSubject
@@ -43,6 +45,9 @@ class BlenderContext(Context):
         return point.copy(y=self.window_size.height - point.y)
 
     def process_draw(self) -> None:
+        # noinspection PyTypeChecker
+        bgl.glEnable(GL_BLEND)
+
         self._resolution.on_next(get_window_size())
 
         super().process_draw()
