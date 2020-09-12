@@ -10,7 +10,7 @@ from returns.maybe import Maybe, Some, Nothing
 from rx import operators as ops
 
 from alleycat.ui import Bounded, Context, Drawable, Event, EventDispatcher, Graphics, StyleLookup, Point, \
-    PositionalEvent, MouseEventHandler
+    PositionalEvent, MouseEventHandler, ErrorHandler
 
 if TYPE_CHECKING:
     from alleycat.ui import ComponentUI, LayoutContainer
@@ -78,3 +78,7 @@ class Component(Bounded, Drawable, StyleLookup, MouseEventHandler, EventDispatch
     @property
     def style_fallback(self) -> Maybe[StyleLookup]:
         return Some(self.context.look_and_feel)
+
+    @property
+    def error_handler(self) -> ErrorHandler:
+        return self.context.error_handler

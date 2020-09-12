@@ -4,7 +4,8 @@ from typing import Optional, Iterator
 
 from returns.maybe import Maybe, Nothing, Some
 
-from alleycat.ui import Context, Graphics, Container, LayoutContainer, Layout, Drawable, Point
+from alleycat.ui import Context, Graphics, Container, LayoutContainer, Layout, Drawable, Point, ErrorHandlerSupport, \
+    ErrorHandler
 
 
 class Window(LayoutContainer):
@@ -15,10 +16,15 @@ class Window(LayoutContainer):
         context.window_manager.add(self)
 
 
-class WindowManager(Drawable, Container[Window]):
+class WindowManager(Drawable, ErrorHandlerSupport, Container[Window]):
 
-    def __init__(self) -> None:
+    def __init__(self, error_handler: ErrorHandler) -> None:
+        if error_handler is None:
+            raise ValueError("Argument 'error_handler' is required.")
+
         super().__init__()
+
+        self._error_handler = error_handler
 
     def window_at(self, location: Point) -> Maybe[Window]:
         if location is None:
@@ -37,9 +43,13 @@ class WindowManager(Drawable, Container[Window]):
         for child in self.children:
             child.draw(g)
 
+    @property
+    def error_handler(self) -> ErrorHandler:
+        return self._error_handler
+
     def dispose(self) -> None:
         # noinspection PyTypeChecker
         for child in self.children:
-            child.dispose()
+            self.execute_safely(child.dispose)
 
         super().dispose()

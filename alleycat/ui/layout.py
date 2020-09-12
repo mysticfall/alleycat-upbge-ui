@@ -73,6 +73,6 @@ class LayoutContainer(Component, Container[Component]):
     def dispose(self) -> None:
         # noinspection PyTypeChecker
         for child in self.children:
-            child.dispose()
+            self.execute_safely(child.dispose)
 
         super().dispose()

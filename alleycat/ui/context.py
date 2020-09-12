@@ -1,37 +1,23 @@
 from __future__ import annotations
 
-import functools
 from abc import ABC, abstractmethod
 from collections import Mapping
-from typing import Optional, Callable, Any, Dict, TYPE_CHECKING, TypeVar, Generic
+from typing import Optional, Any, Dict, TYPE_CHECKING, TypeVar, Generic
 
 from alleycat.reactive import ReactiveObject, RV
 from returns.maybe import Maybe
 
-from alleycat.ui import EventLoopAware, InputLookup, Input, Dimension
+from alleycat.ui import EventLoopAware, ErrorHandler, ErrorHandlerSupport, InputLookup, Input, Dimension
 
 if TYPE_CHECKING:
     from alleycat.ui import LookAndFeel, Toolkit, WindowManager
-
-ErrorHandler = Callable[[Exception], None]
-
-
-def catch_error(func: Callable[..., None]) -> Callable[..., None]:
-    @functools.wraps(func)
-    def safe_func(*args, **kwargs) -> None:
-        try:
-            func(*args, **kwargs)
-        except Exception as e:
-            args[0].error_handler(e)
-
-    return safe_func
 
 
 def default_error_handler(e: Exception) -> None:
     print(e)
 
 
-class Context(EventLoopAware, InputLookup, ReactiveObject, ABC):
+class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, ABC):
     window_size: RV[Dimension]
 
     def __init__(self,
@@ -50,8 +36,10 @@ class Context(EventLoopAware, InputLookup, ReactiveObject, ABC):
         self._toolkit = toolkit
 
         self._look_and_feel = Maybe.from_value(look_and_feel).or_else_call(GlassLookAndFeel)
-        self._window_manager = Maybe.from_value(window_manager).or_else_call(WindowManager)
         self._error_handler = Maybe.from_value(error_handler).value_or(default_error_handler)
+
+        self._window_manager = Maybe.from_value(window_manager) \
+            .or_else_call(lambda: WindowManager(self.error_handler))
 
         self._graphics = toolkit.create_graphics(self)
 
@@ -84,28 +72,22 @@ class Context(EventLoopAware, InputLookup, ReactiveObject, ABC):
     def error_handler(self) -> ErrorHandler:
         return self._error_handler
 
-    @catch_error
     def process(self) -> None:
-        self.process_inputs()
-        self.process_draw()
+        self.execute_safely(self.process_inputs)
+        self.execute_safely(self.process_draw)
 
-    @catch_error
     def process_inputs(self) -> None:
         for poller in self._pollers:
-            poller.process()
+            self.execute_safely(poller.process)
 
-    @catch_error
     def process_draw(self) -> None:
         self._window_manager.draw(self._graphics)
 
     def dispose(self) -> None:
         super().dispose()
 
-        catch_error(self._graphics.dispose)()
-        catch_error(self._window_manager.dispose)()
-
-        for i in self.inputs.values():
-            catch_error(i.dispose)()
+        self.execute_safely(self._graphics.dispose)
+        self.execute_safely(self._window_manager.dispose)
 
 
 T = TypeVar("T", bound=Context, covariant=True)

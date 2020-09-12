@@ -12,7 +12,7 @@ from rx import operators as ops
 from rx.disposable import Disposable
 from rx.subject import Subject
 
-from alleycat.ui import Point, Context, Input, PositionalEvent, Event, EventDispatcher, InputLookup
+from alleycat.ui import Point, Context, Input, PositionalEvent, Event, EventDispatcher, InputLookup, ErrorHandlerSupport
 
 
 class MouseEvent(PositionalEvent, ABC):
@@ -35,7 +35,7 @@ class MouseMoveEvent(MouseEvent):
             raise ValueError("Argument 'position' is required.")
 
 
-class MouseEventHandler(EventDispatcher, Disposable, ABC):
+class MouseEventHandler(EventDispatcher, ErrorHandlerSupport, Disposable, ABC):
 
     def __init__(self):
         super().__init__()
@@ -54,7 +54,7 @@ class MouseEventHandler(EventDispatcher, Disposable, ABC):
     def dispose(self) -> None:
         super().dispose()
 
-        self._on_mouse_move.dispose()
+        self.execute_safely(self._on_mouse_move.dispose)
 
 
 class MouseInput(Input, ABC):

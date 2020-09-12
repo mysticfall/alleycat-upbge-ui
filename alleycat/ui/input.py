@@ -5,6 +5,8 @@ from typing import Mapping, TYPE_CHECKING
 
 from rx.disposable import Disposable
 
+from alleycat.ui import ErrorHandlerSupport
+
 if TYPE_CHECKING:
     from alleycat.ui import Context
 
@@ -29,12 +31,18 @@ class Input(Disposable, ABC):
         return self._context
 
 
-class InputLookup(ABC):
+class InputLookup(ErrorHandlerSupport, Disposable, ABC):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @property
     @abstractmethod
     def inputs(self) -> Mapping[str, Input]:
         pass
+
+    def dispose(self) -> None:
+        super().dispose()
+
+        for i in self.inputs.values():
+            self.execute_safely(i.dispose)
