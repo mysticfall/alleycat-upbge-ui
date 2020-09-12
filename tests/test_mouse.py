@@ -5,7 +5,7 @@ from alleycat.ui import Bounds, Component, FakeMouseInput, Point, Window, MouseM
 from alleycat.ui.cairo import UI
 
 
-class InputTest(unittest.TestCase):
+class MouseTest(unittest.TestCase):
 
     def test_mouse_move(self):
         context = UI().create_context()
