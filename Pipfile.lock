@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "14f9409930d0253bb6536981844de5f177b618ae52efd3de4937fad7fd3e36f4"
+            "sha256": "516e6a208e00820ffdcd8482207419ff6919e3171dca7f8ff66a90f2ba3e6f1b"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -18,11 +18,11 @@
     "default": {
         "alleycat-reactive": {
             "hashes": [
-                "sha256:4695096bfcd888c9a97d0bd50e90a3dfb41ea3348bdb5516d47fd0b3b1d2f7e2",
-                "sha256:c541df0e2b8686cbd2479279667e750ec635ff9cba137f6d05c02db39b3646ae"
+                "sha256:5aa26f62f7ebae5fc60f9d51ce786d6fd2d3956695d8ade928d9fb9fc7ad2cc5",
+                "sha256:cd8ca2af7634e6bb168b49a9ad19bf6ca8e9f2af9071dfb522f0eba6c59f16b7"
             ],
             "index": "pypi",
-            "version": "==0.2.1"
+            "version": "==0.3.0"
         },
         "returns": {
             "hashes": [
@@ -59,11 +59,11 @@
         },
         "attrs": {
             "hashes": [
-                "sha256:0ef97238856430dcf9228e07f316aefc17e8939fc8507e18c6501b761ef1a42a",
-                "sha256:2867b7b9f8326499ab5b0e2d12801fa5c98842d2cbd22b35112ae04bf85b4dff"
+                "sha256:26b54ddbbb9ee1d34d5d3668dd37d6cf74990ab23c828c2888dccdceee395594",
+                "sha256:fce7fc47dfc976152e82d53ff92fa0407700c21acd20886a13777a0d20e655dc"
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
-            "version": "==20.1.0"
+            "version": "==20.2.0"
         },
         "black": {
             "hashes": [
@@ -133,11 +133,11 @@
         },
         "fake-bpy-module-2.82": {
             "hashes": [
-                "sha256:9dbb3818cc7c1f35af46c013ba79fee0edcc8324480edcebf173f92b0f5c8263",
-                "sha256:e4383f80df0149e161287baef73a371a60b745581f94161688d1d5fae51fa0e1"
+                "sha256:2f6738270bbeddd10c550429ef8cfe72cfa02c3dedec5ec0d8b09b26e3387876",
+                "sha256:ceb60b3245ab46a6649aa3dbe8479c839baa03dd75081e6415898ae166199a66"
             ],
             "index": "pypi",
-            "version": "==20200812"
+            "version": "==20200907"
         },
         "idna": {
             "hashes": [
