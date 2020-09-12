@@ -2,7 +2,7 @@ import unittest
 
 from returns.maybe import Some
 
-from alleycat.ui import Window, Bounds, Point, WindowManager, RGBA, Dimension, Panel
+from alleycat.ui import Window, Bounds, Point, RGBA, Panel
 from alleycat.ui.cairo import UI
 from alleycat.ui.glass import ColorKeys
 from tests.ui import UITestCase
@@ -54,8 +54,7 @@ class WindowTest(UITestCase):
 
     def test_window_at(self):
         context = UI().create_context()
-
-        manager = WindowManager()
+        manager = context.window_manager
 
         bottom = Window(context)
         bottom.bounds = Bounds(0, 0, 100, 100)
@@ -65,10 +64,6 @@ class WindowTest(UITestCase):
 
         top = Window(context)
         top.bounds = Bounds(50, 50, 100, 100)
-
-        manager.add(bottom)
-        manager.add(middle)
-        manager.add(top)
 
         self.assertEqual(Some(bottom), manager.window_at(Point(0, 0)))
         self.assertEqual(Some(bottom), manager.window_at(Point(100, 0)))
