@@ -69,3 +69,10 @@ class LayoutContainer(Component, Container[Component]):
         # noinspection PyTypeChecker
         for child in self.children:
             child.draw(g)
+
+    def dispose(self) -> None:
+        # noinspection PyTypeChecker
+        for child in self.children:
+            child.dispose()
+
+        super().dispose()
