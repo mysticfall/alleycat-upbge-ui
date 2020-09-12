@@ -4,9 +4,11 @@ from abc import ABC
 from dataclasses import dataclass, field
 from typing import Final, Any, cast
 
+import rx
 from alleycat.reactive import RV, RP
 from alleycat.reactive import functions as rv
 from rx import Observable
+from rx import operators as ops
 from rx.disposable import Disposable
 from rx.subject import Subject
 
@@ -63,7 +65,27 @@ class MouseInput(Input, ABC):
     def __init__(self, context: Context):
         super().__init__(context)
 
-        rv.observe(self, "position").subscribe(self.dispatch)
+        self._dispatchers = [
+            self.on_mouse_move.subscribe(lambda e: e.source.dispatch_event(e), on_error=self.context.error_handler)
+        ]
+
+    @property
+    def on_mouse_move(self) -> Observable:
+        position = rv.observe(self, "position")
+
+        window = position.pipe(
+            ops.map(lambda p: (self.context.window_manager.window_at(p), p)),
+            ops.map(lambda v: v[0].map(lambda w: rx.of((w, v[1]))).value_or(rx.empty())),
+            ops.exclusive(),
+            ops.distinct_until_changed())
+
+        component = window.pipe(
+            ops.map(lambda v: (v[0].component_at(v[1]), v[1])),
+            ops.map(lambda v: v[0].map(lambda w: rx.of((w, v[1]))).value_or(rx.empty())),
+            ops.exclusive(),
+            ops.distinct_until_changed())
+
+        return component.pipe(ops.map(lambda v: MouseMoveEvent(v[0], v[1])))
 
     @property
     def id(self) -> str:
@@ -79,11 +101,11 @@ class MouseInput(Input, ABC):
         except KeyError:
             raise NotImplemented("Mouse input is not supported in this backend.")
 
-    def dispatch(self, location: Point) -> None:
-        window = self.context.window_manager.window_at(location)
-        component = window.bind(lambda w: w.component_at(location))
+    def dispose(self) -> None:
+        super().dispose()
 
-        component.map(lambda c: c.dispatch_event(MouseMoveEvent(c, location)))
+        for dispatcher in self._dispatchers:
+            dispatcher.dispose()
 
 
 class FakeMouseInput(MouseInput):
