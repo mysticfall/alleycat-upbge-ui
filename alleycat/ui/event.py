@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import field, dataclass
+from dataclasses import dataclass
 from typing import Any
 
 from alleycat.ui import Point
 
 
+@dataclass(frozen=True)  # type:ignore
 class Event(ABC):
     source: Any
 
@@ -31,8 +32,6 @@ class PropagatingEvent(Event, ABC):
 
 @dataclass(frozen=True)  # type:ignore
 class PositionalEvent(Event, ABC):
-    source: Any = field(repr=False)
-
     position: Point
 
     def __post_init__(self) -> None:
