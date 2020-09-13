@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import rx
 from alleycat.reactive import ReactiveObject, RP, RV
@@ -80,3 +80,6 @@ class Component(Bounded, Drawable, StyleLookup, MouseEventHandler, EventDispatch
     @property
     def error_handler(self) -> ErrorHandler:
         return self.context.error_handler
+
+    def __repr__(self) -> Any:
+        return str({"id": id(self), "type": type(self).__name__})
