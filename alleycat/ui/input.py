@@ -5,13 +5,13 @@ from typing import Mapping, TYPE_CHECKING
 
 from rx.disposable import Disposable
 
-from alleycat.ui import ErrorHandlerSupport
+from alleycat.ui import ErrorHandlerSupport, ErrorHandler
 
 if TYPE_CHECKING:
     from alleycat.ui import Context
 
 
-class Input(Disposable, ABC):
+class Input(ErrorHandlerSupport, Disposable, ABC):
 
     def __init__(self, context: Context) -> None:
         if context is None:
@@ -29,6 +29,10 @@ class Input(Disposable, ABC):
     @property
     def context(self) -> Context:
         return self._context
+
+    @property
+    def error_handler(self) -> ErrorHandler:
+        return self.context.error_handler
 
 
 class InputLookup(ErrorHandlerSupport, Disposable, ABC):

@@ -1,20 +1,23 @@
 from __future__ import annotations
 
+from functools import reduce
 from typing import cast, Optional, Sequence
 
 import bge
 import bgl
 import gpu
+import rx
 from alleycat.reactive import ReactiveObject, RV
 from alleycat.reactive import functions as rv
-from bge.logic import mouse
+from bge.logic import mouse, KX_INPUT_ACTIVE, KX_INPUT_JUST_ACTIVATED
+from bge.types import SCA_InputEvent
 from bgl import GL_BLEND
 from gpu_extras.batch import batch_for_shader
-from rx import operators as ops
+from rx import operators as ops, Observable
 from rx.subject import Subject, BehaviorSubject
 
 from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, MouseInput, Point, LookAndFeel, WindowManager, \
-    Dimension
+    Dimension, MouseButton
 from alleycat.ui.context import ContextBuilder, ErrorHandler
 from alleycat.ui.event import EventLoopAware
 
@@ -108,21 +111,50 @@ class UI(ContextBuilder[BlenderContext]):
 class BlenderMouseInput(MouseInput, ReactiveObject, EventLoopAware):
     position: RV[Point] = rv.new_view()
 
+    buttons: RV[int] = rv.new_view()
+
     def __init__(self, context: BlenderContext) -> None:
         super().__init__(context)
 
         self._position = Subject()
+        self._activeInputs = Subject()
 
         # noinspection PyTypeChecker
         self.position = self._position.pipe(
             ops.distinct_until_changed(),
             ops.map(lambda v: tuple(p * s for p, s in zip(v, context.window_size.tuple))),
-            ops.map(Point.from_tuple))
+            ops.map(Point.from_tuple),
+            ops.share())
+
+        codes = {
+            MouseButton.LEFT: bge.events.LEFTMOUSE,
+            MouseButton.MIDDLE: bge.events.MIDDLEMOUSE,
+            MouseButton.RIGHT: bge.events.RIGHTMOUSE
+        }
+
+        def pressed(e: SCA_InputEvent) -> bool:
+            return KX_INPUT_ACTIVE in e.status or KX_INPUT_JUST_ACTIVATED in e.status
+
+        def value_for(button: MouseButton) -> Observable:
+            code = codes[button]
+
+            return self._activeInputs.pipe(
+                ops.start_with({}),
+                ops.map(lambda i: code in i and pressed(i[code])),
+                ops.map(lambda v: button if v else 0))
+
+        # noinspection PyTypeChecker
+        self.buttons = rx.combine_latest(*[value_for(b) for b in MouseButton]).pipe(
+            ops.map(lambda v: reduce(lambda a, b: a | b, v)),
+            ops.distinct_until_changed(),
+            ops.share())
 
     def process(self) -> None:
         self._position.on_next(mouse.position)
+        self._activeInputs.on_next(mouse.activeInputs)
 
     def dispose(self) -> None:
         super().dispose()
 
-        self._position.dispose()
+        self.execute_safely(self._position.dispose)
+        self.execute_safely(self._activeInputs.dispose)
