@@ -21,13 +21,11 @@ class Component(Bounded, Drawable, StyleLookup, MouseEventHandler, EventDispatch
 
     parent: RP[Maybe[LayoutContainer]] = rv.from_value(Nothing)
 
-    _parent: RV[Maybe[LayoutContainer]] = parent.as_view()
-
-    _p_location: RV[Point] = _parent \
+    _p_location: RV[Point] = parent.as_view() \
         .map(lambda v: v.map(lambda p: rv.observe(p.location)).or_else_call(lambda: rx.of(Point(0, 0)))) \
         .pipe(ops.exclusive())
 
-    _p_offset: RV[Point] = _parent \
+    _p_offset: RV[Point] = parent.as_view() \
         .map(lambda v: v.map(lambda p: rv.observe(p.offset)).or_else_call(lambda: rx.of(Point(0, 0)))) \
         .pipe(ops.exclusive())
 
