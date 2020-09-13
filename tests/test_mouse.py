@@ -1,9 +1,10 @@
 import unittest
 from typing import cast
 
-from alleycat.ui import Bounds, Component, FakeMouseInput, Point, Window, MouseMoveEvent, MouseInput
-from alleycat.ui.cairo import UI
+from alleycat.ui import Bounds, Component, FakeMouseInput, Point, Window, MouseMoveEvent, MouseInput, MouseOverEvent, \
+    MouseOutEvent
 from alleycat.ui import MouseButton, MouseDownEvent, MouseUpEvent
+from alleycat.ui.cairo import UI
 
 
 # noinspection DuplicatedCode
@@ -165,6 +166,80 @@ class MouseTest(unittest.TestCase):
             MouseUpEvent(self.parent, Point(20, 20), MouseButton.LEFT),
             MouseUpEvent(self.parent, Point(30, 30), MouseButton.MIDDLE),
             MouseUpEvent(self.parent, Point(30, 30), MouseButton.LEFT)
+        ], parent_events)
+
+    def test_mouse_over(self):
+        events = []
+        parent_events = []
+
+        self.component.on_mouse_over.subscribe(events.append)
+        self.parent.on_mouse_over.subscribe(parent_events.append)
+
+        self.input.move_to(Point(10, 10))
+
+        self.assertEqual([], events)
+        self.assertEqual([], parent_events)
+
+        self.input.move_to(Point(20, 20))
+
+        self.assertEqual([], events)
+        self.assertEqual([MouseOverEvent(self.parent, Point(20, 20))], parent_events)
+
+        self.input.move_to(Point(25, 25))
+
+        self.assertEqual([], events)
+        self.assertEqual([MouseOverEvent(self.parent, Point(20, 20))], parent_events)
+
+        self.input.move_to(Point(30, 30))
+        self.input.move_to(Point(40, 40))
+
+        self.assertEqual([MouseOverEvent(self.component, Point(30, 30))], events)
+        self.assertEqual([MouseOverEvent(self.parent, Point(20, 20))], parent_events)
+
+        self.input.move_to(Point(20, 20))
+        self.input.move_to(Point(40, 40))
+
+        self.assertEqual([
+            MouseOverEvent(self.component, Point(30, 30)),
+            MouseOverEvent(self.component, Point(40, 40))
+        ], events)
+
+        self.assertEqual([MouseOverEvent(self.parent, Point(20, 20))], parent_events)
+
+    def test_mouse_out(self):
+        events = []
+        parent_events = []
+
+        self.component.on_mouse_out.subscribe(events.append)
+        self.parent.on_mouse_out.subscribe(parent_events.append)
+
+        self.input.move_to(Point(10, 10))
+
+        self.assertEqual([], events)
+        self.assertEqual([], parent_events)
+
+        self.input.move_to(Point(20, 20))
+
+        self.assertEqual([], events)
+        self.assertEqual([], parent_events)
+
+        self.input.move_to(Point(10, 10))
+
+        self.assertEqual([], events)
+        self.assertEqual([MouseOutEvent(self.parent, Point(10, 10))], parent_events)
+
+        self.input.move_to(Point(30, 30))
+        self.input.move_to(Point(20, 20))
+
+        self.assertEqual([MouseOutEvent(self.component, Point(20, 20))], events)
+        self.assertEqual([MouseOutEvent(self.parent, Point(10, 10))], parent_events)
+
+        self.input.move_to(Point(0, 0))
+
+        self.assertEqual([MouseOutEvent(self.component, Point(20, 20))], events)
+        self.assertEqual([
+            MouseOutEvent(self.parent, Point(10, 10)),
+            MouseOutEvent(self.parent, Point(0, 0))
         ], parent_events)
 
 

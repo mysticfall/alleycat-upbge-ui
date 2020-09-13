@@ -54,6 +54,18 @@ class MouseUpEvent(MouseButtonEvent):
         return MouseUpEvent(source, self.position, self.button)
 
 
+class MouseOverEvent(MouseEvent):
+
+    def with_source(self, source: Any) -> Event:
+        return MouseOverEvent(source, self.position)
+
+
+class MouseOutEvent(MouseEvent):
+
+    def with_source(self, source: Any) -> Event:
+        return MouseOutEvent(source, self.position)
+
+
 class MouseEventHandler(Bounded, EventHandler, ABC):
 
     def __init__(self) -> None:
@@ -76,6 +88,29 @@ class MouseEventHandler(Bounded, EventHandler, ABC):
         return self.events.pipe(
             ops.filter(lambda e: isinstance(e, MouseUpEvent)),
             ops.map(lambda e: e.with_source(self)))
+
+    @property
+    def on_mouse_over(self) -> Observable:
+        position = rv.observe(MouseInput.input(self), "position")
+        local_pos = position.pipe(ops.map(lambda p: p - self.offset))
+
+        return self.on_mouse_move.pipe(
+            ops.map(lambda e: e.position),
+            ops.map(lambda p: rx.concat(rx.of(p), rx.never().pipe(
+                ops.take_until(local_pos.pipe(ops.filter(lambda l: not self.bounds.contains(l))))))),
+            ops.exclusive(),
+            ops.map(lambda p: MouseOverEvent(self, p)))
+
+    @property
+    def on_mouse_out(self) -> Observable:
+        position = rv.observe(MouseInput.input(self), "position")
+
+        return self.on_mouse_over.pipe(
+            ops.map(lambda e: position.pipe(
+                ops.filter(lambda p: not self.bounds.contains(p - self.offset)),
+                ops.take(1))),
+            ops.exclusive(),
+            ops.map(lambda p: MouseOutEvent(self, p)))
 
 
 class MouseInput(Input, ABC):
