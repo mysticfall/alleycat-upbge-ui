@@ -125,6 +125,18 @@ class Bounds(Iterable):
 
         return Bounds(value[0], value[1], value[2], value[3])
 
+    def move_to(self, location: Point) -> Bounds:
+        if location is None:
+            raise ValueError("Argument 'location' is required.")
+
+        return self.copy(x=location.x, y=location.y)
+
+    def move_by(self, offset: Point) -> Bounds:
+        if offset is None:
+            raise ValueError("Argument 'offset' is required.")
+
+        return self.copy(x=self.x + offset.x, y=self.y + offset.y)
+
     def copy(self,
              x: Optional[float] = None,
              y: Optional[float] = None,

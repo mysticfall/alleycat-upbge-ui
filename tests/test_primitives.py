@@ -106,6 +106,12 @@ class PrimitivesTest(unittest.TestCase):
     def test_bounds_from_tuple(self):
         self.assertEqual(Bounds(30, 0, 50, 40), Bounds.from_tuple((30, 0, 50, 40)))
 
+    def test_bounds_move_to(self):
+        self.assertEqual(Bounds(-10, 20, 100, 200), Bounds(20, 30, 100, 200).move_to(Point(-10, 20)))
+
+    def test_bounds_move_by(self):
+        self.assertEqual(Bounds(10, 50, 100, 200), Bounds(20, 30, 100, 200).move_by(Point(-10, 20)))
+
     def test_bounds_copy(self):
         self.assertEqual(Bounds(-20, 20, 30, 30), Bounds(-20, 10, 80, 30).copy(y=20, width=30))
         self.assertEqual(Bounds(10, 10, 80, 100), Bounds(-20, 10, 80, 30).copy(x=10, height=100))
