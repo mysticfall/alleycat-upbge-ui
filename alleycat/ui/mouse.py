@@ -13,7 +13,8 @@ from rx import operators as ops
 from rx.disposable import Disposable
 from rx.subject import Subject
 
-from alleycat.ui import Point, Context, Input, PositionalEvent, Event, EventDispatcher, InputLookup, ErrorHandlerSupport
+from alleycat.ui import Point, Context, Input, PositionalEvent, Event, EventDispatcher, InputLookup, \
+    ErrorHandlerSupport, PropagatingEvent
 
 
 class MouseButton(IntFlag):
@@ -27,7 +28,7 @@ class MouseEvent(PositionalEvent, ABC):
 
 
 @dataclass(frozen=True)  # type:ignore
-class MouseButtonEvent(MouseEvent, ABC):
+class MouseButtonEvent(MouseEvent, PropagatingEvent, ABC):
     button: MouseButton
 
     def __post_init__(self) -> None:
@@ -37,7 +38,7 @@ class MouseButtonEvent(MouseEvent, ABC):
             raise ValueError("Argument 'button' is required.")
 
 
-class MouseMoveEvent(MouseEvent):
+class MouseMoveEvent(MouseEvent, PropagatingEvent):
 
     def with_source(self, source: Any) -> Event:
         return MouseMoveEvent(source, self.position)

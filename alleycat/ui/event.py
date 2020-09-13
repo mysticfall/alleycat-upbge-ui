@@ -18,6 +18,9 @@ class Event(ABC):
     def with_source(self, source: Any) -> Event:
         pass
 
+
+class PropagatingEvent(Event, ABC):
+
     def stop_propagation(self) -> None:
         object.__setattr__(self, "_stop_propagation", True)
 

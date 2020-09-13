@@ -10,7 +10,7 @@ from returns.maybe import Maybe, Some, Nothing
 from rx import operators as ops
 
 from alleycat.ui import Bounded, Context, Drawable, Event, EventDispatcher, Graphics, StyleLookup, Point, \
-    PositionalEvent, MouseEventHandler, ErrorHandler
+    PositionalEvent, MouseEventHandler, ErrorHandler, PropagatingEvent
 
 if TYPE_CHECKING:
     from alleycat.ui import ComponentUI, LayoutContainer
@@ -66,7 +66,7 @@ class Component(Bounded, Drawable, StyleLookup, MouseEventHandler, EventDispatch
 
         super().dispatch_event(event)
 
-        if not event.propagation_stopped:
+        if isinstance(event, PropagatingEvent) and not event.propagation_stopped:
             self.parent.map(lambda p: p.dispatch_event(event))
 
     def position_of(self, event: PositionalEvent) -> Point:
