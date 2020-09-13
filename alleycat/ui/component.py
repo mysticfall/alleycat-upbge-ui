@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Mapping
 
 import rx
 from alleycat.reactive import ReactiveObject, RP, RV
@@ -9,14 +9,14 @@ from returns.functions import identity
 from returns.maybe import Maybe, Some, Nothing
 from rx import operators as ops
 
-from alleycat.ui import Bounded, Context, Drawable, Event, EventDispatcher, Graphics, StyleLookup, Point, \
-    PositionalEvent, MouseEventHandler, ErrorHandler, PropagatingEvent
+from alleycat.ui import Context, Drawable, EventDispatcher, Graphics, StyleLookup, Point, \
+    PositionalEvent, MouseEventHandler, ErrorHandler, Input
 
 if TYPE_CHECKING:
     from alleycat.ui import ComponentUI, LayoutContainer
 
 
-class Component(Bounded, Drawable, StyleLookup, MouseEventHandler, EventDispatcher, ReactiveObject):
+class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, ReactiveObject):
     visible: RP[bool] = rv.from_value(True)
 
     parent: RP[Maybe[LayoutContainer]] = rv.from_value(Nothing)
@@ -58,15 +58,6 @@ class Component(Bounded, Drawable, StyleLookup, MouseEventHandler, EventDispatch
     def draw_component(self, g: Graphics) -> None:
         self.ui.draw(g, self)
 
-    def dispatch_event(self, event: Event) -> None:
-        if event is None:
-            raise ValueError("Argument 'event' is required.")
-
-        super().dispatch_event(event)
-
-        if isinstance(event, PropagatingEvent) and not event.propagation_stopped:
-            self.parent.map(lambda p: p.dispatch_event(event))
-
     def position_of(self, event: PositionalEvent) -> Point:
         if event is None:
             raise ValueError("Argument 'event' is required.")
@@ -78,8 +69,17 @@ class Component(Bounded, Drawable, StyleLookup, MouseEventHandler, EventDispatch
         return Some(self.context.look_and_feel)
 
     @property
+    def inputs(self) -> Mapping[str, Input]:
+        return self.context.inputs
+
+    @property
     def error_handler(self) -> ErrorHandler:
         return self.context.error_handler
+
+    @property
+    def parent_dispatcher(self) -> Maybe[EventDispatcher]:
+        # noinspection PyTypeChecker
+        return self.parent
 
     def __repr__(self) -> Any:
         return str({"id": id(self), "type": type(self).__name__})

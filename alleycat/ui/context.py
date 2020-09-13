@@ -7,7 +7,8 @@ from typing import Optional, Any, Dict, TYPE_CHECKING, TypeVar, Generic
 from alleycat.reactive import ReactiveObject, RV
 from returns.maybe import Maybe
 
-from alleycat.ui import EventLoopAware, ErrorHandler, ErrorHandlerSupport, InputLookup, Input, Dimension
+from alleycat.ui import EventDispatcher, EventLoopAware, ErrorHandler, ErrorHandlerSupport, InputLookup, Input, \
+    Dimension, Point
 
 if TYPE_CHECKING:
     from alleycat.ui import LookAndFeel, Toolkit, WindowManager
@@ -82,6 +83,12 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
 
     def process_draw(self) -> None:
         self._window_manager.draw(self._graphics)
+
+    def dispatcher_at(self, location: Point) -> Maybe[EventDispatcher]:
+        if location is None:
+            raise ValueError("Argument 'location' is required.")
+
+        return self._window_manager.window_at(location).bind(lambda w: w.component_at(location))
 
     def dispose(self) -> None:
         super().dispose()

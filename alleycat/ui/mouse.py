@@ -10,11 +10,9 @@ from alleycat.reactive import RV, RP
 from alleycat.reactive import functions as rv
 from rx import Observable
 from rx import operators as ops
-from rx.disposable import Disposable
-from rx.subject import Subject
 
-from alleycat.ui import Point, Context, Input, PositionalEvent, Event, EventDispatcher, InputLookup, \
-    ErrorHandlerSupport, PropagatingEvent
+from alleycat.ui import Point, Context, Input, PositionalEvent, Event, InputLookup, \
+    PropagatingEvent, Bounded, EventHandler
 
 
 class MouseButton(IntFlag):
@@ -56,40 +54,28 @@ class MouseUpEvent(MouseButtonEvent):
         return MouseUpEvent(source, self.position, self.button)
 
 
-class MouseEventHandler(EventDispatcher, ErrorHandlerSupport, Disposable, ABC):
+class MouseEventHandler(Bounded, EventHandler, ABC):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-
-        self._mouse_events = dict([(key, Subject()) for key in ["move", "up", "down"]])
 
     @property
     def on_mouse_move(self) -> Observable:
-        return self._mouse_events["move"]
+        return self.events.pipe(
+            ops.filter(lambda e: isinstance(e, MouseMoveEvent)),
+            ops.map(lambda e: e.with_source(self)))
 
     @property
     def on_mouse_down(self) -> Observable:
-        return self._mouse_events["down"]
+        return self.events.pipe(
+            ops.filter(lambda e: isinstance(e, MouseDownEvent)),
+            ops.map(lambda e: e.with_source(self)))
 
     @property
     def on_mouse_up(self) -> Observable:
-        return self._mouse_events["up"]
-
-    def dispatch_event(self, event: Event) -> None:
-        if isinstance(event, MouseMoveEvent):
-            self._mouse_events["move"].on_next(event.with_source(self))
-        elif isinstance(event, MouseDownEvent):
-            self._mouse_events["down"].on_next(event.with_source(self))
-        elif isinstance(event, MouseUpEvent):
-            self._mouse_events["up"].on_next(event.with_source(self))
-
-        super().dispatch_event(event)
-
-    def dispose(self) -> None:
-        super().dispose()
-
-        for subject in self._mouse_events.values():
-            self.execute_safely(subject.dispose)
+        return self.events.pipe(
+            ops.filter(lambda e: isinstance(e, MouseUpEvent)),
+            ops.map(lambda e: e.with_source(self)))
 
 
 class MouseInput(Input, ABC):
@@ -102,8 +88,10 @@ class MouseInput(Input, ABC):
     def __init__(self, context: Context):
         super().__init__(context)
 
-        self._dispatchers = rx.merge(*self.events) \
-            .subscribe(lambda e: e.source.dispatch_event(e), on_error=self.error_handler)
+        def dispatch(event: PositionalEvent) -> None:
+            self.context.dispatcher_at(event.position).map(lambda d: d.dispatch_event(event))
+
+        self._dispatchers = rx.merge(*self.positional_events).subscribe(dispatch, on_error=self.error_handler)
 
     @property
     def id(self) -> str:
@@ -120,26 +108,14 @@ class MouseInput(Input, ABC):
             raise NotImplemented("Mouse input is not supported in this backend.")
 
     @property
-    def events(self) -> Sequence[Observable]:
+    def positional_events(self) -> Sequence[Observable]:
         return self.on_mouse_move, self.on_mouse_down, self.on_mouse_up
 
     @property
     def on_mouse_move(self) -> Observable:
-        position = rv.observe(self, "position")
-
-        window = position.pipe(
-            ops.map(lambda p: (self.context.window_manager.window_at(p), p)),
-            ops.map(lambda v: v[0].map(lambda w: rx.of((w, v[1]))).value_or(rx.empty())),
-            ops.exclusive(),
-            ops.distinct_until_changed())
-
-        component = window.pipe(
-            ops.map(lambda v: (v[0].component_at(v[1]), v[1])),
-            ops.map(lambda v: v[0].map(lambda w: rx.of((w, v[1]))).value_or(rx.empty())),
-            ops.exclusive(),
-            ops.distinct_until_changed())
-
-        return component.pipe(ops.map(lambda v: MouseMoveEvent(v[0], v[1])))
+        return rv.observe(self, "position").pipe(
+            ops.distinct_until_changed(),
+            ops.map(lambda p: MouseMoveEvent(self.context, p)))
 
     @property
     def on_mouse_down(self) -> Observable:
@@ -148,10 +124,7 @@ class MouseInput(Input, ABC):
                 ops.map(lambda _: rx.concat(
                     rx.of(self.position), rx.never().pipe(ops.take_until(self._next_button_up(button))))),
                 ops.exclusive(),
-                ops.map(lambda p: (self.context.window_manager.window_at(p).bind(lambda w: w.component_at(p)), p)),
-                ops.map(lambda v: v[0].map(lambda w: rx.of((w, v[1]))).value_or(rx.empty())),
-                ops.exclusive(),
-                ops.map(lambda v: MouseDownEvent(v[0], v[1], button)))
+                ops.map(lambda p: MouseDownEvent(self.context, p, button)))
 
         return rx.merge(*[event_for(button) for button in MouseButton])
 
@@ -162,10 +135,7 @@ class MouseInput(Input, ABC):
                 ops.map(lambda _: rx.concat(
                     rx.of(self.position), rx.never().pipe(ops.take_until(self._button_down(button))))),
                 ops.exclusive(),
-                ops.map(lambda p: (self.context.window_manager.window_at(p).bind(lambda w: w.component_at(p)), p)),
-                ops.map(lambda v: v[0].map(lambda w: rx.of((w, v[1]))).value_or(rx.empty())),
-                ops.exclusive(),
-                ops.map(lambda v: MouseUpEvent(v[0], v[1], button)))
+                ops.map(lambda p: MouseUpEvent(self.context, p, button)))
 
         return rx.merge(*[event_for(button) for button in MouseButton])
 

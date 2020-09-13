@@ -4,7 +4,12 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
-from alleycat.ui import Point
+from returns.maybe import Maybe, Nothing
+from rx import Observable
+from rx.disposable import Disposable
+from rx.subject import Subject
+
+from alleycat.ui import Point, InputLookup
 
 
 @dataclass(frozen=True)  # type:ignore
@@ -51,11 +56,34 @@ class EventLoopAware(ABC):
         pass
 
 
-class EventDispatcher(ABC):
+class EventDispatcher(Disposable, ABC):
 
     def __init__(self) -> None:
         super().__init__()
 
-    @abstractmethod
+        self._events = Subject()
+
+    @property
+    def events(self) -> Observable:
+        return self._events
+
+    @property
+    def parent_dispatcher(self) -> Maybe[EventDispatcher]:
+        return Nothing
+
     def dispatch_event(self, event: Event) -> None:
-        pass
+        assert event is not None
+
+        self._events.on_next(event)
+
+        if isinstance(event, PropagatingEvent) and not event.propagation_stopped:
+            self.parent_dispatcher.map(lambda p: p.dispatch_event(event))
+
+    def dispose(self) -> None:
+        super().dispose()
+
+        self._events.dispose()
+
+
+class EventHandler(EventDispatcher, InputLookup, ABC):
+    pass
