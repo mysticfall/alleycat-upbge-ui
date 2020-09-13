@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import IntFlag
 from typing import Final, Any, cast, Sequence
 
@@ -16,72 +16,43 @@ from rx.subject import Subject
 from alleycat.ui import Point, Context, Input, PositionalEvent, Event, EventDispatcher, InputLookup, ErrorHandlerSupport
 
 
-class MouseEvent(PositionalEvent, ABC):
-    pass
-
-
 class MouseButton(IntFlag):
     LEFT = 1
     MIDDLE = 2
     RIGHT = 4
 
 
-@dataclass(frozen=True)
-class MouseMoveEvent(MouseEvent):
-    source: Any = field(repr=False)
+class MouseEvent(PositionalEvent, ABC):
+    pass
 
-    position: Point
+
+@dataclass(frozen=True)  # type:ignore
+class MouseButtonEvent(MouseEvent, ABC):
+    button: MouseButton
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+
+        if self.button is None:
+            raise ValueError("Argument 'button' is required.")
+
+
+class MouseMoveEvent(MouseEvent):
 
     def with_source(self, source: Any) -> Event:
         return MouseMoveEvent(source, self.position)
 
-    def __post_init__(self) -> None:
-        super().__post_init__()
 
-        if self.position is None:
-            raise ValueError("Argument 'position' is required.")
-
-
-@dataclass(frozen=True)
-class MouseDownEvent(MouseEvent):
-    source: Any = field(repr=False)
-
-    position: Point
-
-    button: MouseButton
+class MouseDownEvent(MouseButtonEvent):
 
     def with_source(self, source: Any) -> Event:
         return MouseDownEvent(source, self.position, self.button)
 
-    def __post_init__(self) -> None:
-        super().__post_init__()
 
-        if self.position is None:
-            raise ValueError("Argument 'position' is required.")
-
-        if self.button is None:
-            raise ValueError("Argument 'button' is required.")
-
-
-@dataclass(frozen=True)
-class MouseUpEvent(MouseEvent):
-    source: Any = field(repr=False)
-
-    position: Point
-
-    button: MouseButton
+class MouseUpEvent(MouseButtonEvent):
 
     def with_source(self, source: Any) -> Event:
         return MouseUpEvent(source, self.position, self.button)
-
-    def __post_init__(self) -> None:
-        super().__post_init__()
-
-        if self.position is None:
-            raise ValueError("Argument 'position' is required.")
-
-        if self.button is None:
-            raise ValueError("Argument 'button' is required.")
 
 
 class MouseEventHandler(EventDispatcher, ErrorHandlerSupport, Disposable, ABC):

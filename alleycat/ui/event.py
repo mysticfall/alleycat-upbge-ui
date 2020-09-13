@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from dataclasses import field, dataclass
 from typing import Any
 
 from alleycat.ui import Point
@@ -25,8 +26,17 @@ class Event(ABC):
         return getattr(self, "_stop_propagation", False)
 
 
+@dataclass(frozen=True)  # type:ignore
 class PositionalEvent(Event, ABC):
+    source: Any = field(repr=False)
+
     position: Point
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+
+        if self.position is None:
+            raise ValueError("Argument 'position' is required.")
 
 
 class EventLoopAware(ABC):
