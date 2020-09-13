@@ -112,7 +112,7 @@ class MouseInput(Input, ABC):
     @staticmethod
     def input(lookup: InputLookup) -> MouseInput:
         if lookup is None:
-            raise ValueError("Argument 'look' is required.")
+            raise ValueError("Argument 'lookup' is required.")
 
         try:
             return cast(MouseInput, lookup.inputs[MouseInput.ID])
