@@ -3,7 +3,7 @@ from abc import ABC
 from alleycat.reactive import RV, RP
 from alleycat.reactive import functions as rv
 
-from alleycat.ui import Bounds, Dimension
+from alleycat.ui import Bounds, Dimension, Point
 
 
 class Bounded(ABC):
@@ -24,3 +24,5 @@ class Bounded(ABC):
     location: RV[float] = bounds.as_view().map(lambda b: b.location)
 
     size: RV[Dimension] = bounds.as_view().map(lambda b: b.size)
+
+    offset: RV[Point]
