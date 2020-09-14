@@ -146,24 +146,24 @@ class MouseTest(unittest.TestCase):
         self.input.click(MouseButton.RIGHT)
 
         self.assertEqual([], events)
-
         self.assertEqual([MouseUpEvent(self.parent, Point(20, 20), MouseButton.RIGHT)], parent_events)
 
-        self.input.release(MouseButton.LEFT)
-
         self.input.move_to(Point(30, 30))
+
+        self.input.release(MouseButton.LEFT)
 
         self.input.click(MouseButton.MIDDLE)
         self.input.click(MouseButton.LEFT)
 
         self.assertEqual([
+            MouseUpEvent(self.component, Point(30, 30), MouseButton.LEFT),
             MouseUpEvent(self.component, Point(30, 30), MouseButton.MIDDLE),
             MouseUpEvent(self.component, Point(30, 30), MouseButton.LEFT)
         ], events)
 
         self.assertEqual([
             MouseUpEvent(self.parent, Point(20, 20), MouseButton.RIGHT),
-            MouseUpEvent(self.parent, Point(20, 20), MouseButton.LEFT),
+            MouseUpEvent(self.parent, Point(30, 30), MouseButton.LEFT),
             MouseUpEvent(self.parent, Point(30, 30), MouseButton.MIDDLE),
             MouseUpEvent(self.parent, Point(30, 30), MouseButton.LEFT)
         ], parent_events)
