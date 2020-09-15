@@ -155,9 +155,10 @@ class MouseInput(Input, ABC):
     @property
     def on_mouse_down(self) -> Observable:
         def event_for(button: MouseButton) -> Observable:
-            return self._button_down(button).pipe(
+            return self.on_button_press(button).pipe(
                 ops.map(lambda _: rx.concat(
-                    rx.of(self.position), rx.never().pipe(ops.take_until(self._next_button_up(button))))),
+                    rx.of(self.position), rx.never().pipe(
+                        ops.take_until(self.on_button_release(button).pipe(ops.take(1)))))),
                 ops.exclusive(),
                 ops.map(lambda p: MouseDownEvent(self.context, p, button)))
 
@@ -166,30 +167,24 @@ class MouseInput(Input, ABC):
     @property
     def on_mouse_up(self) -> Observable:
         def event_for(button: MouseButton) -> Observable:
-            return self._button_up(button).pipe(
+            return self.on_button_release(button).pipe(
                 ops.map(lambda _: rx.concat(
-                    rx.of(self.position), rx.never().pipe(ops.take_until(self._button_down(button))))),
+                    rx.of(self.position), rx.never().pipe(ops.take_until(self.on_button_press(button))))),
                 ops.exclusive(),
                 ops.map(lambda p: MouseUpEvent(self.context, p, button)))
 
         return rx.merge(*[event_for(button) for button in MouseButton])
 
-    def _button_down(self, button: MouseButton) -> Observable:
+    def on_button_press(self, button: MouseButton) -> Observable:
         return rv.observe(self, "buttons").pipe(
             ops.filter(lambda b: b & button == button))
 
-    def _button_up(self, button: MouseButton) -> Observable:
+    def on_button_release(self, button: MouseButton) -> Observable:
         return rv.observe(self, "buttons").pipe(
             ops.map(lambda b: b & button),
             ops.distinct_until_changed(),
             ops.pairwise(),
             ops.filter(lambda b: b[0] == button and b[1] != button))
-
-    def _next_button_up(self, button: MouseButton) -> Observable:
-        return rv.observe(self, "buttons").pipe(
-            ops.map(lambda b: b & button),
-            ops.filter(lambda b: b != button),
-            ops.take(1))
 
     def dispose(self) -> None:
         super().dispose()
