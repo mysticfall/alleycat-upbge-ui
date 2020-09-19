@@ -66,6 +66,36 @@ class MouseOutEvent(MouseEvent):
         return MouseOutEvent(source, self.position)
 
 
+class DragStartEvent(MouseButtonEvent):
+
+    def with_source(self, source: Any) -> Event:
+        return DragStartEvent(source, self.position, self.button)
+
+
+class DragEvent(MouseButtonEvent):
+
+    def with_source(self, source: Any) -> Event:
+        return DragEvent(source, self.position, self.button)
+
+
+class DragEndEvent(MouseButtonEvent):
+
+    def with_source(self, source: Any) -> Event:
+        return DragEndEvent(source, self.position, self.button)
+
+
+class DragOverEvent(MouseButtonEvent):
+
+    def with_source(self, source: Any) -> Event:
+        return DragOverEvent(source, self.position, self.button)
+
+
+class DragLeaveEvent(MouseButtonEvent):
+
+    def with_source(self, source: Any) -> Event:
+        return DragLeaveEvent(source, self.position, self.button)
+
+
 class MouseEventHandler(Bounded, EventHandler, ABC):
 
     def __init__(self) -> None:
@@ -111,6 +141,76 @@ class MouseEventHandler(Bounded, EventHandler, ABC):
                 ops.take(1))),
             ops.exclusive(),
             ops.map(lambda p: MouseOutEvent(self, p)))
+
+    @property
+    def on_drag_start(self) -> Observable:
+        mouse = MouseInput.input(self)
+        position = rv.observe(mouse, "position")
+
+        return self.on_mouse_down.pipe(
+            ops.map(lambda e: position.pipe(
+                ops.take(1),
+                ops.map(lambda _: DragStartEvent(self, e.position, e.button)),
+                ops.take_until(mouse.on_button_release(e.button)))),
+            ops.exclusive())
+
+    @property
+    def on_drag(self) -> Observable:
+        mouse = MouseInput.input(self)
+        position = rv.observe(mouse, "position")
+
+        return self.on_drag_start.pipe(
+            ops.map(lambda e: position.pipe(
+                ops.skip(1),
+                ops.map(lambda p: DragEvent(self, p, e.button)),
+                ops.take_until(mouse.on_button_release(e.button)))),
+            ops.exclusive())
+
+    @property
+    def on_drag_over(self) -> Observable:
+        mouse = MouseInput.input(self)
+
+        return mouse.on_mouse_down.pipe(
+            ops.filter(lambda e: not self.bounds.contains(e.position - self.offset)),
+            ops.map(lambda e: self.on_mouse_over.pipe(
+                ops.map(lambda o: (o.position, e.button)),
+                ops.take_until(mouse.on_button_release(e.button)))),
+            ops.exclusive(),
+            ops.map(lambda e: DragOverEvent(self, e[0], e[1])))
+
+    @property
+    def on_drag_leave(self) -> Observable:
+        mouse = MouseInput.input(self)
+        position = rv.observe(mouse, "position")
+
+        from_inside = self.on_mouse_down.pipe(
+            ops.map(lambda e: position.pipe(
+                ops.filter(lambda p: not self.bounds.contains(p - self.offset)),
+                ops.take(1),
+                ops.map(lambda p: (p, e.button)),
+                ops.take_until(mouse.on_button_release(e.button)))),
+            ops.exclusive())
+
+        from_outside = self.on_drag_over.pipe(
+            ops.map(lambda e: self.on_mouse_out.pipe(
+                ops.take(1),
+                ops.map(lambda o: (o.position, e.button)),
+                ops.take_until(mouse.on_button_release(e.button)))),
+            ops.exclusive())
+
+        return rx.merge(from_inside, from_outside).pipe(
+            ops.map(lambda e: DragLeaveEvent(self, e[0], e[1])))
+
+    @property
+    def on_drag_end(self) -> Observable:
+        mouse = MouseInput.input(self)
+
+        return self.on_drag_start.pipe(
+            ops.map(lambda e: mouse.on_button_release(e.button).pipe(
+                ops.take(1),
+                ops.map(lambda _: (mouse.position, e.button)))),
+            ops.exclusive(),
+            ops.map(lambda e: DragEndEvent(self, e[0], e[1])))
 
 
 class MouseInput(Input, ABC):

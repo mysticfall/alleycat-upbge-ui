@@ -2,7 +2,7 @@ import unittest
 from typing import cast
 
 from alleycat.ui import Bounds, Component, FakeMouseInput, Point, Window, MouseMoveEvent, MouseInput, MouseOverEvent, \
-    MouseOutEvent
+    MouseOutEvent, DragStartEvent, DragEvent, DragOverEvent, DragLeaveEvent, DragEndEvent
 from alleycat.ui import MouseButton, MouseDownEvent, MouseUpEvent
 from alleycat.ui.cairo import UI
 
@@ -238,6 +238,182 @@ class MouseTest(unittest.TestCase):
             MouseOutEvent(self.parent, Point(10, 10)),
             MouseOutEvent(self.parent, Point(0, 0))
         ], parent_events)
+
+    def test_drag_start(self):
+        events = []
+        parent_events = []
+
+        self.component.on_drag_start.subscribe(events.append)
+        self.parent.on_drag_start.subscribe(parent_events.append)
+
+        self.input.move_to(Point(10, 10))
+        self.input.press(MouseButton.LEFT)
+
+        self.input.move_to(Point(30, 30))
+        self.input.release(MouseButton.LEFT)
+
+        self.assertEqual([], events)
+        self.assertEqual([], parent_events)
+
+        self.input.move_to(Point(20, 20))
+        self.input.press(MouseButton.RIGHT)
+        self.input.move_to(Point(30, 30))
+
+        self.assertEqual([], events)
+        self.assertEqual([DragStartEvent(self.parent, Point(20, 20), MouseButton.RIGHT)], parent_events)
+
+        self.input.release(MouseButton.RIGHT)
+
+        self.input.press(MouseButton.MIDDLE)
+        self.input.move_to(Point(20, 20))
+        self.input.release(MouseButton.MIDDLE)
+
+        self.assertEqual([DragStartEvent(self.component, Point(30, 30), MouseButton.MIDDLE)], events)
+        self.assertEqual([DragStartEvent(self.parent, Point(30, 30), MouseButton.MIDDLE)], parent_events[1:])
+
+    def test_drag(self):
+        events = []
+        parent_events = []
+
+        self.component.on_drag.subscribe(events.append)
+        self.parent.on_drag.subscribe(parent_events.append)
+
+        self.input.move_to(Point(10, 10))
+        self.input.press(MouseButton.LEFT)
+
+        self.input.move_to(Point(30, 30))
+        self.input.release(MouseButton.LEFT)
+
+        self.assertEqual([], events)
+        self.assertEqual([], parent_events)
+
+        self.input.move_to(Point(20, 20))
+        self.input.press(MouseButton.RIGHT)
+        self.input.move_to(Point(25, 25))
+        self.input.move_to(Point(30, 30))
+
+        self.assertEqual([], events)
+        self.assertEqual([
+            DragEvent(self.parent, Point(25, 25), MouseButton.RIGHT),
+            DragEvent(self.parent, Point(30, 30), MouseButton.RIGHT)
+        ], parent_events)
+
+        self.input.release(MouseButton.RIGHT)
+
+        self.input.press(MouseButton.MIDDLE)
+        self.input.move_to(Point(20, 20))
+        self.input.move_to(Point(10, 10))
+        self.input.release(MouseButton.MIDDLE)
+
+        self.assertEqual([
+            DragEvent(self.component, Point(20, 20), MouseButton.MIDDLE),
+            DragEvent(self.component, Point(10, 10), MouseButton.MIDDLE)
+        ], events)
+
+        self.assertEqual([
+            DragEvent(self.parent, Point(20, 20), MouseButton.MIDDLE),
+            DragEvent(self.parent, Point(10, 10), MouseButton.MIDDLE)
+        ], parent_events[2:])
+
+    def test_drag_over(self):
+        events = []
+        parent_events = []
+
+        self.component.on_drag_over.subscribe(events.append)
+        self.parent.on_drag_over.subscribe(parent_events.append)
+
+        self.input.move_to(Point(10, 10))
+
+        self.input.press(MouseButton.LEFT)
+        self.input.move_to(Point(20, 20))
+        self.input.move_to(Point(30, 30))
+        self.input.release(MouseButton.LEFT)
+
+        self.assertEqual([DragOverEvent(self.component, Point(30, 30), MouseButton.LEFT)], events)
+        self.assertEqual([DragOverEvent(self.parent, Point(20, 20), MouseButton.LEFT)], parent_events)
+
+        self.input.move_to(Point(20, 20))
+        self.input.press(MouseButton.RIGHT)
+        self.input.move_to(Point(30, 30))
+        self.input.move_to(Point(35, 35))
+
+        self.assertEqual([DragOverEvent(self.component, Point(30, 30), MouseButton.RIGHT)], events[1:])
+        self.assertEqual([], parent_events[1:])
+
+        self.input.release(MouseButton.RIGHT)
+
+        self.input.press(MouseButton.MIDDLE)
+        self.input.move_to(Point(20, 20))
+        self.input.move_to(Point(10, 10))
+        self.input.release(MouseButton.MIDDLE)
+
+        self.assertEqual([], events[2:])
+        self.assertEqual([], parent_events[1:])
+
+    def test_drag_leave(self):
+        events = []
+        parent_events = []
+
+        self.component.on_drag_leave.subscribe(events.append)
+        self.parent.on_drag_leave.subscribe(parent_events.append)
+
+        self.input.move_to(Point(35, 35))
+        self.input.press(MouseButton.LEFT)
+        self.input.move_to(Point(30, 30))
+
+        self.assertEqual([], events)
+        self.assertEqual([], parent_events)
+
+        self.input.move_to(Point(20, 20))
+
+        self.assertEqual([DragLeaveEvent(self.component, Point(20, 20), MouseButton.LEFT)], events)
+        self.assertEqual([], parent_events)
+
+        self.input.release(MouseButton.LEFT)
+        self.input.press(MouseButton.RIGHT)
+
+        self.input.move_to(Point(30, 30))
+        self.input.release(MouseButton.RIGHT)
+
+        self.assertEqual([], events[1:])
+        self.assertEqual([], parent_events)
+
+        self.input.press(MouseButton.MIDDLE)
+        self.input.move_to(Point(10, 10))
+
+        self.assertEqual([DragLeaveEvent(self.component, Point(10, 10), MouseButton.MIDDLE)], events[1:])
+        self.assertEqual([DragLeaveEvent(self.parent, Point(10, 10), MouseButton.MIDDLE)], parent_events)
+
+    def test_drag_end(self):
+        events = []
+        parent_events = []
+
+        self.component.on_drag_end.subscribe(events.append)
+        self.parent.on_drag_end.subscribe(parent_events.append)
+
+        self.input.move_to(Point(30, 30))
+        self.input.press(MouseButton.LEFT)
+
+        self.assertEqual([], events)
+        self.assertEqual([], parent_events)
+
+        self.input.move_to(Point(20, 20))
+
+        self.assertEqual([], events)
+        self.assertEqual([], parent_events)
+
+        self.input.release(MouseButton.LEFT)
+
+        self.assertEqual([DragEndEvent(self.component, Point(20, 20), MouseButton.LEFT)], events)
+        self.assertEqual([DragEndEvent(self.parent, Point(20, 20), MouseButton.LEFT)], parent_events)
+
+        self.input.press(MouseButton.RIGHT)
+
+        self.input.move_to(Point(30, 30))
+        self.input.release(MouseButton.RIGHT)
+
+        self.assertEqual([], events[1:])
+        self.assertEqual([DragEndEvent(self.parent, Point(30, 30), MouseButton.RIGHT)], parent_events[1:])
 
 
 if __name__ == '__main__':
