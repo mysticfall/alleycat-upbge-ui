@@ -5,7 +5,7 @@ from typing import Optional
 
 from cairo import ImageSurface
 
-from alleycat.ui.cairo import CairoContext
+from alleycat.ui.cairo import CairoContext, UI
 
 
 class UITestCase(unittest.TestCase, ABC):
@@ -14,6 +14,16 @@ class UITestCase(unittest.TestCase, ABC):
 
         self.fixture_dir = fixture_dir if fixture_dir is not None else Path("fixtures", self.__module__)
         self.output_dir = output_dir if output_dir is not None else Path("output", self.__module__)
+
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.context = UI().create_context()
+
+    def tearDown(self) -> None:
+        super().tearDown()
+
+        self.context.dispose()
 
     def assertImage(self, name: str, context: CairoContext, tolerance: int = 0):
         if name is None:
