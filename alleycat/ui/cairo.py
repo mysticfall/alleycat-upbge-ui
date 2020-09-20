@@ -51,6 +51,9 @@ class CairoToolkit(Toolkit[CairoContext]):
         super().__init__()
 
     def create_graphics(self, context: CairoContext) -> Graphics:
+        if context is None:
+            raise ValueError("Argument 'context' is required.")
+
         ctx = cairo.Context(context.surface)
 
         return CairoGraphics(ctx, context)
@@ -77,13 +80,11 @@ class CairoGraphics(Graphics[CairoContext]):
         if bounds is None:
             raise ValueError("Argument 'bounds' is required.")
 
-        (dx, dy) = self.offset
-
-        self.g.rectangle(bounds.x + dx, bounds.y + dx, bounds.width, bounds.height)
-
+        (x, y, w, h) = bounds.move_by(self.offset).tuple
         (r, g, b, a) = self.color
 
         self.g.set_source_rgba(r, g, b, a)
+        self.g.rectangle(x, y, w, h)
         self.g.fill()
 
         return self
