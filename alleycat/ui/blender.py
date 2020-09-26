@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import reduce
+from pathlib import Path
 from typing import cast, Optional, Sequence
 
 import bge
@@ -31,10 +32,11 @@ class BlenderContext(Context):
 
     def __init__(self,
                  toolkit: BlenderToolkit,
+                 resource_path: Path = Path("//"),
                  look_and_feel: Optional[LookAndFeel] = None,
                  window_manager: Optional[WindowManager] = None,
                  error_handler: Optional[ErrorHandler] = None) -> None:
-        super().__init__(toolkit, look_and_feel, window_manager, error_handler)
+        super().__init__(toolkit, resource_path, look_and_feel, window_manager, error_handler)
 
         self._resolution = BehaviorSubject(get_window_size())
 

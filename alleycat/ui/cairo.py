@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional, cast, Sequence
 
 import cairo
@@ -18,6 +19,7 @@ class CairoContext(Context):
     def __init__(self,
                  toolkit: CairoToolkit,
                  surface: Surface,
+                 resource_path: Path = Path("."),
                  look_and_feel: Optional[LookAndFeel] = None,
                  window_manager: Optional[WindowManager] = None,
                  error_handler: Optional[ErrorHandler] = None) -> None:
@@ -26,7 +28,7 @@ class CairoContext(Context):
 
         self._surface = surface
 
-        super().__init__(toolkit, look_and_feel, window_manager, error_handler)
+        super().__init__(toolkit, resource_path, look_and_feel, window_manager, error_handler)
 
         ctx = cairo.Context(surface)
 

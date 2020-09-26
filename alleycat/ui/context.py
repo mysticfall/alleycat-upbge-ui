@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Mapping, Optional, Any, Dict, TYPE_CHECKING, TypeVar, Generic
 
 from alleycat.reactive import ReactiveObject, RV
@@ -22,11 +23,15 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
 
     def __init__(self,
                  toolkit: Toolkit,
+                 resource_path: Path = Path("."),
                  look_and_feel: Optional[LookAndFeel] = None,
                  window_manager: Optional[WindowManager] = None,
                  error_handler: Optional[ErrorHandler] = None) -> None:
         if toolkit is None:
             raise ValueError("Argument 'toolkit' is required.")
+
+        if resource_path is None:
+            raise ValueError("Argument 'resource_path' is required.")
 
         super().__init__()
 
@@ -34,6 +39,7 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
         from alleycat.ui.glass import GlassLookAndFeel
 
         self._toolkit = toolkit
+        self._resource_path = resource_path
 
         self._look_and_feel = Maybe.from_value(look_and_feel).or_else_call(GlassLookAndFeel)
         self._error_handler = Maybe.from_value(error_handler).value_or(default_error_handler)
@@ -52,6 +58,10 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
     @property
     def toolkit(self) -> Toolkit:
         return self._toolkit
+
+    @property
+    def resource_path(self) -> Path:
+        return self._resource_path
 
     @property
     def inputs(self) -> Mapping[str, Input]:
@@ -115,6 +125,14 @@ class ContextBuilder(ABC, Generic[T]):
     @property
     def args(self) -> Dict[str, Any]:
         return self._args
+
+    def with_resource_path(self, resource_path: Path) -> ContextBuilder:
+        if resource_path is None:
+            raise ValueError("Argument 'resource_path' is required.")
+
+        self._args["resource_path"] = resource_path
+
+        return self
 
     def with_window_manager(self, manager: WindowManager) -> ContextBuilder:
         if manager is None:
