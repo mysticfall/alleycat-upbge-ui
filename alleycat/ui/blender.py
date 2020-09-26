@@ -74,6 +74,9 @@ class BlenderGraphics(Graphics[BlenderContext]):
     # noinspection PyUnresolvedReferences
     shader = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
 
+    def __init__(self, context: BlenderContext) -> None:
+        super().__init__(context)
+
     def fill_rect(self, bounds: Bounds) -> Graphics:
         if bounds is None:
             raise ValueError("Argument 'bounds' is required.")
@@ -96,9 +99,6 @@ class BlenderGraphics(Graphics[BlenderContext]):
 
     def clear(self) -> Graphics:
         return self
-
-    def dispose(self) -> None:
-        super().dispose()
 
 
 class UI(ContextBuilder[BlenderContext]):
