@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from functools import reduce
 from typing import Any, Tuple, Union, Optional, Iterable, Iterator
 
+from returns.maybe import Maybe, Nothing, Some
+
 
 @dataclass(frozen=True)
 class Point(Iterable):
@@ -172,6 +174,17 @@ class Bounds(Iterable):
 
     def __truediv__(self, number: float) -> Bounds:
         return Bounds(self.x, self.y, self.width / number, self.height / number)
+
+    def __and__(self, other) -> Maybe[Bounds]:
+        (x1, y1, w1, h1) = self.tuple
+        (x2, y2, w2, h2) = other.tuple
+
+        (x, w) = (x1, x2 + w2 - x1 if x1 + w1 > x2 + w2 else w1) if x1 > x2 \
+            else (x2, x1 + w1 - x2 if x2 + w2 > x1 + w1 else w2)
+        (y, h) = (y1, y2 + h2 - y1 if y1 + h1 > y2 + h2 else h1) if y1 > y2 \
+            else (y2, y1 + h1 - y2 if y2 + h2 > y1 + h1 else h2)
+
+        return Some(Bounds(x, y, w, h)) if w > 0 and h > 0 else Nothing
 
     def __iter__(self) -> Iterator[float]:
         return iter(self.tuple)

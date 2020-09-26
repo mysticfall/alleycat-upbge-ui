@@ -1,5 +1,7 @@
 import unittest
 
+from returns.maybe import Nothing
+
 from alleycat.ui import Point, Dimension, Bounds, RGBA
 
 
@@ -131,6 +133,23 @@ class PrimitivesTest(unittest.TestCase):
 
         self.assertEqual(Bounds(20, 40, 200, 400), Bounds(20, 40, 100, 200) * 2)
         self.assertEqual(Bounds(20, 40, 100, 200), Bounds(20, 40, 200, 400) / 2)
+
+        self.assertEqual(Nothing, Bounds(10, 20, 100, 60) & Bounds(120, 20, 100, 60))
+        self.assertEqual(Nothing, Bounds(10, 20, 100, 60) & Bounds(-120, 20, 100, 60))
+        self.assertEqual(Nothing, Bounds(10, 20, 100, 60) & Bounds(10, 90, 100, 60))
+        self.assertEqual(Nothing, Bounds(10, 20, 100, 60) & Bounds(10, -50, 100, 60))
+
+        self.assertEqual(Bounds(10, 20, 30, 20), (Bounds(10, 20, 100, 60) & Bounds(-60, -20, 100, 60)).unwrap())
+        self.assertEqual(Bounds(60, 20, 50, 20), (Bounds(10, 20, 100, 60) & Bounds(60, -20, 100, 60)).unwrap())
+        self.assertEqual(Bounds(60, 40, 50, 40), (Bounds(10, 20, 100, 60) & Bounds(60, 40, 100, 60)).unwrap())
+        self.assertEqual(Bounds(10, 40, 30, 40), (Bounds(10, 20, 100, 60) & Bounds(-60, 40, 100, 60)).unwrap())
+
+        self.assertEqual(Bounds(40, 30, 70, 40), (Bounds(10, 20, 100, 60) & Bounds(40, 30, 100, 40)).unwrap())
+        self.assertEqual(Bounds(10, 30, 70, 40), (Bounds(10, 20, 100, 60) & Bounds(-20, 30, 100, 40)).unwrap())
+        self.assertEqual(Bounds(20, 20, 80, 20), (Bounds(10, 20, 100, 60) & Bounds(20, -20, 80, 60)).unwrap())
+        self.assertEqual(Bounds(20, 40, 80, 40), (Bounds(10, 20, 100, 60) & Bounds(20, 40, 80, 60)).unwrap())
+
+        self.assertEqual(Bounds(30, 40, 50, 20), (Bounds(10, 20, 100, 60) & Bounds(30, 40, 50, 20)).unwrap())
 
     def test_bounds_location(self):
         self.assertEqual(Point(10, 20), Bounds(10, 20, 100, 200).location)
