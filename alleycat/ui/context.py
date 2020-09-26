@@ -10,7 +10,7 @@ from alleycat.ui import EventDispatcher, EventLoopAware, ErrorHandler, ErrorHand
     Dimension, Point
 
 if TYPE_CHECKING:
-    from alleycat.ui import LookAndFeel, Toolkit, WindowManager
+    from alleycat.ui import Graphics, LookAndFeel, Toolkit, WindowManager
 
 
 def default_error_handler(e: Exception) -> None:
@@ -41,14 +41,11 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
         self._window_manager = Maybe.from_value(window_manager) \
             .or_else_call(lambda: WindowManager(self.error_handler))
 
-        self._graphics = toolkit.create_graphics(self)
-
-        assert self._graphics is not None
-
         inputs = toolkit.create_inputs(self)
 
         assert inputs is not None
 
+        self._graphics: Optional[Graphics] = None
         self._inputs = {i.id: i for i in inputs}
         self._pollers = [i for i in inputs if isinstance(i, EventLoopAware)]
 
@@ -81,6 +78,11 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
             self.execute_safely(poller.process)
 
     def process_draw(self) -> None:
+        if self._graphics is None:
+            self._graphics = self.toolkit.create_graphics(self)
+
+        assert self._graphics is not None
+
         self._window_manager.draw(self._graphics)
 
     def dispatcher_at(self, location: Point) -> Maybe[EventDispatcher]:
@@ -92,7 +94,9 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
     def dispose(self) -> None:
         super().dispose()
 
-        self.execute_safely(self._graphics.dispose)
+        if self._graphics is not None:
+            self.execute_safely(self._graphics.dispose)
+
         self.execute_safely(self._window_manager.dispose)
 
 
