@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections import Mapping
-from typing import Optional, Any, Dict, TYPE_CHECKING, TypeVar, Generic
+from typing import Mapping, Optional, Any, Dict, TYPE_CHECKING, TypeVar, Generic
 
 from alleycat.reactive import ReactiveObject, RV
 from returns.maybe import Maybe
