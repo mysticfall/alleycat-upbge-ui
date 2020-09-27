@@ -52,6 +52,7 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
 
     def draw(self, g: Graphics) -> None:
         g.offset = self.offset
+        g.clip = Some(self.bounds)
 
         self.draw_component(g)
 

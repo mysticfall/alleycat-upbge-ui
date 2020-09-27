@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic
 
+from returns.maybe import Maybe, Nothing, Some
 from rx.disposable import Disposable
 
 from alleycat.ui import Bounds, RGBA, Context, Point
@@ -22,6 +23,7 @@ class Graphics(Disposable, ABC, Generic[T]):
 
         self._color = RGBA(0, 0, 0, 0)
         self._offset = Point(0, 0)
+        self._clip: Maybe[Bounds] = Nothing
 
     @property
     def context(self) -> Context:
@@ -48,6 +50,23 @@ class Graphics(Disposable, ABC, Generic[T]):
             raise ValueError("Argument 'value' is required.")
 
         self._offset = value
+
+    @property
+    def clip(self) -> Maybe[Bounds]:
+        return self._clip.map(lambda c: c.move_by(-self._offset))
+
+    @clip.setter
+    def clip(self, value: Maybe[Bounds]) -> None:
+        if value is None:
+            raise ValueError("Argument 'value' is required.")
+
+        if value == Nothing:
+            self._clip = value
+        else:
+            bounds = value.unwrap().move_by(self._offset)
+            clip = Some(bounds) if self._clip is Nothing else self._clip.bind(lambda c: bounds & c)
+
+            self._clip = self._clip.map(lambda b: b.copy(width=0, height=0)) if clip is Nothing else clip
 
     @abstractmethod
     def fill_rect(self, bounds: Bounds) -> Graphics:

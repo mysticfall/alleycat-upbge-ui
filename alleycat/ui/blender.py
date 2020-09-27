@@ -14,6 +14,7 @@ from bge.logic import mouse, KX_INPUT_ACTIVE, KX_INPUT_JUST_ACTIVATED
 from bge.types import SCA_InputEvent
 from bgl import GL_BLEND
 from gpu_extras.batch import batch_for_shader
+from returns.maybe import Some, Nothing
 from rx import operators as ops, Observable
 from rx.subject import Subject, BehaviorSubject
 
@@ -81,19 +82,21 @@ class BlenderGraphics(Graphics[BlenderContext]):
         if bounds is None:
             raise ValueError("Argument 'bounds' is required.")
 
-        (dx, dy) = self.offset
+        def draw(area: Bounds):
+            points = area.move_by(self.offset).points
 
-        points = bounds.copy(x=bounds.x + dx, y=bounds.y + dy).points
+            bc = cast(BlenderContext, self.context)
+            vertices = tuple(map(lambda p: p.tuple, map(bc.translate, points)))
+            indices = ((0, 1, 3), (3, 1, 2))
 
-        bc = cast(BlenderContext, self.context)
-        vertices = tuple(map(lambda p: p.tuple, map(bc.translate, points)))
-        indices = ((0, 1, 3), (3, 1, 2))
+            self.shader.bind()
+            self.shader.uniform_float("color", self.color.tuple)
 
-        self.shader.bind()
-        self.shader.uniform_float("color", self.color.tuple)
+            batch = batch_for_shader(self.shader, "TRIS", {"pos": vertices}, indices=indices)
+            batch.draw(self.shader)
 
-        batch = batch_for_shader(self.shader, "TRIS", {"pos": vertices}, indices=indices)
-        batch.draw(self.shader)
+        clip = Some(bounds) if self.clip == Nothing else self.clip.bind(lambda c: bounds & c)
+        clip.map(draw)
 
         return self
 

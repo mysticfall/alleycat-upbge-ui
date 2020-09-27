@@ -8,6 +8,7 @@ import rx
 from alleycat.reactive import RV
 from alleycat.reactive import functions as rv
 from cairo import Surface, Format, ImageSurface
+from returns.maybe import Some, Nothing
 
 from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, Dimension, LookAndFeel, WindowManager, FakeMouseInput
 from alleycat.ui.context import ContextBuilder, ErrorHandler
@@ -82,12 +83,16 @@ class CairoGraphics(Graphics[CairoContext]):
         if bounds is None:
             raise ValueError("Argument 'bounds' is required.")
 
-        (x, y, w, h) = bounds.move_by(self.offset).tuple
-        (r, g, b, a) = self.color
+        def draw(area: Bounds):
+            (x, y, w, h) = area.move_by(self.offset).tuple
+            (r, g, b, a) = self.color
 
-        self.g.set_source_rgba(r, g, b, a)
-        self.g.rectangle(x, y, w, h)
-        self.g.fill()
+            self.g.set_source_rgba(r, g, b, a)
+            self.g.rectangle(x, y, w, h)
+            self.g.fill()
+
+        clip = Some(bounds) if self.clip == Nothing else self.clip.bind(lambda c: bounds & c)
+        clip.map(draw)
 
         return self
 

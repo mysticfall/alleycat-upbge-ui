@@ -1,5 +1,7 @@
 import unittest
 
+from returns.maybe import Nothing, Some
+
 from alleycat.ui import Bounds, RGBA, Point
 from tests.ui import UITestCase
 
@@ -42,6 +44,32 @@ class GraphicsTest(UITestCase):
         self.g.fill_rect(Bounds(0, 0, 20, 20))
 
         self.assertImage("offset", self.context)
+
+    def test_clip(self):
+        self.assertEqual(Nothing, self.g.clip)
+
+        self.g.clip = Some(Bounds(10, 20, 100, 80))
+
+        self.assertEqual(Bounds(10, 20, 100, 80), self.g.clip.unwrap())
+
+        self.g.offset = Point(20, 10)
+        self.assertEqual(Bounds(-10, 10, 100, 80), self.g.clip.unwrap())
+
+        self.g.clip = Some(Bounds(10, 0, 100, 40))
+        self.assertEqual(Bounds(10, 10, 80, 30), self.g.clip.unwrap())
+
+        self.g.color = RGBA(1, 0, 0, 1)
+        self.g.fill_rect(Bounds(0, 0, 100, 100))
+
+        self.assertImage("clip", self.context)
+
+        self.g.clip = Some(Bounds(100, 100, 100, 40))
+        self.assertEqual(Bounds(10, 10, 0, 0), self.g.clip.unwrap())
+
+        self.g.color = RGBA(0, 0, 1, 1)
+        self.g.fill_rect(Bounds(0, 0, 100, 100))
+
+        self.assertImage("clip_empty", self.context)
 
 
 if __name__ == '__main__':
