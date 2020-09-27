@@ -1,6 +1,7 @@
 # Import order should not be changed to avoid a circular dependency.
 from .primitives import Point, Dimension, Bounds, RGBA
 from .error import ErrorHandler, ErrorHandlerSupport
+from .font import Font, FontRegistry
 from .input import Input, InputLookup
 from .event import Event, EventDispatcher, EventHandler, EventLoopAware, PositionalEvent, PropagatingEvent
 from .context import Context, ErrorHandler

@@ -71,6 +71,24 @@ class GraphicsTest(UITestCase):
 
         self.assertImage("clip_empty", self.context)
 
+    def test_draw_text(self):
+        self.g.offset = Point(10, 10)
+
+        for i in range(10):
+            self.g.color = RGBA(1, 0, 0, 0.1 * (i + 1))
+            self.g.draw_text("Text", 10 + 2 * i, Point(5 * i, 10 * (i + 1)))
+
+        self.assertImage("draw_text", self.context, tolerance=50)
+
+    def test_draw_text_with_clip(self):
+        self.g.clip = Some(Bounds(30, 30, 60, 60))
+
+        for i in range(10):
+            self.g.color = RGBA(1, 0, 0, 0.1 * (i + 1))
+            self.g.draw_text("Text", 10 + 2 * i, Point(5 * i, 10 * (i + 1)))
+
+        self.assertImage("draw_text_with_clip", self.context, tolerance=50)
+
 
 if __name__ == '__main__':
     unittest.main()

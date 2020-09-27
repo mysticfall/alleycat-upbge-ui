@@ -8,7 +8,7 @@ from alleycat.reactive import ReactiveObject, RV
 from returns.maybe import Maybe
 
 from alleycat.ui import EventDispatcher, EventLoopAware, ErrorHandler, ErrorHandlerSupport, InputLookup, Input, \
-    Dimension, Point
+    Dimension, Point, FontRegistry
 
 if TYPE_CHECKING:
     from alleycat.ui import Graphics, LookAndFeel, Toolkit, WindowManager
@@ -78,6 +78,11 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
     @property
     def error_handler(self) -> ErrorHandler:
         return self._error_handler
+
+    @property
+    @abstractmethod
+    def font_registry(self) -> FontRegistry:
+        pass
 
     def process(self) -> None:
         self.execute_safely(self.process_inputs)

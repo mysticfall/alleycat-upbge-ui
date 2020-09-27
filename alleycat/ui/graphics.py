@@ -6,7 +6,7 @@ from typing import TypeVar, Generic
 from returns.maybe import Maybe, Nothing, Some
 from rx.disposable import Disposable
 
-from alleycat.ui import Bounds, RGBA, Context, Point
+from alleycat.ui import Bounds, RGBA, Context, Point, Font
 
 T = TypeVar("T", bound=Context, contravariant=True)
 
@@ -21,9 +21,11 @@ class Graphics(Disposable, ABC, Generic[T]):
 
         self._context = context
 
-        self._color = RGBA(0, 0, 0, 0)
         self._offset = Point(0, 0)
         self._clip: Maybe[Bounds] = Nothing
+        self._font = context.font_registry.fallback_font
+
+        assert self._font is not None
 
     @property
     def context(self) -> Context:
@@ -39,6 +41,17 @@ class Graphics(Disposable, ABC, Generic[T]):
             raise ValueError("Argument 'value' is required.")
 
         self._color = value
+
+    @property
+    def font(self) -> Font:
+        return self._font
+
+    @font.setter
+    def font(self, value: Font) -> None:
+        if value is None:
+            raise ValueError("Argument 'value' is required.")
+
+        self._font = value
 
     @property
     def offset(self) -> Point:
@@ -70,6 +83,10 @@ class Graphics(Disposable, ABC, Generic[T]):
 
     @abstractmethod
     def fill_rect(self, bounds: Bounds) -> Graphics:
+        pass
+
+    @abstractmethod
+    def draw_text(self, text: str, size: float, location: Point, allow_wrap: bool = False) -> Graphics:
         pass
 
     @abstractmethod

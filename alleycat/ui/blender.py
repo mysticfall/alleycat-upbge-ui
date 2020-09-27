@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import sys
 from functools import reduce
 from pathlib import Path
-from typing import cast, Optional, Sequence
+from typing import cast, Optional, Sequence, Mapping, Final
 
 import bge
 import bgl
+import blf
+import bpy
 import gpu
 import rx
 from alleycat.reactive import ReactiveObject, RV
@@ -14,12 +17,13 @@ from bge.logic import mouse, KX_INPUT_ACTIVE, KX_INPUT_JUST_ACTIVATED
 from bge.types import SCA_InputEvent
 from bgl import GL_BLEND
 from gpu_extras.batch import batch_for_shader
-from returns.maybe import Some, Nothing
+from returns.maybe import Maybe, Some, Nothing
 from rx import operators as ops, Observable
+from rx.disposable import Disposable
 from rx.subject import Subject, BehaviorSubject
 
 from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, MouseInput, Point, LookAndFeel, WindowManager, \
-    Dimension, MouseButton
+    Dimension, MouseButton, Font, FontRegistry
 from alleycat.ui.context import ContextBuilder, ErrorHandler
 from alleycat.ui.event import EventLoopAware
 
@@ -39,10 +43,17 @@ class BlenderContext(Context):
                  error_handler: Optional[ErrorHandler] = None) -> None:
         super().__init__(toolkit, resource_path, look_and_feel, window_manager, error_handler)
 
+        fonts_path = resource_path / "fonts"
+
+        self._font_registry = BlenderFontRegistry(fonts_path, self.error_handler)
         self._resolution = BehaviorSubject(get_window_size())
 
         # noinspection PyTypeChecker
         self.window_size = self._resolution.pipe(ops.distinct_until_changed())
+
+    @property
+    def font_registry(self) -> FontRegistry:
+        return self._font_registry
 
     def translate(self, point: Point) -> Point:
         if point is None:
@@ -97,6 +108,43 @@ class BlenderGraphics(Graphics[BlenderContext]):
 
         clip = Some(bounds) if self.clip == Nothing else self.clip.bind(lambda c: bounds & c)
         clip.map(draw)
+
+        return self
+
+    def draw_text(self, text: str, size: float, location: Point, allow_wrap: bool = False) -> Graphics:
+        if text is None:
+            raise ValueError("Argument 'text' is required.")
+
+        if size <= 0:
+            raise ValueError("Argument 'size' should be a positive number.")
+
+        if location is None:
+            raise ValueError("Argument 'location' is required.")
+
+        font_id = cast(BlenderFont, self.font).font_id
+
+        def draw() -> None:
+            (x, y) = (location + self.offset).tuple
+            (r, g, b, a) = self.color.tuple
+
+            blf.size(font_id, int(size), 72)  # Make DPI configurable.
+            blf.position(font_id, x, y, 0)
+            blf.color(font_id, r, g, b, a)
+
+            blf.draw(font_id, text)
+
+        if self.clip is Nothing:
+            draw()
+        else:
+            clip = self.clip.unwrap().move_by(self.offset)
+
+            if clip.width > 0 and clip.height > 0:
+                blf.clipping(font_id, clip.x, clip.y, clip.x + clip.width, clip.y + clip.height)
+                blf.enable(font_id, blf.CLIPPING)
+
+                draw()
+
+                blf.disable(font_id, blf.CLIPPING)
 
         return self
 
@@ -163,3 +211,90 @@ class BlenderMouseInput(MouseInput, ReactiveObject, EventLoopAware):
 
         self.execute_safely(self._position.dispose)
         self.execute_safely(self._activeInputs.dispose)
+
+
+class BlenderFont(Font, Disposable):
+
+    def __init__(self, font_id: int, family: str, path: Optional[Path] = None) -> None:
+        if family is None:
+            raise ValueError("Argument 'family' is required.")
+
+        super().__init__()
+
+        self._family = family
+        self._font_id = font_id
+        self._path = Maybe.from_value(path)
+
+    @property
+    def family(self) -> str:
+        return self._family
+
+    @property
+    def font_id(self) -> int:
+        return self._font_id
+
+    def dispose(self) -> None:
+        super().dispose()
+
+        self._path.map(str).map(blf.unload)
+
+
+class BlenderFontRegistry(FontRegistry[BlenderFont]):
+    default_font_name: Final = "Bfont"
+
+    def __init__(self, font_path: Path, error_handler: ErrorHandler) -> None:
+        super().__init__(error_handler)
+
+        self._font_path = font_path
+        self._fallback_font = BlenderFont(0, self.default_font_name)
+        self._fonts = {self.fallback_font.family: self.fallback_font}
+
+        absolute_path = Path(bpy.path.abspath(str(font_path)))
+
+        if absolute_path.exists():
+            for file in absolute_path.glob("*.ttf"):
+                family = file.stem
+                font_id = blf.load(str(file))
+
+                if font_id == -1:
+                    e = IOError(f"Failed to load font file: '{file}'")
+                    tb = sys.exc_info()[2]
+
+                    self.error_handler(e.with_traceback(tb))
+                else:
+                    self._fonts[family] = BlenderFont(font_id, family)
+
+    @property
+    def font_path(self) -> Path:
+        return self._font_path
+
+    @property
+    def fonts(self) -> Mapping[str, BlenderFont]:
+        return self._fonts
+
+    @property
+    def fallback_font(self) -> BlenderFont:
+        return self._fallback_font
+
+    def resolve(self, family: str) -> Maybe[BlenderFont]:
+        if family is None:
+            raise ValueError("Argument 'family' is required.")
+
+        return Some(self.fonts[family]) if family in self.fonts else Nothing
+
+    def text_extent(self, text: str, font: BlenderFont) -> Dimension:
+        if text is None:
+            raise ValueError("Argument 'text' is required.")
+
+        if font is None:
+            raise ValueError("Argument 'font' is required.")
+
+        return Dimension.from_tuple(blf.dimensions(font.font_id, text))
+
+    def dispose(self) -> None:
+        super().dispose()
+
+        for font in self.fonts.values():
+            self.execute_safely(font.dispose)
+
+        self._fonts = dict()

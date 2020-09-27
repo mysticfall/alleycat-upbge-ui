@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, cast, Sequence
+from typing import Optional, cast, Sequence, Mapping
 
 import cairo
 import rx
 from alleycat.reactive import RV
 from alleycat.reactive import functions as rv
-from cairo import Surface, Format, ImageSurface
-from returns.maybe import Some, Nothing
+from cairo import Surface, FontFace, Format, ImageSurface, ToyFontFace
+from returns.maybe import Maybe, Some, Nothing
 
-from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, Dimension, LookAndFeel, WindowManager, FakeMouseInput
+from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, Dimension, LookAndFeel, WindowManager, \
+    FakeMouseInput, Font, Point, FontRegistry
 from alleycat.ui.context import ContextBuilder, ErrorHandler
+from alleycat.ui.font import T
 
 
 class CairoContext(Context):
@@ -31,6 +33,8 @@ class CairoContext(Context):
 
         super().__init__(toolkit, resource_path, look_and_feel, window_manager, error_handler)
 
+        self._font_registry = CairoFontRegistry(self.error_handler)
+
         ctx = cairo.Context(surface)
 
         (x1, y1, x2, y2) = ctx.clip_extents()
@@ -41,6 +45,10 @@ class CairoContext(Context):
     @property
     def surface(self) -> Surface:
         return self._surface
+
+    @property
+    def font_registry(self) -> FontRegistry:
+        return self._font_registry
 
     def dispose(self) -> None:
         super().dispose()
@@ -96,6 +104,47 @@ class CairoGraphics(Graphics[CairoContext]):
 
         return self
 
+    def draw_text(self, text: str, size: float, location: Point, allow_wrap: bool = False) -> Graphics:
+        if text is None:
+            raise ValueError("Argument 'text' is required.")
+
+        if size <= 0:
+            raise ValueError("Argument 'size' should be a positive number.")
+
+        if location is None:
+            raise ValueError("Argument 'location' is required.")
+
+        def draw() -> None:
+            (x, y) = (location + self.offset).tuple
+            (r, g, b, a) = self.color
+
+            self.g.set_source_rgba(r, g, b, a)
+
+            self.g.set_font_face(cast(CairoFont, self.font).font_face)
+            self.g.set_font_size(size)
+
+            self.g.move_to(x, y)
+
+            self.g.show_text(text)
+
+        if self.clip is Nothing:
+            draw()
+        else:
+            (cx, cy, cw, ch) = self.clip.unwrap().move_by(self.offset)
+
+            if cw > 0 and ch > 0:
+                self.g.save()
+                self.g.clip_extents()
+
+                self.g.rectangle(cx, cy, cw, ch)
+                self.g.clip()
+
+                draw()
+
+                self.g.restore()
+
+        return self
+
     def clear(self) -> Graphics:
         pass
 
@@ -125,3 +174,64 @@ class UI(ContextBuilder[CairoContext]):
         surface = self._surface if self._surface is not None else ImageSurface(Format.ARGB32, 100, 100)
 
         return CairoContext(cast(CairoToolkit, self.toolkit), surface, **self.args)
+
+
+class CairoFont(Font):
+
+    def __init__(self, family: str, font_face: FontFace) -> None:
+        if family is None:
+            raise ValueError("Argument 'family' is required.")
+
+        if font_face is None:
+            raise ValueError("Argument 'font_face' is required.")
+
+        super().__init__()
+
+        self._family = family
+        self._font_face = font_face
+
+    @property
+    def family(self) -> str:
+        return self._family
+
+    @property
+    def font_face(self) -> FontFace:
+        return self._font_face
+
+
+class CairoFontRegistry(FontRegistry[CairoFont]):
+
+    def __init__(self, error_handler: ErrorHandler) -> None:
+        super().__init__(error_handler)
+
+        self._fallback_font = CairoFont("Sans", ToyFontFace("Sans"))
+        self._fonts = {self.fallback_font.family: self.fallback_font}
+
+    @property
+    def fallback_font(self) -> CairoFont:
+        return self._fallback_font
+
+    @property
+    def fonts(self) -> Mapping[str, CairoFont]:
+        return self._fonts
+
+    def resolve(self, family: str) -> Maybe[CairoFont]:
+        if family is None:
+            raise ValueError("Argument 'family' is required.")
+
+        if family in self.fonts:
+            return Some(self.fonts[family])
+
+        font = CairoFont(family, ToyFontFace(family))
+
+        self._fonts[family] = font
+
+        return Some(font)
+
+    def text_extent(self, text: str, font: T) -> Dimension:
+        if text is None:
+            raise ValueError("Argument 'text' is required.")
+
+        extents = cairo.Context(cairo.SVGSurface(None, 0, 0)).text_extents(text)
+
+        return Dimension(extents.width, extents.height)
