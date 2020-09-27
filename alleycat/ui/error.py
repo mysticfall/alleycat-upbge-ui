@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Callable
 
-ErrorHandler = Callable[[Exception], None]
+ErrorHandler = Callable[[BaseException], None]
 
 
 class ErrorHandlerSupport(ABC):

@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from alleycat.ui import Graphics, LookAndFeel, Toolkit, WindowManager
 
 
-def default_error_handler(e: Exception) -> None:
+def default_error_handler(e: BaseException) -> None:
     print(e)
 
 
