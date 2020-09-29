@@ -23,6 +23,7 @@ class Graphics(Disposable, ABC, Generic[T]):
 
         self._offset = Point(0, 0)
         self._clip: Maybe[Bounds] = Nothing
+        self._color = RGBA(0, 0, 0, 1)
         self._font = context.font_registry.fallback_font
 
         assert self._font is not None
