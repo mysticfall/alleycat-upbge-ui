@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Optional
+from itertools import chain
+from typing import Optional, Iterable
 
 from alleycat.ui import Context, Layout, LayoutContainer
 
@@ -9,3 +10,7 @@ class Panel(LayoutContainer):
 
     def __init__(self, context: Context, layout: Optional[Layout] = None) -> None:
         super().__init__(context, layout)
+
+    @property
+    def style_fallback_prefixes(self) -> Iterable[str]:
+        return chain(["Panel"], super().style_fallback_prefixes)

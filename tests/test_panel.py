@@ -1,12 +1,12 @@
 import unittest
 
-from alleycat.ui import Label, Bounds, Window, RGBA
+from alleycat.ui import Label, Bounds, Window, Panel, RGBA
 from alleycat.ui.cairo import UI
 from alleycat.ui.glass import ColorKeys
 from tests.ui import UITestCase
 
 
-class LabelTest(UITestCase):
+class PanelTest(UITestCase):
 
     def test_style_fallback(self):
         label = Label(self.context)
@@ -19,24 +19,20 @@ class LabelTest(UITestCase):
 
     def test_draw(self):
         context = UI().create_context()
+        context.look_and_feel.set_color("Panel.background", RGBA(0, 0, 1, 0.5))
 
         window = Window(context)
-        window.bounds = Bounds(0, 0, 100, 60)
+        window.bounds = Bounds(0, 0, 100, 100)
 
-        label = Label(context)
+        panel1 = Panel(context)
+        panel1.bounds = Bounds(20, 20, 40, 60)
 
-        label.text = "Label"
-        label.bounds = Bounds(10, 20, 60, 30)
+        panel2 = Panel(context)
+        panel2.bounds = Bounds(50, 40, 40, 40)
+        panel2.set_color(ColorKeys.Background, RGBA(1, 0, 0, 1))
 
-        label2 = Label(context)
-
-        label2.text = "Test"
-        label2.size = 20
-        label2.set_color(ColorKeys.Text, RGBA(1, 0, 0, 1))
-        label2.bounds = Bounds(0, 0, 80, 60)
-
-        window.add(label)
-        window.add(label2)
+        window.add(panel1)
+        window.add(panel2)
 
         context.process()
 

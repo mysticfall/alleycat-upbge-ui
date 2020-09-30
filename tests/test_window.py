@@ -9,16 +9,24 @@ from tests.ui import UITestCase
 
 class WindowTest(UITestCase):
 
+    def test_style_fallback(self):
+        window = Window(self.context)
+
+        prefixes = list(window.style_fallback_prefixes)
+        keys = list(window.style_fallback_keys(ColorKeys.Background))
+
+        self.assertEqual(["Window"], prefixes)
+        self.assertEqual(["Window.background", "background"], keys)
+
     def test_draw(self):
         window1 = Window(self.context)
 
-        window1.bounds = Bounds(10, 20, 60, 30)
-        window1.set_color(ColorKeys.Background, RGBA(1, 0, 0, 1))
+        window1.bounds = Bounds(10, 20, 80, 60)
 
         window2 = Window(self.context)
 
-        window2.bounds = Bounds(50, 40, 40, 60)
-        window2.set_color(ColorKeys.Background, RGBA(0, 0, 1, 1))
+        window2.bounds = Bounds(50, 40, 50, 50)
+        window2.set_color(ColorKeys.Background, RGBA(1, 0, 0, 1))
 
         self.context.process()
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping, Iterable
 
 import rx
 from alleycat.reactive import ReactiveObject, RP, RV
@@ -10,7 +10,7 @@ from returns.maybe import Maybe, Some, Nothing
 from rx import operators as ops
 
 from alleycat.ui import Context, Drawable, EventDispatcher, Graphics, StyleLookup, Point, \
-    PositionalEvent, MouseEventHandler, ErrorHandler, Input
+    PositionalEvent, MouseEventHandler, ErrorHandler, Input, RGBA, Bounds
 
 if TYPE_CHECKING:
     from alleycat.ui import ComponentUI, LayoutContainer
@@ -51,10 +51,21 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
         return self._ui
 
     def draw(self, g: Graphics) -> None:
-        g.offset = self.offset
-        g.clip = Some(self.bounds)
+        offset = g.offset
+        clip = g.clip
 
-        self.draw_component(g)
+        g.offset = self.offset
+
+        def draw_clipped_area(bounds: Bounds) -> None:
+            g.clip = Some(bounds)
+
+            self.draw_component(g)
+
+        new_clip = Some(self.bounds) if g.clip == Nothing else g.clip.bind(lambda c: self.bounds & c)
+        new_clip.map(draw_clipped_area)
+
+        g.offset = offset
+        g.clip = clip
 
     def draw_component(self, g: Graphics) -> None:
         self.ui.draw(g, self)
@@ -66,8 +77,31 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
         return event.position - self.offset
 
     @property
-    def style_fallback(self) -> Maybe[StyleLookup]:
-        return Some(self.context.look_and_feel)
+    def style_fallback_prefixes(self) -> Iterable[str]:
+        yield from ()
+
+    def style_fallback_keys(self, key: str) -> Iterable[str]:
+        if key is None:
+            raise ValueError("Argument 'key' is required.")
+
+        for prefix in self.style_fallback_prefixes:
+            yield str.join(".", [prefix, key])
+
+        yield key
+
+    def resolve_color(self, key: str) -> Maybe[RGBA]:
+        color = self.get_color(key)
+
+        if color is not Nothing:
+            return color
+
+        for k in self.style_fallback_keys(key):
+            color = self.context.look_and_feel.get_color(k)
+
+            if color is not Nothing:
+                return color
+
+        return Nothing
 
     @property
     def inputs(self) -> Mapping[str, Input]:

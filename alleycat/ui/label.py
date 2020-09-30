@@ -1,3 +1,6 @@
+from itertools import chain
+from typing import Iterable
+
 from alleycat.reactive import RP
 from alleycat.reactive import functions as rv
 
@@ -11,3 +14,7 @@ class Label(Component):
 
     def __init__(self, context: Context) -> None:
         super().__init__(context)
+
+    @property
+    def style_fallback_prefixes(self) -> Iterable[str]:
+        return chain(["Label"], super().style_fallback_prefixes)

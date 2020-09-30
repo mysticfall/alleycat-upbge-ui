@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Optional, Iterator
+from itertools import chain
+from typing import Optional, Iterator, Iterable
 
 from returns.maybe import Maybe, Nothing, Some
 
@@ -14,6 +15,10 @@ class Window(LayoutContainer):
         super().__init__(context, layout)
 
         context.window_manager.add(self)
+
+    @property
+    def style_fallback_prefixes(self) -> Iterable[str]:
+        return chain(["Window"], super().style_fallback_prefixes)
 
 
 class WindowManager(Drawable, ErrorHandlerSupport, Container[Window]):

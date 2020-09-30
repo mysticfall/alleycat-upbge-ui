@@ -1,6 +1,9 @@
 import unittest
+from typing import Iterable
 
-from alleycat.ui import Component, Panel, Bounds, Point, MouseMoveEvent, LayoutContainer
+from returns.maybe import Nothing
+
+from alleycat.ui import Component, Panel, Bounds, Point, MouseMoveEvent, LayoutContainer, RGBA
 from alleycat.ui.cairo import UI
 
 
@@ -54,6 +57,40 @@ class ComponentTest(unittest.TestCase):
         event = MouseMoveEvent(component, Point(30, 40))
 
         self.assertEqual(Point(20, 20), component.position_of(event))
+
+    def test_resolve_color(self):
+        class Fixture(Component):
+            @property
+            def style_fallback_prefixes(self) -> Iterable[str]:
+                yield "Type"
+                yield "Parent"
+                yield "GrandParent"
+
+        context = UI().create_context()
+
+        fixture = Fixture(context)
+
+        prefixes = list(fixture.style_fallback_prefixes)
+        keys = list(fixture.style_fallback_keys("color"))
+
+        laf = context.look_and_feel
+
+        self.assertEqual(["Type", "Parent", "GrandParent"], prefixes)
+        self.assertEqual(["Type.color", "Parent.color", "GrandParent.color", "color"], keys)
+
+        self.assertEqual(Nothing, fixture.resolve_color("color"))
+
+        laf.set_color("GrandParent.color", RGBA(1, 0, 0, 1))
+        self.assertEqual(RGBA(1, 0, 0, 1), fixture.resolve_color("color").unwrap())
+
+        laf.set_color("GreatGrandParent.color", RGBA(0, 0, 0, 1))
+        self.assertEqual(RGBA(1, 0, 0, 1), fixture.resolve_color("color").unwrap())
+
+        fixture.set_color("color", RGBA(0, 1, 0, 1))
+        self.assertEqual(RGBA(0, 1, 0, 1), fixture.resolve_color("color").unwrap())
+
+        laf.set_color("color", RGBA(1, 1, 1, 1))
+        self.assertEqual(RGBA(0, 1, 0, 1), fixture.resolve_color("color").unwrap())
 
 
 if __name__ == '__main__':

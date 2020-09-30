@@ -12,7 +12,7 @@ from .mouse import MouseButton, MouseEvent, MouseDownEvent, MouseUpEvent, MouseM
     MouseOutEvent, DragStartEvent, DragEvent, DragOverEvent, DragLeaveEvent, DragEndEvent, \
     MouseEventHandler, MouseInput, FakeMouseInput
 from .toolkit import Toolkit
-from .style import StyleLookup, StyleKey, ColorKey
+from .style import StyleLookup
 from .container import Container
 from .component import Component
 from .layout import Layout, LayoutContainer

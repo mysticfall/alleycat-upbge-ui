@@ -13,25 +13,16 @@ class LookAndFeel(StyleLookup, ABC):
     def __init__(self) -> None:
         super().__init__()
 
-    # noinspection PyMethodMayBeStatic,PyUnusedLocal
+    @abstractmethod
     def create_ui(self, component: T) -> ComponentUI[T]:
-        return NoUI()
+        pass
 
 
-class ComponentUI(ABC, Generic[T]):
+class ComponentUI(StyleLookup, Generic[T], ABC):
 
     def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod
     def draw(self, g: Graphics, component: T) -> None:
-        pass
-
-
-class NoUI(ComponentUI[Component]):
-
-    def __init__(self) -> None:
-        super().__init__()
-
-    def draw(self, graphics: Graphics, component: Component) -> None:
         pass

@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic
 
-from returns.maybe import Maybe, Nothing, Some
+from returns.maybe import Maybe, Nothing
 from rx.disposable import Disposable
 
 from alleycat.ui import Bounds, RGBA, Context, Point, Font
@@ -89,16 +89,6 @@ class Graphics(Disposable, ABC, Generic[T]):
     @abstractmethod
     def clear(self) -> Graphics:
         pass
-
-    def reset(self) -> Graphics:
-        self._offset = Point(0, 0)
-        self._clip: Maybe[Bounds] = Nothing
-        self._color = RGBA(0, 0, 0, 1)
-        self._font = self.context.font_registry.fallback_font
-
-        assert self._font is not None
-
-        return self
 
     def reset(self) -> Graphics:
         self._offset = Point(0, 0)
