@@ -60,8 +60,8 @@ class LayoutContainer(Component, Container[Component]):
 
         child.parent = Nothing
 
-    def draw(self, g: Graphics) -> None:
-        super().draw(g)
+    def draw_component(self, g: Graphics) -> None:
+        super().draw_component(g)
 
         self.draw_children(g)
 

@@ -41,8 +41,6 @@ class WindowManager(Drawable, ErrorHandlerSupport, Container[Window]):
     def draw(self, g: Graphics) -> None:
         # noinspection PyTypeChecker
         for child in self.children:
-            g.clip = Nothing
-
             child.draw(g)
 
     @property

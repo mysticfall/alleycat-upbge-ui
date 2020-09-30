@@ -12,6 +12,13 @@ T = TypeVar("T", bound=Context, contravariant=True)
 
 
 class Graphics(Disposable, ABC, Generic[T]):
+    _offset: Point
+
+    _clip: Maybe[Bounds]
+
+    _color: RGBA
+
+    _font: Font
 
     def __init__(self, context: T) -> None:
         if context is None:
@@ -21,12 +28,7 @@ class Graphics(Disposable, ABC, Generic[T]):
 
         self._context = context
 
-        self._offset = Point(0, 0)
-        self._clip: Maybe[Bounds] = Nothing
-        self._color = RGBA(0, 0, 0, 1)
-        self._font = context.font_registry.fallback_font
-
-        assert self._font is not None
+        self.reset()
 
     @property
     def context(self) -> Context:
@@ -74,13 +76,7 @@ class Graphics(Disposable, ABC, Generic[T]):
         if value is None:
             raise ValueError("Argument 'value' is required.")
 
-        if value == Nothing:
-            self._clip = value
-        else:
-            bounds = value.unwrap().move_by(self._offset)
-            clip = Some(bounds) if self._clip is Nothing else self._clip.bind(lambda c: bounds & c)
-
-            self._clip = self._clip.map(lambda b: b.copy(width=0, height=0)) if clip is Nothing else clip
+        self._clip = value.map(lambda v: v.move_by(self._offset))
 
     @abstractmethod
     def fill_rect(self, bounds: Bounds) -> Graphics:
@@ -93,3 +89,23 @@ class Graphics(Disposable, ABC, Generic[T]):
     @abstractmethod
     def clear(self) -> Graphics:
         pass
+
+    def reset(self) -> Graphics:
+        self._offset = Point(0, 0)
+        self._clip: Maybe[Bounds] = Nothing
+        self._color = RGBA(0, 0, 0, 1)
+        self._font = self.context.font_registry.fallback_font
+
+        assert self._font is not None
+
+        return self
+
+    def reset(self) -> Graphics:
+        self._offset = Point(0, 0)
+        self._clip: Maybe[Bounds] = Nothing
+        self._color = RGBA(0, 0, 0, 1)
+        self._font = self.context.font_registry.fallback_font
+
+        assert self._font is not None
+
+        return self

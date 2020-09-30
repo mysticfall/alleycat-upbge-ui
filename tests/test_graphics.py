@@ -55,21 +55,24 @@ class GraphicsTest(UITestCase):
         self.g.offset = Point(20, 10)
         self.assertEqual(Bounds(-10, 10, 100, 80), self.g.clip.unwrap())
 
-        self.g.clip = Some(Bounds(10, 0, 100, 40))
-        self.assertEqual(Bounds(10, 10, 80, 30), self.g.clip.unwrap())
-
         self.g.color = RGBA(1, 0, 0, 1)
-        self.g.fill_rect(Bounds(0, 0, 100, 100))
+        self.g.fill_rect(Bounds(0, 0, 60, 60))
 
         self.assertImage("clip", self.context)
 
-        self.g.clip = Some(Bounds(100, 100, 100, 40))
-        self.assertEqual(Bounds(10, 10, 0, 0), self.g.clip.unwrap())
+        self.g.clip = Some(Bounds(50, 50, 0, 40))
 
         self.g.color = RGBA(0, 0, 1, 1)
         self.g.fill_rect(Bounds(0, 0, 100, 100))
 
         self.assertImage("clip_empty", self.context)
+
+        self.g.clip = Some(Bounds(100, 100, 50, 40))
+
+        self.g.color = RGBA(0, 0, 1, 1)
+        self.g.fill_rect(Bounds(0, 0, 100, 100))
+
+        self.assertImage("clip_out_of_bounds", self.context)
 
     def test_draw_text(self):
         self.g.offset = Point(10, 10)

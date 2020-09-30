@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Mapping, Optional, Any, Dict, TYPE_CHECKING, TypeVar, Generic
 
 from alleycat.reactive import ReactiveObject, RV
-from returns.maybe import Maybe
+from returns.maybe import Maybe, Some
 
 from alleycat.ui import EventDispatcher, EventLoopAware, ErrorHandler, ErrorHandlerSupport, InputLookup, Input, \
     Dimension, Point, FontRegistry, Bounds, error
@@ -93,6 +93,11 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
             self._graphics = self.toolkit.create_graphics(self)
 
         assert self._graphics is not None
+
+        (width, height) = self.window_size.tuple
+
+        self._graphics.reset()
+        self._graphics.clip = Some(Bounds(0, 0, width, height))
 
         self._window_manager.draw(self._graphics)
 
