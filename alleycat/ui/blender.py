@@ -37,23 +37,15 @@ class BlenderContext(Context):
 
     def __init__(self,
                  toolkit: BlenderToolkit,
-                 resource_path: Path = Path("//"),
                  look_and_feel: Optional[LookAndFeel] = None,
                  window_manager: Optional[WindowManager] = None,
                  error_handler: Optional[ErrorHandler] = None) -> None:
-        super().__init__(toolkit, resource_path, look_and_feel, window_manager, error_handler)
+        super().__init__(toolkit, look_and_feel, window_manager, error_handler)
 
-        fonts_path = resource_path / "fonts"
-
-        self._font_registry = BlenderFontRegistry(fonts_path, self.error_handler)
         self._resolution = BehaviorSubject(get_window_size())
 
         # noinspection PyTypeChecker
         self.window_size = self._resolution.pipe(ops.distinct_until_changed())
-
-    @property
-    def font_registry(self) -> FontRegistry:
-        return self._font_registry
 
     def translate(self, point: Point) -> Point:
         if point is None:
@@ -72,8 +64,16 @@ class BlenderContext(Context):
 
 class BlenderToolkit(Toolkit[BlenderContext]):
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, resource_path: Path = Path("//"), error_handler: Optional[ErrorHandler] = None) -> None:
+        super().__init__(resource_path, error_handler)
+
+        fonts_path = resource_path / "fonts"
+
+        self._font_registry = BlenderFontRegistry(fonts_path, self.error_handler)
+
+    @property
+    def font_registry(self) -> FontRegistry:
+        return self._font_registry
 
     def create_graphics(self, context: BlenderContext) -> Graphics:
         return BlenderGraphics(context)
@@ -154,8 +154,8 @@ class BlenderGraphics(Graphics[BlenderContext]):
 
 class UI(ContextBuilder[BlenderContext]):
 
-    def __init__(self) -> None:
-        super().__init__(BlenderToolkit())
+    def __init__(self, toolkit: Optional[BlenderToolkit] = None) -> None:
+        super().__init__(toolkit if toolkit is not None else BlenderToolkit())
 
     def create_context(self) -> Context:
         return BlenderContext(cast(BlenderToolkit, self.toolkit), **self.args)

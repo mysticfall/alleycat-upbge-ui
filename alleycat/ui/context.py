@@ -8,7 +8,7 @@ from alleycat.reactive import ReactiveObject, RV
 from returns.maybe import Maybe, Some
 
 from alleycat.ui import EventDispatcher, EventLoopAware, ErrorHandler, ErrorHandlerSupport, InputLookup, Input, \
-    Dimension, Point, FontRegistry, Bounds, error
+    Dimension, Point, Bounds, error
 
 if TYPE_CHECKING:
     from alleycat.ui import Graphics, LookAndFeel, Toolkit, WindowManager
@@ -19,15 +19,11 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
 
     def __init__(self,
                  toolkit: Toolkit,
-                 resource_path: Path = Path("."),
                  look_and_feel: Optional[LookAndFeel] = None,
                  window_manager: Optional[WindowManager] = None,
                  error_handler: Optional[ErrorHandler] = None) -> None:
         if toolkit is None:
             raise ValueError("Argument 'toolkit' is required.")
-
-        if resource_path is None:
-            raise ValueError("Argument 'resource_path' is required.")
 
         super().__init__()
 
@@ -35,10 +31,9 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
         from alleycat.ui.glass import GlassLookAndFeel
 
         self._toolkit = toolkit
-        self._resource_path = resource_path
 
         self._look_and_feel = Maybe.from_value(look_and_feel).or_else_call(GlassLookAndFeel)
-        self._error_handler = Maybe.from_value(error_handler).value_or(error.default_error_handler)
+        self._error_handler = Maybe.from_value(error_handler).value_or(toolkit.error_handler)
 
         self._window_manager = Maybe.from_value(window_manager) \
             .or_else_call(lambda: WindowManager(self.error_handler))
@@ -56,10 +51,6 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
         return self._toolkit
 
     @property
-    def resource_path(self) -> Path:
-        return self._resource_path
-
-    @property
     def inputs(self) -> Mapping[str, Input]:
         return self._inputs
 
@@ -74,11 +65,6 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
     @property
     def error_handler(self) -> ErrorHandler:
         return self._error_handler
-
-    @property
-    @abstractmethod
-    def font_registry(self) -> FontRegistry:
-        pass
 
     def process(self) -> None:
         self.execute_safely(self.process_inputs)

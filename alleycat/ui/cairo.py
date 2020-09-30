@@ -22,7 +22,6 @@ class CairoContext(Context):
     def __init__(self,
                  toolkit: CairoToolkit,
                  surface: Surface,
-                 resource_path: Path = Path("."),
                  look_and_feel: Optional[LookAndFeel] = None,
                  window_manager: Optional[WindowManager] = None,
                  error_handler: Optional[ErrorHandler] = None) -> None:
@@ -31,9 +30,7 @@ class CairoContext(Context):
 
         self._surface = surface
 
-        super().__init__(toolkit, resource_path, look_and_feel, window_manager, error_handler)
-
-        self._font_registry = CairoFontRegistry(self.error_handler)
+        super().__init__(toolkit, look_and_feel, window_manager, error_handler)
 
         ctx = cairo.Context(surface)
 
@@ -46,10 +43,6 @@ class CairoContext(Context):
     def surface(self) -> Surface:
         return self._surface
 
-    @property
-    def font_registry(self) -> FontRegistry:
-        return self._font_registry
-
     def dispose(self) -> None:
         super().dispose()
 
@@ -58,8 +51,14 @@ class CairoContext(Context):
 
 class CairoToolkit(Toolkit[CairoContext]):
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, resource_path: Path = Path("."), error_handler: Optional[ErrorHandler] = None) -> None:
+        super().__init__(resource_path, error_handler)
+
+        self._font_registry = CairoFontRegistry(self.error_handler)
+
+    @property
+    def font_registry(self) -> FontRegistry:
+        return self._font_registry
 
     def create_graphics(self, context: CairoContext) -> Graphics:
         if context is None:
@@ -151,8 +150,8 @@ class CairoGraphics(Graphics[CairoContext]):
 
 class UI(ContextBuilder[CairoContext]):
 
-    def __init__(self) -> None:
-        super().__init__(CairoToolkit())
+    def __init__(self, toolkit: Optional[CairoToolkit] = None) -> None:
+        super().__init__(toolkit if toolkit is not None else CairoToolkit())
 
         self._surface: Optional[Surface] = None
 
