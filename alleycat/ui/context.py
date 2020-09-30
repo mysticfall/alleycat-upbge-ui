@@ -8,7 +8,7 @@ from alleycat.reactive import ReactiveObject, RV
 from returns.maybe import Maybe, Some
 
 from alleycat.ui import EventDispatcher, EventLoopAware, ErrorHandler, ErrorHandlerSupport, InputLookup, Input, \
-    Dimension, Point, Bounds, error
+    Dimension, Point, Bounds
 
 if TYPE_CHECKING:
     from alleycat.ui import Graphics, LookAndFeel, Toolkit, WindowManager
@@ -32,7 +32,7 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
 
         self._toolkit = toolkit
 
-        self._look_and_feel = Maybe.from_value(look_and_feel).or_else_call(GlassLookAndFeel)
+        self._look_and_feel = Maybe.from_value(look_and_feel).or_else_call(lambda: GlassLookAndFeel(toolkit))
         self._error_handler = Maybe.from_value(error_handler).value_or(toolkit.error_handler)
 
         self._window_manager = Maybe.from_value(window_manager) \

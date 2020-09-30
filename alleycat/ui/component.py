@@ -10,7 +10,7 @@ from returns.maybe import Maybe, Some, Nothing
 from rx import operators as ops
 
 from alleycat.ui import Context, Drawable, EventDispatcher, Graphics, StyleLookup, Point, \
-    PositionalEvent, MouseEventHandler, ErrorHandler, Input, RGBA, Bounds
+    PositionalEvent, MouseEventHandler, ErrorHandler, Input, RGBA, Bounds, Font
 
 if TYPE_CHECKING:
     from alleycat.ui import ComponentUI, LayoutContainer
@@ -100,6 +100,20 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
 
             if color is not Nothing:
                 return color
+
+        return Nothing
+
+    def resolve_font(self, key: str) -> Maybe[Font]:
+        font = self.get_font(key)
+
+        if font is not Nothing:
+            return font
+
+        for k in self.style_fallback_keys(key):
+            font = self.context.look_and_feel.get_font(k)
+
+            if font is not Nothing:
+                return font
 
         return Nothing
 

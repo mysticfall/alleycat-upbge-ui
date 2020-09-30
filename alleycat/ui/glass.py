@@ -1,17 +1,19 @@
 from typing import TypeVar, Final, Generic
 
-from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window, Label, Point
+from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window, Label, Point, Toolkit
 
 T = TypeVar("T", bound=Component, contravariant=True)
 
 
 class GlassLookAndFeel(LookAndFeel):
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, toolkit: Toolkit) -> None:
+        super().__init__(toolkit)
 
         def with_prefix(key: str, prefix: str) -> str:
             return str.join(".", [prefix, key])
+
+        self.set_font("text", toolkit.font_registry.fallback_font)
 
         self.set_color(ColorKeys.Background, RGBA(0, 0, 0, 0))
         self.set_color(with_prefix(ColorKeys.Background, "Window"), RGBA(0, 0, 0, 0.8))
@@ -70,6 +72,11 @@ class GlassLabelUI(GlassComponentUI[Label]):
 
         def draw_text(color: RGBA) -> None:
             g.color = color
+
+            font_registry = component.context.toolkit.font_registry
+            font = component.resolve_font("text").value_or(font_registry.fallback_font)
+
+            g.font = font
 
             text = component.text
             extents = component.context.toolkit.font_registry.text_extent(text, g.font)
