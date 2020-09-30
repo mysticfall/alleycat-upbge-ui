@@ -8,14 +8,10 @@ from alleycat.reactive import ReactiveObject, RV
 from returns.maybe import Maybe
 
 from alleycat.ui import EventDispatcher, EventLoopAware, ErrorHandler, ErrorHandlerSupport, InputLookup, Input, \
-    Dimension, Point, FontRegistry
+    Dimension, Point, FontRegistry, Bounds, error
 
 if TYPE_CHECKING:
     from alleycat.ui import Graphics, LookAndFeel, Toolkit, WindowManager
-
-
-def default_error_handler(e: BaseException) -> None:
-    print(e)
 
 
 class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, ABC):
@@ -42,7 +38,7 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
         self._resource_path = resource_path
 
         self._look_and_feel = Maybe.from_value(look_and_feel).or_else_call(GlassLookAndFeel)
-        self._error_handler = Maybe.from_value(error_handler).value_or(default_error_handler)
+        self._error_handler = Maybe.from_value(error_handler).value_or(error.default_error_handler)
 
         self._window_manager = Maybe.from_value(window_manager) \
             .or_else_call(lambda: WindowManager(self.error_handler))

@@ -1,3 +1,5 @@
+import sys
+import traceback
 from abc import ABC, abstractmethod
 from typing import Callable
 
@@ -22,3 +24,8 @@ class ErrorHandlerSupport(ABC):
             process()
         except Exception as e:
             self.error_handler(e)
+
+
+def default_error_handler(e: BaseException) -> None:
+    tb = sys.exc_info()[2]
+    traceback.print_exception(type(e), e, tb)
