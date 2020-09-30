@@ -124,7 +124,9 @@ class BlenderGraphics(Graphics[BlenderContext]):
         font_id = cast(BlenderFont, self.font).font_id
 
         def draw() -> None:
-            (x, y) = (location + self.offset).tuple
+            bc = cast(BlenderContext, self.context)
+
+            (x, y) = bc.translate((location + self.offset)).tuple
             (r, g, b, a) = self.color.tuple
 
             blf.size(font_id, int(size), 72)  # Make DPI configurable.
