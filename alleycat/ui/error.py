@@ -28,4 +28,6 @@ class ErrorHandlerSupport(ABC):
 
 def default_error_handler(e: BaseException) -> None:
     tb = sys.exc_info()[2]
-    traceback.print_exception(type(e), e, tb)
+    msg = traceback.format_exception(type(e), e, tb)
+
+    print(str.join("", msg))
