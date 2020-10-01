@@ -150,9 +150,6 @@ class BlenderGraphics(Graphics[BlenderContext]):
 
         return self
 
-    def clear(self) -> Graphics:
-        return self
-
 
 class UI(ContextBuilder[BlenderContext]):
 

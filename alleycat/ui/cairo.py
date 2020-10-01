@@ -78,9 +78,9 @@ class CairoGraphics(Graphics[CairoContext]):
         if g is None:
             raise ValueError("Argument 'g' is required.")
 
-        super().__init__(context)
-
         self._g = g
+
+        super().__init__(context)
 
     @property
     def g(self) -> cairo.Context:
@@ -144,8 +144,21 @@ class CairoGraphics(Graphics[CairoContext]):
 
         return self
 
-    def clear(self) -> Graphics:
-        pass
+    def reset(self) -> Graphics:
+        super().reset()
+
+        (w, h) = self.context.window_size.tuple
+
+        op = self.g.get_operator()
+
+        self.g.rectangle(0, 0, w, h)
+        self.g.set_source_rgba(0, 0, 0, 0)
+        self.g.set_operator(cairo.OPERATOR_CLEAR)
+        self.g.fill()
+
+        self.g.set_operator(op)
+
+        return self
 
 
 class UI(ContextBuilder[CairoContext]):

@@ -86,10 +86,6 @@ class Graphics(Disposable, ABC, Generic[T]):
     def draw_text(self, text: str, size: float, location: Point, allow_wrap: bool = False) -> Graphics:
         pass
 
-    @abstractmethod
-    def clear(self) -> Graphics:
-        pass
-
     def reset(self) -> Graphics:
         self._offset = Point(0, 0)
         self._clip: Maybe[Bounds] = Nothing
