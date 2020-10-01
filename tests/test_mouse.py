@@ -15,8 +15,6 @@ class MouseTest(unittest.TestCase):
 
         self.context = UI().create_context()
 
-        self.mouse_input = cast(FakeMouseInput, MouseInput.input(self.context))
-
         self.parent = Window(self.context)
         self.parent.bounds = Bounds(20, 20, 60, 60)
 
