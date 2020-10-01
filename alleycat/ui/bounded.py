@@ -26,3 +26,9 @@ class Bounded(ABC):
     size: RV[Dimension] = bounds.as_view().map(lambda b: b.size)
 
     offset: RV[Point]
+
+    def move_to(self, location: Point) -> None:
+        self.bounds = self.bounds.move_to(location)
+
+    def move_by(self, offset: Point) -> None:
+        self.bounds = self.bounds.move_by(offset)
