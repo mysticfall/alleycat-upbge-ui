@@ -1,8 +1,9 @@
 import unittest
+from typing import cast
 
 from returns.maybe import Some
 
-from alleycat.ui import Window, Bounds, Point, RGBA, Panel
+from alleycat.ui import Window, Bounds, Point, RGBA, Panel, FakeMouseInput, MouseInput, MouseButton
 from alleycat.ui.glass import ColorKeys
 from tests.ui import UITestCase
 
@@ -79,6 +80,58 @@ class WindowTest(UITestCase):
         self.assertEqual(Some(top), manager.window_at(Point(150, 150)))
         self.assertEqual(Some(top), manager.window_at(Point(150, 50)))
         self.assertEqual(Some(top), manager.window_at(Point(50, 150)))
+
+    def test_drag(self):
+        window = Window(self.context)
+        window.draggable = True
+        window.bounds = Bounds(10, 10, 50, 50)
+
+        mouse = cast(FakeMouseInput, MouseInput.input(self.context))
+
+        mouse.move_to(Point(30, 30))
+        mouse.press(MouseButton.RIGHT)
+
+        mouse.move_to(Point(40, 40))
+        mouse.release(MouseButton.RIGHT)
+
+        self.context.process()
+
+        self.assertImage("drag_with_right_button", self.context)
+
+        mouse.move_to(Point(15, 15))
+        mouse.press(MouseButton.LEFT)
+
+        mouse.move_to(Point(40, 40))
+        mouse.release(MouseButton.LEFT)
+
+        self.context.process()
+
+        self.assertImage("drag_with_left_button", self.context)
+
+        mouse.press(MouseButton.LEFT)
+        mouse.press(MouseButton.MIDDLE)
+
+        mouse.move_to(Point(30, 50))
+
+        mouse.release(MouseButton.MIDDLE)
+
+        mouse.move_to(Point(20, 50))
+
+        self.context.process()
+
+        self.assertImage("drag_with_2_buttons", self.context)
+
+        mouse.release(MouseButton.MIDDLE)
+
+        window.draggable = False
+
+        mouse.press(MouseButton.LEFT)
+        mouse.move_to(Point(0, 0))
+        mouse.release(MouseButton.LEFT)
+
+        self.context.process()
+
+        self.assertImage("drag_non_draggable", self.context)
 
 
 if __name__ == '__main__':
