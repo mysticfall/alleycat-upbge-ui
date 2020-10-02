@@ -10,7 +10,7 @@ from returns.maybe import Maybe, Nothing, Some
 from rx import operators as ops
 
 from alleycat.ui import Context, Graphics, Container, LayoutContainer, Layout, Drawable, Point, ErrorHandlerSupport, \
-    ErrorHandler, MouseButton
+    ErrorHandler, MouseButton, Event, PropagatingEvent
 
 
 class Window(LayoutContainer):
@@ -36,6 +36,12 @@ class Window(LayoutContainer):
     @property
     def style_fallback_prefixes(self) -> Iterable[str]:
         return chain(["Window"], super().style_fallback_prefixes)
+
+    def dispatch_event(self, event: Event) -> None:
+        if isinstance(event, PropagatingEvent):
+            event.stop_propagation()
+
+        super().dispatch_event(event)
 
     def dispose(self) -> None:
         self.execute_safely(self._drag_listener.dispose)
