@@ -21,7 +21,7 @@ class Label(Component):
 
     text_vertical_align: RP[TextAlign] = rv.from_value(TextAlign.Center)
 
-    size: RP[int] = rv.from_value(10)
+    text_size: RP[int] = rv.from_value(10)
 
     def __init__(self, context: Context) -> None:
         super().__init__(context)

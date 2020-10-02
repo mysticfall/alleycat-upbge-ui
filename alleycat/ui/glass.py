@@ -91,7 +91,7 @@ class GlassLabelUI(GlassComponentUI[Label]):
             g.color = color
 
             text = component.text
-            size = component.size
+            size = component.text_size
 
             extents = component.context.toolkit.font_registry.text_extent(text, font, size)
 

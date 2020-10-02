@@ -28,7 +28,7 @@ class LabelTest(UITestCase):
         label2 = Label(self.context)
 
         label2.text = "AlleyCat"
-        label2.size = 18
+        label2.text_size = 18
         label2.set_color(ColorKeys.Text, RGBA(1, 0, 0, 1))
         label2.bounds = Bounds(20, 0, 80, 60)
 
@@ -46,7 +46,7 @@ class LabelTest(UITestCase):
         label = Label(self.context)
 
         label.text = "AlleyCat"
-        label.size = 18
+        label.text_size = 18
         label.bounds = Bounds(0, 0, 100, 100)
 
         window.add(label)
