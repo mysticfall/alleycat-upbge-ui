@@ -17,6 +17,6 @@ from .container import Container
 from .component import Component
 from .layout import Layout, LayoutContainer
 from .panel import Panel
-from .label import Label
+from .label import Label, TextAlign
 from .window import Window, WindowManager
 from .laf import ComponentUI, LookAndFeel

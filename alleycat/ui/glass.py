@@ -1,6 +1,7 @@
 from typing import TypeVar, Final, Generic
 
-from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window, Label, Point, Toolkit
+from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window, Label, Point, Toolkit, \
+    TextAlign
 
 T = TypeVar("T", bound=Component, contravariant=True)
 
@@ -63,6 +64,7 @@ class GlassWindowUI(GlassComponentUI[Window]):
 
 
 class GlassLabelUI(GlassComponentUI[Label]):
+    _ratio_for_align = {TextAlign.Begin: 0., TextAlign.Center: 0.5, TextAlign.End: 1.}
 
     def __init__(self) -> None:
         super().__init__()
@@ -71,22 +73,26 @@ class GlassLabelUI(GlassComponentUI[Label]):
         super().draw(g, component)
 
         def draw_text(color: RGBA) -> None:
-            g.color = color
-
             font_registry = component.context.toolkit.font_registry
             font = component.resolve_font("text").value_or(font_registry.fallback_font)
 
             g.font = font
+            g.color = color
 
             text = component.text
-            extents = component.context.toolkit.font_registry.text_extent(text, g.font, component.size)
+            size = component.size
+
+            extents = component.context.toolkit.font_registry.text_extent(text, font, size)
 
             (x, y, w, h) = component.bounds.tuple
 
-            tx = (w - extents.width) / 2.0 + x
-            ty = (h - extents.height) / 2.0 + extents.height + y
+            rh = self._ratio_for_align[component.text_align]
+            rv = self._ratio_for_align[component.text_vertical_align]
 
-            g.draw_text(text, component.size, Point(tx, ty))
+            tx = (w - extents.width) * rh + x
+            ty = (h - extents.height) * rv + extents.height + y
+
+            g.draw_text(text, size, Point(tx, ty))
 
         component.resolve_color(ColorKeys.Text).map(draw_text)
 
