@@ -133,6 +133,37 @@ class WindowTest(UITestCase):
 
         self.assertImage("drag_non_draggable", self.context)
 
+    def test_drag_overlapping(self):
+        bottom = Window(self.context)
+        bottom.draggable = True
+        bottom.bounds = Bounds(10, 10, 50, 50)
+        bottom.set_color(ColorKeys.Background, RGBA(1, 0, 0, 1))
+
+        top = Window(self.context)
+        top.draggable = True
+        top.bounds = Bounds(20, 20, 50, 50)
+        top.set_color(ColorKeys.Background, RGBA(0, 0, 1, 1))
+
+        mouse = cast(FakeMouseInput, MouseInput.input(self.context))
+
+        mouse.move_to(Point(30, 30))
+        mouse.press(MouseButton.LEFT)
+        mouse.move_to(Point(50, 50))
+        mouse.release(MouseButton.LEFT)
+
+        self.context.process()
+
+        self.assertImage("drag_overlapping_top", self.context)
+
+        mouse.move_to(Point(20, 20))
+        mouse.press(MouseButton.LEFT)
+        mouse.move_to(Point(40, 40))
+        mouse.release(MouseButton.LEFT)
+
+        self.context.process()
+
+        self.assertImage("drag_overlapping_bottom", self.context)
+
 
 if __name__ == '__main__':
     unittest.main()
