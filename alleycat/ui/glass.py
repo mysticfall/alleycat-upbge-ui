@@ -8,6 +8,8 @@ T = TypeVar("T", bound=Component, contravariant=True)
 
 class GlassLookAndFeel(LookAndFeel):
 
+    BorderThickness: Final = 2
+
     def __init__(self, toolkit: Toolkit) -> None:
         super().__init__(toolkit)
 
@@ -18,6 +20,7 @@ class GlassLookAndFeel(LookAndFeel):
 
         self.set_color(ColorKeys.Background, RGBA(0, 0, 0, 0))
         self.set_color(with_prefix(ColorKeys.Background, "Window"), RGBA(0, 0, 0, 0.8))
+        self.set_color(with_prefix(ColorKeys.Border, "Window"), RGBA(0.3, 0.7, 0.3, 1))
 
         self.set_color(ColorKeys.Text, RGBA(0.8, 0.8, 0.8, 1))
 
@@ -44,11 +47,19 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
         assert g is not None
         assert component is not None
 
-        def draw_background(color: RGBA) -> None:
-            g.color = color
-            g.fill_rect(component.bounds)
+        def fill_background(color: RGBA) -> None:
+            if color.a > 0:
+                g.color = color
+                g.fill_rect(component.bounds)
 
-        component.resolve_color(ColorKeys.Background).map(draw_background)
+        def draw_border(color: RGBA) -> None:
+            if color.a > 0:
+                g.color = color
+                g.stroke = GlassLookAndFeel.BorderThickness
+                g.draw_rect(component.bounds)
+
+        component.resolve_color(ColorKeys.Background).map(fill_background)
+        component.resolve_color(ColorKeys.Border).map(draw_border)
 
 
 class GlassPanelUI(GlassComponentUI[Panel]):
@@ -99,4 +110,5 @@ class GlassLabelUI(GlassComponentUI[Label]):
 
 class ColorKeys:
     Background: Final = "background"
+    Border: Final = "border"
     Text: Final = "text"
