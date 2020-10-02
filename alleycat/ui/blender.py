@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from functools import reduce
 from pathlib import Path
-from typing import cast, Optional, Sequence, Mapping, Final
+from typing import cast, Optional, Sequence, Mapping, Final, Callable, Iterator
 
 import bge
 import bgl
@@ -121,11 +121,11 @@ class BlenderGraphics(Graphics[BlenderContext]):
         if location is None:
             raise ValueError("Argument 'location' is required.")
 
+        bc = cast(BlenderContext, self.context)
+
         font_id = cast(BlenderFont, self.font).font_id
 
         def draw() -> None:
-            bc = cast(BlenderContext, self.context)
-
             (x, y) = bc.translate((location + self.offset)).tuple
             (r, g, b, a) = self.color.tuple
 
@@ -139,9 +139,19 @@ class BlenderGraphics(Graphics[BlenderContext]):
             draw()
         else:
             clip = self.clip.unwrap().move_by(self.offset)
+            points = list(map(bc.translate, clip.points))
+
+            def get(getter: Callable[[Point], float], aggregator: Callable[[Iterator[float]], float]) -> float:
+                return aggregator(map(getter, points))
 
             if clip.width > 0 and clip.height > 0:
-                blf.clipping(font_id, clip.x, clip.y, clip.x + clip.width, clip.y + clip.height)
+                blf.clipping(
+                    font_id,
+                    get(lambda p: p.x, min),
+                    get(lambda p: p.y, min),
+                    get(lambda p: p.x, max),
+                    get(lambda p: p.y, max))
+
                 blf.enable(font_id, blf.CLIPPING)
 
                 draw()
