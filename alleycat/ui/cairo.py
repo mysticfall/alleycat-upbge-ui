@@ -85,7 +85,13 @@ class CairoGraphics(Graphics[CairoContext]):
     def g(self) -> cairo.Context:
         return self._g
 
+    def draw_rect(self, bounds: Bounds) -> Graphics:
+        return self._rectangle(bounds, False)
+
     def fill_rect(self, bounds: Bounds) -> Graphics:
+        return self._rectangle(bounds, True)
+
+    def _rectangle(self, bounds: Bounds, fill: bool) -> Graphics:
         if bounds is None:
             raise ValueError("Argument 'bounds' is required.")
 
@@ -93,9 +99,14 @@ class CairoGraphics(Graphics[CairoContext]):
             (x, y, w, h) = area.move_by(self.offset).tuple
             (r, g, b, a) = self.color
 
+            self.g.set_line_width(self.stroke)
             self.g.set_source_rgba(r, g, b, a)
             self.g.rectangle(x, y, w, h)
-            self.g.fill()
+
+            if fill:
+                self.g.fill()
+            else:
+                self.g.stroke()
 
         clip = Some(bounds) if self.clip == Nothing else self.clip.bind(lambda c: bounds & c)
         clip.map(draw)

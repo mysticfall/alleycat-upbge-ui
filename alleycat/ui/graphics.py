@@ -20,6 +20,8 @@ class Graphics(Disposable, ABC, Generic[T]):
 
     _font: Font
 
+    _stroke: float
+
     def __init__(self, context: T) -> None:
         if context is None:
             raise ValueError("Argument 'context' is required.")
@@ -78,6 +80,24 @@ class Graphics(Disposable, ABC, Generic[T]):
 
         self._clip = value.map(lambda v: v.move_by(self._offset))
 
+    @property
+    def stroke(self) -> float:
+        return self._stroke
+
+    @stroke.setter
+    def stroke(self, value: float) -> None:
+        if value is None:
+            raise ValueError("Argument 'value' is required.")
+
+        if value <= 0:
+            raise ValueError("Argument 'value' must be a positive number.")
+
+        self._stroke = value
+
+    @abstractmethod
+    def draw_rect(self, bounds: Bounds) -> Graphics:
+        pass
+
     @abstractmethod
     def fill_rect(self, bounds: Bounds) -> Graphics:
         pass
@@ -91,6 +111,7 @@ class Graphics(Disposable, ABC, Generic[T]):
         self._clip: Maybe[Bounds] = Nothing
         self._color = RGBA(0, 0, 0, 1)
         self._font = self.context.toolkit.font_registry.fallback_font
+        self._stroke = 1.0
 
         assert self._font is not None
 

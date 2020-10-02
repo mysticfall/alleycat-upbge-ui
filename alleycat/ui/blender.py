@@ -89,6 +89,25 @@ class BlenderGraphics(Graphics[BlenderContext]):
     def __init__(self, context: BlenderContext) -> None:
         super().__init__(context)
 
+    def draw_rect(self, bounds: Bounds) -> Graphics:
+        if bounds is None:
+            raise ValueError("Argument 'bounds' is required.")
+
+        s = self.stroke
+
+        (x, y, w, h) = bounds.tuple
+
+        self.stroke = 1
+
+        self.fill_rect(Bounds(x, y, w, s))
+        self.fill_rect(Bounds(x, y + s, s, h - s * 2))
+        self.fill_rect(Bounds(x + w - s, y + s, s, h - s * 2))
+        self.fill_rect(Bounds(x, y + h - s, w, s))
+
+        self.stroke = s
+
+        return self
+
     def fill_rect(self, bounds: Bounds) -> Graphics:
         if bounds is None:
             raise ValueError("Argument 'bounds' is required.")
