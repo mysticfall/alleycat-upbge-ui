@@ -79,7 +79,7 @@ class GlassLabelUI(GlassComponentUI[Label]):
             g.font = font
 
             text = component.text
-            extents = component.context.toolkit.font_registry.text_extent(text, g.font)
+            extents = component.context.toolkit.font_registry.text_extent(text, g.font, component.size)
 
             (x, y, w, h) = component.bounds.tuple
 

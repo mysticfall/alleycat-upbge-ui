@@ -292,12 +292,17 @@ class BlenderFontRegistry(FontRegistry[BlenderFont]):
 
         return Some(self.fonts[family]) if family in self.fonts else Nothing
 
-    def text_extent(self, text: str, font: BlenderFont) -> Dimension:
+    def text_extent(self, text: str, font: BlenderFont, size: float) -> Dimension:
         if text is None:
             raise ValueError("Argument 'text' is required.")
 
         if font is None:
             raise ValueError("Argument 'font' is required.")
+
+        if size <= 0:
+            raise ValueError("Argument 'size' is must be a positive number.")
+
+        blf.size(font.font_id, int(size), BlenderFont.DPI)
 
         return Dimension.from_tuple(blf.dimensions(font.font_id, text))
 

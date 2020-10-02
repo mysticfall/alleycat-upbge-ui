@@ -41,7 +41,7 @@ class FontRegistry(Generic[T], ErrorHandlerSupport, Disposable, ABC):
         pass
 
     @abstractmethod
-    def text_extent(self, text: str, font: T) -> Dimension:
+    def text_extent(self, text: str, font: T, size: float) -> Dimension:
         pass
 
     @property

@@ -13,7 +13,6 @@ from returns.maybe import Maybe, Some, Nothing
 from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, Dimension, LookAndFeel, WindowManager, \
     FakeMouseInput, Font, Point, FontRegistry
 from alleycat.ui.context import ContextBuilder, ErrorHandler
-from alleycat.ui.font import T
 
 
 class CairoContext(Context):
@@ -240,10 +239,17 @@ class CairoFontRegistry(FontRegistry[CairoFont]):
 
         return Some(font)
 
-    def text_extent(self, text: str, font: T) -> Dimension:
+    def text_extent(self, text: str, font: CairoFont, size: float) -> Dimension:
         if text is None:
             raise ValueError("Argument 'text' is required.")
 
-        extents = cairo.Context(cairo.SVGSurface(None, 0, 0)).text_extents(text)
+        if size <= 0:
+            raise ValueError("Argument 'size' is must be a positive number.")
 
-        return Dimension(extents.width, extents.height)
+        context = cairo.Context(cairo.SVGSurface(None, 0, 0))
+        context.set_font_size(size)
+        context.set_font_face(font.font_face)
+
+        extents = context.text_extents(text)
+
+        return Dimension(extents.x_advance, extents.height)

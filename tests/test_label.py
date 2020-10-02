@@ -22,15 +22,15 @@ class LabelTest(UITestCase):
 
         label = Label(self.context)
 
-        label.text = "Label"
-        label.bounds = Bounds(10, 20, 60, 30)
+        label.text = "Text"
+        label.bounds = Bounds(0, 30, 60, 30)
 
         label2 = Label(self.context)
 
-        label2.text = "Test"
-        label2.size = 20
+        label2.text = "AlleyCat"
+        label2.size = 18
         label2.set_color(ColorKeys.Text, RGBA(1, 0, 0, 1))
-        label2.bounds = Bounds(0, 0, 80, 60)
+        label2.bounds = Bounds(20, 0, 80, 60)
 
         window.add(label)
         window.add(label2)
