@@ -129,7 +129,7 @@ class BlenderGraphics(Graphics[BlenderContext]):
             (x, y) = bc.translate((location + self.offset)).tuple
             (r, g, b, a) = self.color.tuple
 
-            blf.size(font_id, int(size), 72)  # Make DPI configurable.
+            blf.size(font_id, int(size), BlenderFont.DPI)
             blf.position(font_id, x, y, 0)
             blf.color(font_id, r, g, b, a)
 
@@ -223,6 +223,7 @@ class BlenderMouseInput(MouseInput, ReactiveObject, EventLoopAware):
 
 
 class BlenderFont(Font, Disposable):
+    DPI: Final = 72  # Make DPI configurable.
 
     def __init__(self, font_id: int, family: str, path: Optional[Path] = None) -> None:
         if family is None:
