@@ -37,7 +37,7 @@ class LabelTest(UITestCase):
 
         self.context.process()
 
-        self.assertImage("draw", self.context)
+        self.assertImage("draw", self.context, tolerance=50)
 
     def test_align(self):
         window = Window(self.context)
@@ -52,7 +52,7 @@ class LabelTest(UITestCase):
         window.add(label)
 
         self.context.process()
-        self.assertImage("align_default", self.context)
+        self.assertImage("align_default", self.context, tolerance=50)
 
         for align in TextAlign:
             for vertical_align in TextAlign:
