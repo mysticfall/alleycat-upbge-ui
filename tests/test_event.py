@@ -1,14 +1,13 @@
 import unittest
 
 from alleycat.ui import MouseMoveEvent, Point, Component
-from alleycat.ui.cairo import UI
+from tests.ui import UITestCase
 
 
-class EventTest(unittest.TestCase):
+class EventTest(UITestCase):
 
     def test_propagation(self):
-        context = UI().create_context()
-        component = Component(context)
+        component = Component(self.context)
 
         event = MouseMoveEvent(component, Point(10, 10))
 

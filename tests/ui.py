@@ -1,10 +1,11 @@
 import unittest
 from abc import ABC
 from pathlib import Path
-from typing import Optional
+from typing import Optional, cast
 
 from cairo import ImageSurface
 
+from alleycat.ui import MouseInput, FakeMouseInput
 from alleycat.ui.cairo import CairoContext, UI
 
 
@@ -19,6 +20,7 @@ class UITestCase(unittest.TestCase, ABC):
         super().setUp()
 
         self.context = UI().create_context()
+        self.mouse = cast(FakeMouseInput, MouseInput.input(self.context))
 
     def tearDown(self) -> None:
         super().tearDown()

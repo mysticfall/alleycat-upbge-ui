@@ -1,9 +1,8 @@
 import unittest
-from typing import cast
 
 from returns.maybe import Some
 
-from alleycat.ui import Window, Bounds, Point, RGBA, Panel, FakeMouseInput, MouseInput, MouseButton
+from alleycat.ui import Window, Bounds, Point, RGBA, Panel, MouseButton
 from alleycat.ui.glass import ColorKeys
 from tests.ui import UITestCase
 
@@ -86,48 +85,46 @@ class WindowTest(UITestCase):
         window.draggable = True
         window.bounds = Bounds(10, 10, 50, 50)
 
-        mouse = cast(FakeMouseInput, MouseInput.input(self.context))
+        self.mouse.move_to(Point(30, 30))
+        self.mouse.press(MouseButton.RIGHT)
 
-        mouse.move_to(Point(30, 30))
-        mouse.press(MouseButton.RIGHT)
-
-        mouse.move_to(Point(40, 40))
-        mouse.release(MouseButton.RIGHT)
+        self.mouse.move_to(Point(40, 40))
+        self.mouse.release(MouseButton.RIGHT)
 
         self.context.process()
 
         self.assertImage("drag_with_right_button", self.context)
 
-        mouse.move_to(Point(15, 15))
-        mouse.press(MouseButton.LEFT)
+        self.mouse.move_to(Point(15, 15))
+        self.mouse.press(MouseButton.LEFT)
 
-        mouse.move_to(Point(40, 40))
-        mouse.release(MouseButton.LEFT)
+        self.mouse.move_to(Point(40, 40))
+        self.mouse.release(MouseButton.LEFT)
 
         self.context.process()
 
         self.assertImage("drag_with_left_button", self.context)
 
-        mouse.press(MouseButton.LEFT)
-        mouse.press(MouseButton.MIDDLE)
+        self.mouse.press(MouseButton.LEFT)
+        self.mouse.press(MouseButton.MIDDLE)
 
-        mouse.move_to(Point(30, 50))
+        self.mouse.move_to(Point(30, 50))
 
-        mouse.release(MouseButton.MIDDLE)
+        self.mouse.release(MouseButton.MIDDLE)
 
-        mouse.move_to(Point(20, 50))
+        self.mouse.move_to(Point(20, 50))
 
         self.context.process()
 
         self.assertImage("drag_with_2_buttons", self.context)
 
-        mouse.release(MouseButton.MIDDLE)
+        self.mouse.release(MouseButton.MIDDLE)
 
         window.draggable = False
 
-        mouse.press(MouseButton.LEFT)
-        mouse.move_to(Point(0, 0))
-        mouse.release(MouseButton.LEFT)
+        self.mouse.press(MouseButton.LEFT)
+        self.mouse.move_to(Point(0, 0))
+        self.mouse.release(MouseButton.LEFT)
 
         self.context.process()
 
@@ -144,21 +141,19 @@ class WindowTest(UITestCase):
         top.bounds = Bounds(20, 20, 50, 50)
         top.set_color(ColorKeys.Background, RGBA(0, 0, 1, 1))
 
-        mouse = cast(FakeMouseInput, MouseInput.input(self.context))
-
-        mouse.move_to(Point(30, 30))
-        mouse.press(MouseButton.LEFT)
-        mouse.move_to(Point(50, 50))
-        mouse.release(MouseButton.LEFT)
+        self.mouse.move_to(Point(30, 30))
+        self.mouse.press(MouseButton.LEFT)
+        self.mouse.move_to(Point(50, 50))
+        self.mouse.release(MouseButton.LEFT)
 
         self.context.process()
 
         self.assertImage("drag_overlapping_top", self.context)
 
-        mouse.move_to(Point(20, 20))
-        mouse.press(MouseButton.LEFT)
-        mouse.move_to(Point(40, 40))
-        mouse.release(MouseButton.LEFT)
+        self.mouse.move_to(Point(20, 20))
+        self.mouse.press(MouseButton.LEFT)
+        self.mouse.move_to(Point(40, 40))
+        self.mouse.release(MouseButton.LEFT)
 
         self.context.process()
 

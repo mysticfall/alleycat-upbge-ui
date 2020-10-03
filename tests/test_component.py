@@ -4,21 +4,19 @@ from typing import Iterable
 from returns.maybe import Nothing
 
 from alleycat.ui import Component, Panel, Bounds, Point, MouseMoveEvent, LayoutContainer, RGBA
-from alleycat.ui.cairo import UI
+from tests.ui import UITestCase
 
 
-class ComponentTest(unittest.TestCase):
+class ComponentTest(UITestCase):
 
     def test_offset(self):
-        context = UI().create_context()
-
-        parent = Panel(context)
+        parent = Panel(self.context)
         parent.bounds = Bounds(10, 20, 80, 60)
 
-        grand_parent = LayoutContainer(context)
+        grand_parent = LayoutContainer(self.context)
         grand_parent.bounds = Bounds(20, 10, 40, 20)
 
-        component = Component(context)
+        component = Component(self.context)
         component.bounds = Bounds(5, 5, 10, 10)
 
         self.assertEqual(Point(0, 0), component.offset)
@@ -44,12 +42,10 @@ class ComponentTest(unittest.TestCase):
         self.assertEqual(Point(20, 40), component.offset)
 
     def test_position_of(self):
-        context = UI().create_context()
-
-        parent = LayoutContainer(context)
+        parent = LayoutContainer(self.context)
         parent.bounds = Bounds(10, 20, 80, 60)
 
-        component = Component(context)
+        component = Component(self.context)
         component.bounds = Bounds(5, 5, 10, 10)
 
         parent.add(component)
@@ -66,14 +62,12 @@ class ComponentTest(unittest.TestCase):
                 yield "Parent"
                 yield "GrandParent"
 
-        context = UI().create_context()
-
-        fixture = Fixture(context)
+        fixture = Fixture(self.context)
 
         prefixes = list(fixture.style_fallback_prefixes)
         keys = list(fixture.style_fallback_keys("color"))
 
-        laf = context.look_and_feel
+        laf = self.context.look_and_feel
 
         self.assertEqual(["Type", "Parent", "GrandParent"], prefixes)
         self.assertEqual(["Type.color", "Parent.color", "GrandParent.color", "color"], keys)

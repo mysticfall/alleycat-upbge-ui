@@ -1,7 +1,6 @@
 import unittest
 
 from alleycat.ui import Label, Bounds, Window, Panel, RGBA
-from alleycat.ui.cairo import UI
 from alleycat.ui.glass import ColorKeys
 from tests.ui import UITestCase
 
@@ -18,25 +17,24 @@ class PanelTest(UITestCase):
         self.assertEqual(["Label.background", "background"], keys)
 
     def test_draw(self):
-        context = UI().create_context()
-        context.look_and_feel.set_color("Panel.background", RGBA(0, 0, 1, 0.5))
+        self.context.look_and_feel.set_color("Panel.background", RGBA(0, 0, 1, 0.5))
 
-        window = Window(context)
+        window = Window(self.context)
         window.bounds = Bounds(0, 0, 100, 100)
 
-        panel1 = Panel(context)
+        panel1 = Panel(self.context)
         panel1.bounds = Bounds(20, 20, 40, 60)
 
-        panel2 = Panel(context)
+        panel2 = Panel(self.context)
         panel2.bounds = Bounds(50, 40, 40, 40)
         panel2.set_color(ColorKeys.Background, RGBA(1, 0, 0, 1))
 
         window.add(panel1)
         window.add(panel2)
 
-        context.process()
+        self.context.process()
 
-        self.assertImage("draw", context)
+        self.assertImage("draw", self.context)
 
 
 if __name__ == '__main__':

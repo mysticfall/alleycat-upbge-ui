@@ -4,21 +4,19 @@ from alleycat.reactive import functions as rv
 from returns.maybe import Some, Nothing
 
 from alleycat.ui import Bounds, Point, LayoutContainer, Component
-from alleycat.ui.cairo import UI
+from tests.ui import UITestCase
 
 
-class LayoutContainerTest(unittest.TestCase):
+class LayoutContainerTest(UITestCase):
 
     def test_component_at_with_hierarchy(self):
-        context = UI().create_context()
-
-        parent = LayoutContainer(context)
+        parent = LayoutContainer(self.context)
         parent.bounds = Bounds(0, 0, 200, 200)
 
-        child = LayoutContainer(context)
+        child = LayoutContainer(self.context)
         child.bounds = Bounds(50, 50, 100, 100)
 
-        grand_child = LayoutContainer(context)
+        grand_child = LayoutContainer(self.context)
         grand_child.bounds = Bounds(25, 25, 50, 50)
 
         child.add(grand_child)
@@ -50,18 +48,16 @@ class LayoutContainerTest(unittest.TestCase):
         self.assertEqual(Some(child), parent.component_at(Point(75, 126)))
 
     def test_component_at_with_layers(self):
-        context = UI().create_context()
-
-        parent = LayoutContainer(context)
+        parent = LayoutContainer(self.context)
         parent.bounds = Bounds(0, 0, 200, 200)
 
-        bottom = LayoutContainer(context)
+        bottom = LayoutContainer(self.context)
         bottom.bounds = Bounds(0, 0, 100, 100)
 
-        middle = LayoutContainer(context)
+        middle = LayoutContainer(self.context)
         middle.bounds = Bounds(100, 100, 100, 100)
 
-        top = LayoutContainer(context)
+        top = LayoutContainer(self.context)
         top.bounds = Bounds(50, 50, 100, 100)
 
         parent.add(bottom)
@@ -85,14 +81,12 @@ class LayoutContainerTest(unittest.TestCase):
         self.assertEqual(Some(top), parent.component_at(Point(50, 150)))
 
     def test_component_parent(self):
-        context = UI().create_context()
-
         parents = []
 
-        parent1 = LayoutContainer(context)
-        parent2 = LayoutContainer(context)
+        parent1 = LayoutContainer(self.context)
+        parent2 = LayoutContainer(self.context)
 
-        component = Component(context)
+        component = Component(self.context)
 
         rv.observe(component.parent).subscribe(parents.append)
 
