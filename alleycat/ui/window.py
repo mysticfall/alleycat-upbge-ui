@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from abc import ABC
 from itertools import chain
-from typing import Optional, Iterator, Iterable
+from typing import Optional, Iterator, Iterable, TypeVar, cast
 
 import rx
 from alleycat.reactive import RP
@@ -10,7 +11,7 @@ from returns.maybe import Maybe, Nothing, Some
 from rx import operators as ops
 
 from alleycat.ui import Context, Graphics, Container, LayoutContainer, Layout, Drawable, Point, ErrorHandlerSupport, \
-    ErrorHandler, MouseButton, Event, PropagatingEvent
+    ErrorHandler, MouseButton, Event, PropagatingEvent, ComponentUI
 
 
 class Window(LayoutContainer):
@@ -21,14 +22,15 @@ class Window(LayoutContainer):
 
         context.window_manager.add(self)
 
-        can_drag = ops.filter(lambda e: self.draggable and e.button == MouseButton.LEFT)
+        ui = cast(WindowUI, self.ui)
 
         offset = rx.merge(self.on_drag_start, self.on_drag).pipe(
-            can_drag,
+            ops.filter(lambda e: self.draggable and e.button == MouseButton.LEFT),
+            ops.filter(lambda e: ui.allow_drag(self, self.position_of(e))),
             ops.map(lambda e: e.position),
             ops.pairwise(),
             ops.map(lambda v: v[1] - v[0]),
-            ops.take_until(self.on_drag_end.pipe(can_drag)),
+            ops.take_until(self.on_drag_end.pipe(ops.filter(lambda e: e.button == MouseButton.LEFT))),
             ops.repeat())
 
         self._drag_listener = offset.subscribe(self.move_by, on_error=context.error_handler)
@@ -86,3 +88,12 @@ class WindowManager(Drawable, ErrorHandlerSupport, Container[Window]):
             self.execute_safely(child.dispose)
 
         super().dispose()
+
+
+T = TypeVar("T", bound=Window, contravariant=True)
+
+
+class WindowUI(ComponentUI[T], ABC):
+
+    def allow_drag(self, component: T, location: Point) -> bool:
+        pass

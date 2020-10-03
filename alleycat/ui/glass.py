@@ -3,7 +3,7 @@ from typing import TypeVar, Final, Generic
 from returns.maybe import Maybe, Nothing
 
 from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window, Label, Point, Toolkit, \
-    TextAlign, Font, Button, LabelButton
+    TextAlign, Font, Button, LabelButton, WindowUI
 
 T = TypeVar("T", bound=Component, contravariant=True)
 
@@ -91,7 +91,7 @@ class GlassPanelUI(GlassComponentUI[Panel]):
         super().__init__()
 
 
-class GlassWindowUI(GlassComponentUI[Window]):
+class GlassWindowUI(GlassComponentUI[Window], WindowUI[Window]):
 
     def __init__(self) -> None:
         super().__init__()
