@@ -3,11 +3,11 @@ import unittest
 from alleycat.ui import Bounds, Component, Point, Window, MouseMoveEvent, MouseOverEvent, \
     MouseOutEvent, DragStartEvent, DragEvent, DragOverEvent, DragLeaveEvent, DragEndEvent
 from alleycat.ui import MouseButton, MouseDownEvent, MouseUpEvent
-from alleycat.ui.cairo import UI
 # noinspection DuplicatedCode
 from tests.ui import UITestCase
 
 
+# noinspection DuplicatedCode
 class MouseTest(UITestCase):
 
     def setUp(self) -> None:
