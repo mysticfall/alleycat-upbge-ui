@@ -73,6 +73,7 @@ class Window(LayoutContainer):
 
     def dispose(self) -> None:
         self.execute_safely(self._drag_listener.dispose)
+        self.execute_safely(self._resize_listener.dispose)
 
         super().dispose()
 
