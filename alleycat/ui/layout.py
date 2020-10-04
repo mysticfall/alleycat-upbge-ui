@@ -1,4 +1,5 @@
 from abc import ABC
+from enum import Enum
 from typing import Optional, Iterator
 
 from returns.maybe import Maybe, Nothing, Some
@@ -76,3 +77,14 @@ class LayoutContainer(Component, Container[Component]):
             self.execute_safely(child.dispose)
 
         super().dispose()
+
+
+class Anchor(Enum):
+    North = 0
+    Northeast = 1
+    East = 2
+    Southeast = 3
+    South = 4
+    Southwest = 5
+    West = 6
+    Northwest = 7

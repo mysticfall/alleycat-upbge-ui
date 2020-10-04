@@ -83,6 +83,7 @@ class WindowTest(UITestCase):
     def test_drag(self):
         window = Window(self.context)
         window.draggable = True
+        window.resizable = True
         window.bounds = Bounds(10, 10, 50, 50)
 
         self.mouse.move_to(Point(30, 30))
@@ -95,10 +96,10 @@ class WindowTest(UITestCase):
 
         self.assertImage("drag_with_right_button", self.context)
 
-        self.mouse.move_to(Point(15, 15))
+        self.mouse.move_to(Point(20, 20))
         self.mouse.press(MouseButton.LEFT)
 
-        self.mouse.move_to(Point(40, 40))
+        self.mouse.move_to(Point(50, 50))
         self.mouse.release(MouseButton.LEFT)
 
         self.context.process()
@@ -158,6 +159,36 @@ class WindowTest(UITestCase):
         self.context.process()
 
         self.assertImage("drag_overlapping_bottom", self.context)
+
+    def test_resize(self):
+        window = Window(self.context)
+        window.draggable = True
+        window.resizable = True
+
+        def resize(name: str, drag_from: Point, drag_to: Point) -> None:
+            window.bounds = Bounds(20, 20, 60, 60)
+
+            self.mouse.move_to(drag_from)
+            self.mouse.press(MouseButton.LEFT)
+            self.mouse.move_to(drag_to)
+            self.mouse.release(MouseButton.LEFT)
+
+            self.context.process()
+
+            self.assertImage(name, self.context)
+
+        resize("resize_North", Point(40, 25), Point(40, 10))
+        resize("resize_Northeast", Point(75, 25), Point(90, 10))
+        resize("resize_East", Point(75, 40), Point(90, 40))
+        resize("resize_Southeast", Point(75, 75), Point(90, 90))
+        resize("resize_South", Point(40, 75), Point(40, 90))
+        resize("resize_Southwest", Point(25, 75), Point(10, 90))
+        resize("resize_West", Point(25, 40), Point(10, 40))
+        resize("resize_Northwest", Point(25, 25), Point(10, 10))
+
+        window.resizable = False
+
+        resize("resize_non_resizable", Point(40, 25), Point(40, 10))
 
 
 if __name__ == '__main__':

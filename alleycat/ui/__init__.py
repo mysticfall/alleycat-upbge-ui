@@ -16,9 +16,8 @@ from .style import StyleLookup
 from .container import Container
 from .component import Component
 from .laf import ComponentUI, LookAndFeel
-from .layout import Layout, LayoutContainer
+from .layout import Layout, LayoutContainer, Anchor
 from .panel import Panel
 from .label import Label, TextAlign
 from .button import Button, LabelButton
 from .window import Window, WindowUI, WindowManager
-
