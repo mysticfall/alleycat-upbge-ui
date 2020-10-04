@@ -154,7 +154,7 @@ class BlenderGraphics(Graphics[BlenderContext]):
 
             blf.draw(font_id, text)
 
-        if self.clip is Nothing:
+        if self.clip == Nothing:
             draw()
         else:
             clip = self.clip.unwrap().move_by(self.offset)

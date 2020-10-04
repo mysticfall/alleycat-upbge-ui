@@ -136,7 +136,7 @@ class CairoGraphics(Graphics[CairoContext]):
 
             self.g.show_text(text)
 
-        if self.clip is Nothing:
+        if self.clip == Nothing:
             draw()
         else:
             (cx, cy, cw, ch) = self.clip.unwrap().move_by(self.offset)

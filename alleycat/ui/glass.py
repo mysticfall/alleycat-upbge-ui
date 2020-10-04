@@ -160,7 +160,7 @@ class GlassButtonUI(GlassComponentUI[Button]):
         elif component.hover:
             color = component.resolve_color(key + ":hover")
 
-        return component.resolve_color(key) if color is Nothing else color
+        return component.resolve_color(key) if color == Nothing else color
 
 
 class GlassLabelButtonUI(GlassButtonUI, GlassLabelUI):
