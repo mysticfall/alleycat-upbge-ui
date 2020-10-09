@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from typing import TypeVar
 
-from alleycat.ui import Graphics, StyleLookup, Component, Toolkit
+from alleycat.ui import StyleLookup, Component, Toolkit, ComponentUI
 
 T = TypeVar("T", bound=Component, contravariant=True)
 
@@ -24,14 +24,4 @@ class LookAndFeel(StyleLookup, ABC):
 
     @abstractmethod
     def create_ui(self, component: T) -> ComponentUI[T]:
-        pass
-
-
-class ComponentUI(StyleLookup, Generic[T], ABC):
-
-    def __init__(self) -> None:
-        super().__init__()
-
-    @abstractmethod
-    def draw(self, g: Graphics, component: T) -> None:
         pass

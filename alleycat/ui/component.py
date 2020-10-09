@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Mapping, Iterable
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any, Mapping, Iterable, TypeVar, Generic
 
 import rx
 from alleycat.reactive import ReactiveObject, RP, RV
@@ -13,7 +14,7 @@ from alleycat.ui import Context, Drawable, EventDispatcher, Graphics, StyleLooku
     PositionalEvent, MouseEventHandler, ErrorHandler, Input, RGBA, Bounds, Font
 
 if TYPE_CHECKING:
-    from alleycat.ui import ComponentUI, LayoutContainer
+    from alleycat.ui import LayoutContainer
 
 
 class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, ReactiveObject):
@@ -132,3 +133,16 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
 
     def __repr__(self) -> Any:
         return str({"id": id(self), "type": type(self).__name__})
+
+
+T = TypeVar("T", bound=Component, contravariant=True)
+
+
+class ComponentUI(StyleLookup, Generic[T], ABC):
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    @abstractmethod
+    def draw(self, g: Graphics, component: T) -> None:
+        pass

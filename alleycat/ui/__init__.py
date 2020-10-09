@@ -14,8 +14,8 @@ from .mouse import MouseButton, MouseEvent, MouseDownEvent, MouseUpEvent, MouseM
 from .toolkit import Toolkit
 from .style import StyleLookup
 from .container import Container
-from .component import Component
-from .laf import ComponentUI, LookAndFeel
+from .component import Component, ComponentUI
+from .laf import LookAndFeel
 from .layout import Layout, LayoutContainer, Anchor
 from .panel import Panel
 from .label import Label, TextAlign
