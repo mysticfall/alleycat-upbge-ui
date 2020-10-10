@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Mapping, TYPE_CHECKING
 
+from alleycat.reactive import ReactiveObject
 from rx.disposable import Disposable
 
 from alleycat.ui import ErrorHandlerSupport, ErrorHandler
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
     from alleycat.ui import Context
 
 
-class Input(ErrorHandlerSupport, Disposable, ABC):
+class Input(ErrorHandlerSupport, ReactiveObject, ABC):
 
     def __init__(self, context: Context) -> None:
         if context is None:
@@ -44,9 +45,3 @@ class InputLookup(ErrorHandlerSupport, Disposable, ABC):
     @abstractmethod
     def inputs(self) -> Mapping[str, Input]:
         pass
-
-    def dispose(self) -> None:
-        super().dispose()
-
-        for i in self.inputs.values():
-            self.execute_safely(i.dispose)

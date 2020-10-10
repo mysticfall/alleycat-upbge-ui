@@ -101,6 +101,9 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
 
         self.execute_safely(self._window_manager.dispose)
 
+        for i in self.inputs.values():
+            self.execute_safely(i.dispose)
+
 
 T = TypeVar("T", bound=Context, covariant=True)
 

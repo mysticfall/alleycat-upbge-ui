@@ -21,11 +21,6 @@ class MouseTest(UITestCase):
 
         self.parent.add(self.component)
 
-    def tearDown(self) -> None:
-        super().tearDown()
-
-        self.context.dispose()
-
     def test_buttons(self):
         self.assertEqual(0, self.mouse.buttons)
 

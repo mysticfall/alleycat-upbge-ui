@@ -38,7 +38,8 @@ class Window(LayoutContainer):
             ops.pairwise(),
             ops.map(lambda v: v[1] - v[0]),
             ops.take_until(self.on_drag_end.pipe(ops.filter(lambda e: e.button == MouseButton.LEFT))),
-            ops.repeat())
+            ops.repeat(),
+            ops.take_until(self.on_dispose))
 
         self._drag_listener = offset.subscribe(self.move_by, on_error=self.context.error_handler)
 
@@ -54,7 +55,8 @@ class Window(LayoutContainer):
             ops.map(lambda s: mouse.on_mouse_move.pipe(
                 ops.map(lambda e: self._bounds_for_state(s, e.position)),
                 ops.take_until(mouse.on_button_release(MouseButton.LEFT)))),
-            ops.exclusive())
+            ops.exclusive(),
+            ops.take_until(self.on_dispose))
 
         def set_bounds(b: Bounds) -> None:
             self.bounds = b

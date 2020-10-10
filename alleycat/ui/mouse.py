@@ -226,7 +226,9 @@ class MouseInput(Input, ABC):
         def dispatch(event: PositionalEvent) -> None:
             self.context.dispatcher_at(event.position).map(lambda d: d.dispatch_event(event))
 
-        self._dispatchers = rx.merge(*self.positional_events).subscribe(dispatch, on_error=self.error_handler)
+        self._dispatchers = rx.merge(*self.positional_events) \
+            .pipe(ops.take_until(self.on_dispose)) \
+            .subscribe(dispatch, on_error=self.error_handler)
 
     @property
     def id(self) -> str:
