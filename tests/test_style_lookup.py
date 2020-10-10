@@ -1,9 +1,9 @@
 import unittest
 
 from cairo import ToyFontFace
-from returns.maybe import Nothing
+from returns.maybe import Nothing, Some
 
-from alleycat.ui import StyleLookup, RGBA
+from alleycat.ui import StyleLookup, RGBA, ColorChangeEvent, FontChangeEvent
 from alleycat.ui.cairo import CairoFont
 
 
@@ -47,6 +47,40 @@ class StyleLookupTest(unittest.TestCase):
         lookup.clear_font(label_key)
 
         self.assertEqual(Nothing, lookup.get_font(label_key))
+
+    def test_on_style_change(self):
+        lookup = StyleLookup()
+
+        changes = []
+
+        lookup.on_style_change.subscribe(changes.append)
+
+        self.assertEqual([], changes)
+
+        lookup.set_color("color1", RGBA(1, 0, 0, 1))
+        lookup.set_color("color1", RGBA(1, 0, 0, 1))  # Should ignore duplicated requests.
+
+        self.assertEqual([ColorChangeEvent(lookup, "color1", Some(RGBA(1, 0, 0, 1)))], changes)
+
+        lookup.set_color("color2", RGBA(0, 1, 0, 1))
+
+        self.assertEqual([ColorChangeEvent(lookup, "color2", Some(RGBA(0, 1, 0, 1)))], changes[1:])
+
+        lookup.set_color("color2", RGBA(0, 1, 1, 1))
+
+        self.assertEqual([ColorChangeEvent(lookup, "color2", Some(RGBA(0, 1, 1, 1)))], changes[2:])
+
+        font = CairoFont("Sans", ToyFontFace("Sans"))
+
+        lookup.set_font("font1", font)
+
+        self.assertEqual([FontChangeEvent(lookup, "font1", Some(font))], changes[3:])
+
+        lookup.clear_color("color1")
+        lookup.clear_font("font1")
+
+        self.assertEqual([ColorChangeEvent(lookup, "color1", Nothing)], changes[4:5])
+        self.assertEqual([FontChangeEvent(lookup, "font1", Nothing)], changes[5:])
 
 
 if __name__ == '__main__':
