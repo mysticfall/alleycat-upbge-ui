@@ -240,7 +240,7 @@ class MouseInput(Input, ABC):
         try:
             return cast(MouseInput, lookup.inputs[MouseInput.ID])
         except KeyError:
-            raise NotImplemented("Mouse input is not supported in this backend.")
+            raise NotImplementedError("Mouse input is not supported in this backend.")
 
     @property
     def positional_events(self) -> Sequence[Observable]:
