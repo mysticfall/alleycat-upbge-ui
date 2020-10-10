@@ -134,7 +134,7 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
 T = TypeVar("T", bound=Component, contravariant=True)
 
 
-class ComponentUI(StyleLookup, Generic[T], ABC):
+class ComponentUI(Generic[T], ABC):
 
     def __init__(self) -> None:
         super().__init__()
