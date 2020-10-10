@@ -121,7 +121,7 @@ class MouseEventHandler(Bounded, EventHandler, ABC):
 
     @property
     def on_mouse_over(self) -> Observable:
-        position = rv.observe(MouseInput.input(self), "position")
+        position = MouseInput.input(self).observe("position")
         local_pos = position.pipe(ops.map(lambda p: p - self.offset))
 
         return self.on_mouse_move.pipe(
@@ -133,7 +133,7 @@ class MouseEventHandler(Bounded, EventHandler, ABC):
 
     @property
     def on_mouse_out(self) -> Observable:
-        position = rv.observe(MouseInput.input(self), "position")
+        position = MouseInput.input(self).observe("position")
 
         return self.on_mouse_over.pipe(
             ops.map(lambda e: position.pipe(
@@ -145,7 +145,7 @@ class MouseEventHandler(Bounded, EventHandler, ABC):
     @property
     def on_drag_start(self) -> Observable:
         mouse = MouseInput.input(self)
-        position = rv.observe(mouse, "position")
+        position = mouse.observe("position")
 
         return self.on_mouse_down.pipe(
             ops.map(lambda e: position.pipe(
@@ -157,7 +157,7 @@ class MouseEventHandler(Bounded, EventHandler, ABC):
     @property
     def on_drag(self) -> Observable:
         mouse = MouseInput.input(self)
-        position = rv.observe(mouse, "position")
+        position = mouse.observe("position")
 
         return self.on_drag_start.pipe(
             ops.map(lambda e: position.pipe(
@@ -181,7 +181,7 @@ class MouseEventHandler(Bounded, EventHandler, ABC):
     @property
     def on_drag_leave(self) -> Observable:
         mouse = MouseInput.input(self)
-        position = rv.observe(mouse, "position")
+        position = mouse.observe("position")
 
         from_inside = self.on_mouse_down.pipe(
             ops.map(lambda e: position.pipe(
@@ -250,7 +250,7 @@ class MouseInput(Input, ABC):
 
     @property
     def on_mouse_move(self) -> Observable:
-        return rv.observe(self, "position").pipe(
+        return self.observe("position").pipe(
             ops.distinct_until_changed(),
             ops.map(lambda p: MouseMoveEvent(self.context, p)))
 
@@ -278,11 +278,10 @@ class MouseInput(Input, ABC):
         return rx.merge(*[event_for(button) for button in MouseButton])
 
     def on_button_press(self, button: MouseButton) -> Observable:
-        return rv.observe(self, "buttons").pipe(
-            ops.filter(lambda b: b & button == button))
+        return self.observe("buttons").pipe(ops.filter(lambda b: b & button == button))
 
     def on_button_release(self, button: MouseButton) -> Observable:
-        return rv.observe(self, "buttons").pipe(
+        return self.observe("buttons").pipe(
             ops.map(lambda b: b & button),
             ops.distinct_until_changed(),
             ops.pairwise(),

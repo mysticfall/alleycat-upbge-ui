@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, Mapping, Iterable, TypeVar, Generic
 import rx
 from alleycat.reactive import ReactiveObject, RP, RV
 from alleycat.reactive import functions as rv
-from returns.functions import identity
 from returns.maybe import Maybe, Some, Nothing
 from rx import operators as ops
 
@@ -22,15 +21,12 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
 
     parent: RP[Maybe[LayoutContainer]] = rv.from_value(Nothing)
 
-    _p_location: RV[Point] = parent.as_view() \
-        .map(lambda v: v.map(lambda p: rv.observe(p.location)).or_else_call(lambda: rx.of(Point(0, 0)))) \
-        .pipe(ops.exclusive())
-
-    _p_offset: RV[Point] = parent.as_view() \
-        .map(lambda v: v.map(lambda p: rv.observe(p.offset)).or_else_call(lambda: rx.of(Point(0, 0)))) \
-        .pipe(ops.exclusive())
-
-    offset: RV[Point] = rv.combine_latest(_p_location, _p_offset)(identity).map(lambda v: v[0] + v[1])
+    offset: RV[Point] = parent.as_view().map(
+        lambda _, parent: parent.map(
+            lambda p: rx.combine_latest(
+                p.observe("offset"), p.observe("location")).pipe(ops.map(lambda v: v[0] + v[1]))
+        ).or_else_call(lambda: rx.of(Point(0, 0)))
+    ).pipe(lambda _: (ops.exclusive(),))
 
     def __init__(self, context: Context) -> None:
         if context is None:

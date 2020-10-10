@@ -13,17 +13,17 @@ class Bounded(ABC):
 
     bounds: RP[Bounds] = rv.from_value(Bounds(0, 0, 0, 0))
 
-    x: RV[float] = bounds.as_view().map(lambda b: b.x)
+    x: RV[float] = bounds.as_view().map(lambda _, b: b.x)
 
-    y: RV[float] = bounds.as_view().map(lambda b: b.y)
+    y: RV[float] = bounds.as_view().map(lambda _, b: b.y)
 
-    width: RV[float] = bounds.as_view().map(lambda b: b.width)
+    width: RV[float] = bounds.as_view().map(lambda _, b: b.width)
 
-    height: RV[float] = bounds.as_view().map(lambda b: b.height)
+    height: RV[float] = bounds.as_view().map(lambda _, b: b.height)
 
-    location: RV[float] = bounds.as_view().map(lambda b: b.location)
+    location: RV[float] = bounds.as_view().map(lambda _, b: b.location)
 
-    size: RV[Dimension] = bounds.as_view().map(lambda b: b.size)
+    size: RV[Dimension] = bounds.as_view().map(lambda _, b: b.size)
 
     offset: RV[Point]
 
