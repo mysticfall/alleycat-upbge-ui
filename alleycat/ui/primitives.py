@@ -154,7 +154,7 @@ class Bounds(Iterable):
     def contains(self, point: Point) -> bool:
         return self.x <= point.x <= self.x + self.width and self.y <= point.y <= self.y + self.height
 
-    def __add__(self, other: Union[Point, Bounds]) -> Bounds:
+    def __add__(self, other: Union[Point, Insets, Bounds]) -> Bounds:
         if other is None:
             raise ValueError("Cannot perform the operation on None.")
 
@@ -164,10 +164,24 @@ class Bounds(Iterable):
                 min(self.y, other.y),
                 max(self.x + self.width, max(self.x + self.width - other.x, other.x - self.x)),
                 max(self.y + self.height, max(self.y + self.height - other.y, other.y - self.y)))
-        elif isinstance(other, Bounds):
+        elif isinstance(other, Insets):
+            return Bounds(
+                self.x - other.left,
+                self.y - other.top,
+                self.width + other.left + other.right,
+                self.height + other.top + other.bottom)
+        else:
             return reduce(lambda b, p: b + p, other.points, self)
 
-        assert False
+    def __sub__(self, other: Insets) -> Bounds:
+        if other is None:
+            raise ValueError("Cannot perform the operation on None.")
+
+        return Bounds(
+            self.x + other.left,
+            self.y + other.top,
+            max(self.width - other.left - other.right, 0),
+            max(self.height - other.top - other.bottom, 0))
 
     def __mul__(self, number: float) -> Bounds:
         return Bounds(self.x, self.y, self.width * number, self.height * number)
@@ -207,6 +221,91 @@ class Bounds(Iterable):
                 Point(self.x + self.width, self.y),
                 Point(self.x + self.width, self.y + self.height),
                 Point(self.x, self.y + self.height))
+
+
+@dataclass(frozen=True)
+class Insets(Iterable):
+    top: float
+
+    right: float
+
+    bottom: float
+
+    left: float
+
+    __slots__ = ["top", "right", "bottom", "left"]
+
+    @property
+    def tuple(self) -> Tuple[float, float, float, float]:
+        return self.top, self.right, self.bottom, self.left
+
+    @staticmethod
+    def from_tuple(value: Tuple[float, float, float, float]) -> Insets:
+        if value is None:
+            raise ValueError("Argument 'value' is required.")
+
+        return Insets(value[0], value[1], value[2], value[3])
+
+    def copy(self,
+             top: Optional[float] = None,
+             right: Optional[float] = None,
+             bottom: Optional[float] = None,
+             left: Optional[float] = None) -> Insets:
+
+        return Insets(
+            top if top is not None else self.top,
+            right if right is not None else self.right,
+            bottom if bottom is not None else self.bottom,
+            left if left is not None else self.left)
+
+    def __add__(self, other: Union[float, Insets]) -> Insets:
+        if other is None:
+            raise ValueError("Cannot perform the operation on None.")
+
+        if isinstance(other, Insets):
+            return Insets(
+                self.top + other.top,
+                self.right + other.right,
+                self.bottom + other.bottom,
+                self.left + other.left)
+        else:
+            return Insets(
+                max(self.top + other, 0),
+                max(self.right + other, 0),
+                max(self.bottom + other, 0),
+                max(self.left + other, 0))
+
+    def __sub__(self, other: Union[float, Insets]) -> Insets:
+        if other is None:
+            raise ValueError("Cannot perform the operation on None.")
+
+        if isinstance(other, Insets):
+            return Insets(
+                max(self.top - other.top, 0),
+                max(self.right - other.right, 0),
+                max(self.bottom - other.bottom, 0),
+                max(self.left - other.left, 0))
+        else:
+            return Insets(
+                max(self.top - other, 0),
+                max(self.right - other, 0),
+                max(self.bottom - other, 0),
+                max(self.left - other, 0))
+
+    def __mul__(self, number: float) -> Insets:
+        return Insets(self.top * number, self.right * number, self.bottom * number, self.left * number)
+
+    def __truediv__(self, number: float) -> Insets:
+        return Insets(self.top / number, self.right / number, self.bottom / number, self.left / number)
+
+    def __iter__(self) -> Iterator[float]:
+        return iter(self.tuple)
+
+    def __post_init__(self):
+        _ensure_non_negative(self, "top")
+        _ensure_non_negative(self, "right")
+        _ensure_non_negative(self, "bottom")
+        _ensure_non_negative(self, "left")
 
 
 @dataclass(frozen=True)

@@ -2,7 +2,7 @@ import unittest
 
 from returns.maybe import Nothing
 
-from alleycat.ui import Point, Dimension, Bounds, RGBA
+from alleycat.ui import Point, Dimension, Bounds, RGBA, Insets
 
 
 class PrimitivesTest(unittest.TestCase):
@@ -151,6 +151,9 @@ class PrimitivesTest(unittest.TestCase):
 
         self.assertEqual(Bounds(30, 40, 50, 20), (Bounds(10, 20, 100, 60) & Bounds(30, 40, 50, 20)).unwrap())
 
+        self.assertEqual(Bounds(-10, 15, 130, 70), Bounds(10, 20, 100, 60) + Insets(5, 10, 5, 20))
+        self.assertEqual(Bounds(15, 40, 85, 0), Bounds(10, 20, 100, 60) - Insets(20, 10, 50, 5))
+
     def test_bounds_location(self):
         self.assertEqual(Point(10, 20), Bounds(10, 20, 100, 200).location)
 
@@ -167,6 +170,60 @@ class PrimitivesTest(unittest.TestCase):
         self.assertFalse(Bounds(10, 20, 100, 50).contains(Point(0, 40)))
         self.assertTrue(Bounds(-50, -40, 100, 80).contains(Point(50, 0)))
         self.assertFalse(Bounds(-50, -40, 100, 80).contains(Point(51, 0)))
+
+    def test_insets_init(self):
+        self.assertEqual(5, Insets(5, 10, 120, 0).top)
+        self.assertEqual(30, Insets(15, 30, 0, 30.5).right)
+        self.assertEqual(120, Insets(5, 10, 120, 0).bottom)
+        self.assertEqual(30.5, Insets(15, 30, 0, 30.5).left)
+
+        with self.assertRaises(ValueError) as cm_top:
+            Insets(-10, 0, 10, 30)
+
+        self.assertEqual("Argument 'top' must be zero or a positive number.", cm_top.exception.args[0])
+
+        with self.assertRaises(ValueError) as cm_right:
+            Insets(20, -1, 10, 0)
+
+        self.assertEqual("Argument 'right' must be zero or a positive number.", cm_right.exception.args[0])
+
+        with self.assertRaises(ValueError) as cm_bottom:
+            Insets(5, 0, -15, 30)
+
+        self.assertEqual("Argument 'bottom' must be zero or a positive number.", cm_bottom.exception.args[0])
+
+        with self.assertRaises(ValueError) as cm_left:
+            Insets(0, 0, 40, -30)
+
+        self.assertEqual("Argument 'left' must be zero or a positive number.", cm_left.exception.args[0])
+
+    def test_insets_unpack(self):
+        (top, right, bottom, left) = Insets(10, 30, 5, 20)
+
+        self.assertEqual(10, top)
+        self.assertEqual(30, right)
+        self.assertEqual(5, bottom)
+        self.assertEqual(20, left)
+
+    def test_insets_to_tuple(self):
+        self.assertEqual((30, 20, 15, 5), Insets(30, 20, 15, 5).tuple)
+
+    def test_insets_from_tuple(self):
+        self.assertEqual(Insets(30, 0, 50, 40), Insets.from_tuple((30, 0, 50, 40)))
+
+    def test_insets_copy(self):
+        self.assertEqual(Insets(15, 20, 0, 30), Insets(15, 10, 30, 30).copy(right=20, bottom=0))
+        self.assertEqual(Insets(20, 10, 0, 30), Insets(10, 10, 0, 10).copy(top=20, left=30))
+        self.assertEqual(Insets(5, 10, 0, 30), Insets(0, 0, 20, 40).copy(top=5, right=10, bottom=0, left=30))
+        self.assertEqual(Insets(20, 10, 5, 30), Insets(20, 10, 5, 30).copy())
+
+    def test_insets_operations(self):
+        self.assertEqual(Insets(5, 10, 25, 30), Insets(0, 0, 10, 20) + Insets(5, 10, 15, 10))
+        self.assertEqual(Insets(20, 15, 5, 10), Insets(15, 10, 0, 5) + 5)
+        self.assertEqual(Insets(0, 0, 0, 10), Insets(0, 5, 10, 20) - Insets(5, 10, 15, 10))
+        self.assertEqual(Insets(5, 0, 10, 0), Insets(15, 10, 20, 5) - 10)
+        self.assertEqual(Insets(0, 20, 10, 60), Insets(0, 10, 5, 30) * 2)
+        self.assertEqual(Insets(10, 0, 5, 2.5), Insets(20, 0, 10, 5) / 2)
 
     def test_rgba_init(self):
         self.assertEqual(0.5, RGBA(0.5, 0.12, 0.2, 1).r)

@@ -1,5 +1,5 @@
 # Import order should not be changed to avoid a circular dependency.
-from .primitives import Point, Dimension, Bounds, RGBA
+from .primitives import Point, Dimension, Bounds, Insets, RGBA
 from .error import ErrorHandler, ErrorHandlerSupport
 from .font import Font, FontRegistry
 from .input import Input, InputLookup
