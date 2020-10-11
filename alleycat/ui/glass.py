@@ -1,9 +1,12 @@
 from typing import TypeVar, Final, Generic
 
+import rx
 from returns.maybe import Maybe, Nothing
+from rx import Observable
+from rx import operators as ops
 
 from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window, Label, Point, Toolkit, \
-    TextAlign, Font, Button, LabelButton, WindowUI
+    TextAlign, Font, Button, LabelButton, WindowUI, LabelUI, FontChangeEvent
 
 T = TypeVar("T", bound=Component, contravariant=True)
 
@@ -98,7 +101,7 @@ class GlassWindowUI(GlassComponentUI[Window], WindowUI[Window]):
 
 
 # noinspection PyMethodMayBeStatic
-class GlassLabelUI(GlassComponentUI[Label]):
+class GlassLabelUI(GlassComponentUI[Label], LabelUI):
     _ratio_for_align = {TextAlign.Begin: 0., TextAlign.Center: 0.5, TextAlign.End: 1.}
 
     def __init__(self) -> None:
@@ -137,7 +140,24 @@ class GlassLabelUI(GlassComponentUI[Label]):
     def text_font(self, component: Label) -> Font:
         font_registry = component.context.toolkit.font_registry
 
-        return component.resolve_font("text").value_or(font_registry.fallback_font)
+        return component.resolve_font(FontKeys.Text).value_or(font_registry.fallback_font)
+
+    def on_font_change(self, component: Label) -> Observable:
+        font_keys = set(component.style_fallback_keys(FontKeys.Text))
+        fallback = component.context.toolkit.font_registry.fallback_font
+
+        def effective_font() -> Font:
+            return component.resolve_font(FontKeys.Text).value_or(fallback)
+
+        style_changes = rx.merge(component.on_style_change, component.context.look_and_feel.on_style_change)
+        font_changes = style_changes.pipe(
+            ops.filter(lambda e: isinstance(e, FontChangeEvent)),
+            ops.filter(lambda e: e.key in font_keys),
+            ops.map(lambda _: effective_font()),
+            ops.start_with(effective_font()),
+            ops.distinct_until_changed())
+
+        return font_changes
 
 
 # noinspection PyMethodMayBeStatic
@@ -184,3 +204,7 @@ class ColorKeys:
     Text: Final = "text"
     TextHover: Final = "text:hover"
     TextActive: Final = "text:active"
+
+
+class FontKeys:
+    Text: Final = "text"

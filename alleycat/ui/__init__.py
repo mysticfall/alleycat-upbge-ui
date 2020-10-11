@@ -18,6 +18,6 @@ from .component import Component, ComponentUI
 from .laf import LookAndFeel
 from .layout import Layout, LayoutContainer, Anchor
 from .panel import Panel
-from .label import Label, TextAlign
+from .label import Label, LabelUI, TextAlign
 from .button import Button, LabelButton
 from .window import Window, WindowUI, WindowManager
