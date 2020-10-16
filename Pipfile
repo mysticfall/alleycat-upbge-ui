@@ -11,7 +11,7 @@ verify_ssl = true
 "pycairo" = "1.19.1"
 
 [packages]
-"alleycat-reactive" = "0.4.1"
+"alleycat-reactive" = "0.4.2"
 rx = "3.1.1"
 returns = "0.14.0"
 
