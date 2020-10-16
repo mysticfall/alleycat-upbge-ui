@@ -36,21 +36,14 @@ class GlassLookAndFeel(LookAndFeel):
         self.set_color(with_prefix(ColorKeys.TextHover, "Button"), highlight_color)
         self.set_color(with_prefix(ColorKeys.TextActive, "Button"), RGBA(0, 0, 0, 1))
 
-    # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def create_ui(self, component: T) -> ComponentUI[T]:
-        assert component is not None
+        self.register_ui(Window, GlassWindowUI)
+        self.register_ui(Panel, GlassPanelUI)
+        self.register_ui(LabelButton, GlassLabelButtonUI)
+        self.register_ui(Button, GlassButtonUI)
+        self.register_ui(Label, GlassLabelUI)
 
-        if isinstance(component, Panel):
-            return GlassPanelUI()
-        elif isinstance(component, Window):
-            return GlassWindowUI()
-        elif isinstance(component, LabelButton):
-            return GlassLabelButtonUI()
-        elif isinstance(component, Button):
-            return GlassButtonUI()
-        elif isinstance(component, Label):
-            return GlassLabelUI()
-
+    @property
+    def default_ui(self) -> ComponentUI[Component]:
         return GlassComponentUI()
 
 
