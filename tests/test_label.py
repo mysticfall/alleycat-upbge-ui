@@ -1,11 +1,16 @@
 import unittest
 from typing import cast
+
+from returns.maybe import Nothing, Some
 from rx import operators as ops
+
 from alleycat.ui import Label, Bounds, Window, RGBA, TextAlign, LabelUI, Dimension
 from alleycat.ui.glass import ColorKeys
+from alleycat.reactive import functions as rv
 from tests.ui import UITestCase
 
 
+# noinspection DuplicatedCode
 class LabelTest(UITestCase):
 
     def test_style_fallback(self):
@@ -144,6 +149,112 @@ class LabelTest(UITestCase):
         laf.set_font("Label.text", mono)
 
         self.assertEqual(4, len(changes))
+
+    def test_minimum_size(self):
+        label = Label(self.context)
+
+        tolerance = 0.1
+
+        calculated = []
+
+        rv.observe(label.effective_minimum_size).subscribe(calculated.append)
+
+        self.assertEqual(Nothing, label.minimum_size)
+        self.assertEqual(Dimension(0, 0), label.effective_minimum_size)
+        self.assertEqual([Dimension(0, 0)], calculated)
+
+        label.text = "Test"
+
+        self.assertEqual(2, len(calculated))
+
+        self.assertEqual(Nothing, label.minimum_size)
+        self.assertAlmostEqual(18.476, label.effective_minimum_size.width, delta=tolerance)
+        self.assertAlmostEqual(7.227, label.effective_minimum_size.height, delta=tolerance)
+        self.assertAlmostEqual(18.476, calculated[1].width, delta=tolerance)
+        self.assertAlmostEqual(7.227, calculated[1].height, delta=tolerance)
+
+        self.assertEqual(Bounds(0, 0, calculated[1].width, calculated[1].height), label.bounds)
+
+        label.text_size = 15
+
+        self.assertEqual(3, len(calculated))
+
+        self.assertEqual(Nothing, label.minimum_size)
+        self.assertAlmostEqual(27.715, label.effective_minimum_size.width, delta=tolerance)
+        self.assertAlmostEqual(10.840, label.effective_minimum_size.height, delta=tolerance)
+        self.assertAlmostEqual(27.715, calculated[2].width, delta=tolerance)
+        self.assertAlmostEqual(10.840, calculated[2].height, delta=tolerance)
+
+        label.bounds = Bounds(10, 20, 60, 40)
+
+        self.assertEqual(Bounds(10, 20, 60, 40), label.bounds)
+
+        label.minimum_size = Some(Dimension(80, 50))
+
+        self.assertEqual(Some(Dimension(80, 50)), label.minimum_size)
+        self.assertEqual(Dimension(80, 50), label.effective_minimum_size)
+        self.assertAlmostEqual(27.715, calculated[2].width, delta=tolerance)
+        self.assertAlmostEqual(10.840, calculated[2].height, delta=tolerance)
+
+        self.assertEqual(Bounds(10, 20, 80, 50), label.bounds)
+
+        label.bounds = Bounds(0, 0, 30, 40)
+
+        self.assertEqual(Bounds(0, 0, 80, 50), label.bounds)
+
+    def test_preferred_size(self):
+        label = Label(self.context)
+
+        tolerance = 0.1
+
+        calculated = []
+
+        rv.observe(label.effective_preferred_size).subscribe(calculated.append)
+
+        self.assertEqual(Nothing, label.preferred_size)
+        self.assertEqual(Dimension(0, 0), label.effective_preferred_size)
+        self.assertEqual([Dimension(0, 0)], calculated)
+
+        label.text = "Test"
+
+        self.assertEqual(2, len(calculated))
+
+        self.assertEqual(Nothing, label.preferred_size)
+        self.assertAlmostEqual(18.476, label.effective_preferred_size.width, delta=tolerance)
+        self.assertAlmostEqual(7.227, label.effective_preferred_size.height, delta=tolerance)
+        self.assertEqual(2, len(calculated))
+        self.assertAlmostEqual(18.476, calculated[1].width, delta=tolerance)
+        self.assertAlmostEqual(7.227, calculated[1].height, delta=tolerance)
+
+        label.text_size = 15
+
+        self.assertEqual(3, len(calculated))
+
+        self.assertEqual(Nothing, label.preferred_size)
+        self.assertAlmostEqual(27.715, label.effective_preferred_size.width, delta=tolerance)
+        self.assertAlmostEqual(10.840, label.effective_preferred_size.height, delta=tolerance)
+        self.assertEqual(3, len(calculated))
+        self.assertAlmostEqual(27.715, calculated[2].width, delta=tolerance)
+        self.assertAlmostEqual(10.840, calculated[2].height, delta=tolerance)
+
+        label.preferred_size = Some(Dimension(80, 50))
+
+        self.assertEqual(Some(Dimension(80, 50)), label.preferred_size)
+        self.assertEqual(Dimension(80, 50), label.effective_preferred_size)
+        self.assertEqual(4, len(calculated))
+        self.assertEqual(Dimension(80, 50), calculated[3])
+
+        label.preferred_size = Some(Dimension(10, 10))
+
+        self.assertEqual(calculated[2], label.effective_preferred_size)
+        self.assertEqual(5, len(calculated))
+        self.assertEqual(calculated[2], calculated[4])
+
+        label.minimum_size = Some(Dimension(400, 360))
+
+        self.assertEqual(Dimension(400, 360), label.effective_preferred_size)
+        self.assertEqual(6, len(calculated))
+        self.assertEqual(Dimension(400, 360), calculated[5])
 
 
 if __name__ == '__main__':

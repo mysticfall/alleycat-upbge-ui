@@ -1,7 +1,11 @@
 import unittest
+from typing import cast
 
 from alleycat.reactive import functions as rv
-from alleycat.ui import Bounds, Window, RGBA, TextAlign, LabelButton, Point, MouseButton
+from returns.maybe import Nothing, Some
+from rx import operators as ops
+
+from alleycat.ui import Bounds, Window, RGBA, TextAlign, LabelButton, Point, MouseButton, Dimension, LabelUI
 from alleycat.ui.glass import ColorKeys
 from tests.ui import UITestCase
 
@@ -164,6 +168,192 @@ class ButtonTest(UITestCase):
         self.assertFalse(button.active)
         self.assertEqual([False, True, False, True, False], values)
         self.assertImage("active_right_button", self.context, tolerance=50)
+
+    def test_ui_on_font_change(self):
+        button = LabelButton(self.context)
+        laf = self.context.look_and_feel
+        ui = cast(LabelUI, button.ui)
+        font_registry = self.context.toolkit.font_registry
+
+        font1 = font_registry.resolve("Font 1").unwrap()
+        font2 = font_registry.resolve("Font 2").unwrap()
+        default = font_registry.fallback_font
+
+        changes = []
+
+        ui.on_font_change(button).pipe(ops.map(lambda e: e.family)).subscribe(changes.append)
+
+        self.assertEqual([default.family], changes)
+
+        button.set_font("text", font1)
+        button.set_font("tooltip", font1)
+
+        self.assertEqual([font1.family], changes[1:])
+
+        button.set_font("text", font2)
+        button.set_font("text", font2)  # Should ignore duplicates.
+
+        self.assertEqual([font2.family], changes[2:])
+
+        button.clear_font("text")
+
+        self.assertEqual([default.family], changes[3:])
+
+        laf.set_font("text", font1)
+
+        self.assertEqual([font1.family], changes[4:])
+
+        laf.set_font("Button.text", font2)
+
+        self.assertEqual([font2.family], changes[5:])
+
+        laf.clear_font("text")
+
+        self.assertEqual([], changes[6:])
+
+        button.set_font("text", font1)
+
+        self.assertEqual([font1.family], changes[6:])
+
+    def test_ui_on_extents_change(self):
+        button = LabelButton(self.context)
+        laf = self.context.look_and_feel
+        ui = cast(LabelUI, button.ui)
+        font_registry = self.context.toolkit.font_registry
+
+        tolerance = 0.1
+
+        mono = font_registry.resolve("Mono").unwrap()
+
+        changes = []
+
+        ui.on_extents_change(button).subscribe(changes.append)
+
+        self.assertEqual([Dimension(width=0.0, height=0.0)], changes)
+
+        button.text = "Test"
+
+        self.assertEqual(2, len(changes))
+
+        self.assertAlmostEqual(18.476, changes[1].width, delta=tolerance)
+        self.assertAlmostEqual(7.227, changes[1].height, delta=tolerance)
+
+        button.text_size = 15
+
+        self.assertEqual(3, len(changes))
+
+        self.assertAlmostEqual(27.715, changes[2].width, delta=tolerance)
+        self.assertAlmostEqual(10.840, changes[2].height, delta=tolerance)
+
+        laf.set_font("Button.text", mono)
+
+        self.assertEqual(4, len(changes))
+
+    def test_minimum_size(self):
+        button = LabelButton(self.context)
+
+        tolerance = 0.1
+
+        calculated = []
+
+        rv.observe(button.effective_minimum_size).subscribe(calculated.append)
+
+        self.assertEqual(Nothing, button.minimum_size)
+        self.assertEqual(Dimension(0, 0), button.effective_minimum_size)
+        self.assertEqual([Dimension(0, 0)], calculated)
+
+        button.text = "Test"
+
+        self.assertEqual(2, len(calculated))
+
+        self.assertEqual(Nothing, button.minimum_size)
+        self.assertAlmostEqual(18.476, button.effective_minimum_size.width, delta=tolerance)
+        self.assertAlmostEqual(7.227, button.effective_minimum_size.height, delta=tolerance)
+        self.assertAlmostEqual(18.476, calculated[1].width, delta=tolerance)
+        self.assertAlmostEqual(7.227, calculated[1].height, delta=tolerance)
+
+        self.assertEqual(Bounds(0, 0, calculated[1].width, calculated[1].height), button.bounds)
+
+        button.text_size = 15
+
+        self.assertEqual(3, len(calculated))
+
+        self.assertEqual(Nothing, button.minimum_size)
+        self.assertAlmostEqual(27.715, button.effective_minimum_size.width, delta=tolerance)
+        self.assertAlmostEqual(10.840, button.effective_minimum_size.height, delta=tolerance)
+        self.assertAlmostEqual(27.715, calculated[2].width, delta=tolerance)
+        self.assertAlmostEqual(10.840, calculated[2].height, delta=tolerance)
+
+        button.bounds = Bounds(10, 20, 60, 40)
+
+        self.assertEqual(Bounds(10, 20, 60, 40), button.bounds)
+
+        button.minimum_size = Some(Dimension(80, 50))
+
+        self.assertEqual(Some(Dimension(80, 50)), button.minimum_size)
+        self.assertEqual(Dimension(80, 50), button.effective_minimum_size)
+        self.assertAlmostEqual(27.715, calculated[2].width, delta=tolerance)
+        self.assertAlmostEqual(10.840, calculated[2].height, delta=tolerance)
+
+        self.assertEqual(Bounds(10, 20, 80, 50), button.bounds)
+
+        button.bounds = Bounds(0, 0, 30, 40)
+
+        self.assertEqual(Bounds(0, 0, 80, 50), button.bounds)
+
+    def test_preferred_size(self):
+        button = LabelButton(self.context)
+
+        tolerance = 0.1
+
+        calculated = []
+
+        rv.observe(button.effective_preferred_size).subscribe(calculated.append)
+
+        self.assertEqual(Nothing, button.preferred_size)
+        self.assertEqual(Dimension(0, 0), button.effective_preferred_size)
+        self.assertEqual([Dimension(0, 0)], calculated)
+
+        button.text = "Test"
+
+        self.assertEqual(2, len(calculated))
+
+        self.assertEqual(Nothing, button.preferred_size)
+        self.assertAlmostEqual(18.476, button.effective_preferred_size.width, delta=tolerance)
+        self.assertAlmostEqual(7.227, button.effective_preferred_size.height, delta=tolerance)
+        self.assertEqual(2, len(calculated))
+        self.assertAlmostEqual(18.476, calculated[1].width, delta=tolerance)
+        self.assertAlmostEqual(7.227, calculated[1].height, delta=tolerance)
+
+        button.text_size = 15
+
+        self.assertEqual(3, len(calculated))
+
+        self.assertEqual(Nothing, button.preferred_size)
+        self.assertAlmostEqual(27.715, button.effective_preferred_size.width, delta=tolerance)
+        self.assertAlmostEqual(10.840, button.effective_preferred_size.height, delta=tolerance)
+        self.assertEqual(3, len(calculated))
+        self.assertAlmostEqual(27.715, calculated[2].width, delta=tolerance)
+        self.assertAlmostEqual(10.840, calculated[2].height, delta=tolerance)
+
+        button.preferred_size = Some(Dimension(80, 50))
+
+        self.assertEqual(Some(Dimension(80, 50)), button.preferred_size)
+        self.assertEqual(Dimension(80, 50), button.effective_preferred_size)
+        self.assertEqual(4, len(calculated))
+        self.assertEqual(Dimension(80, 50), calculated[3])
+
+        button.preferred_size = Some(Dimension(10, 10))
+
+        self.assertEqual(calculated[2], button.effective_preferred_size)
+        self.assertEqual(5, len(calculated))
+        self.assertEqual(calculated[2], calculated[4])
+
+        button.minimum_size = Some(Dimension(400, 360))
+
+        self.assertEqual(Dimension(400, 360), button.effective_preferred_size)
+        self.assertEqual(6, len(calculated))
+        self.assertEqual(Dimension(400, 360), calculated[5])
 
 
 if __name__ == '__main__':

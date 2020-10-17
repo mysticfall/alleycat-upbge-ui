@@ -7,10 +7,10 @@ import rx
 from alleycat.reactive import ReactiveObject, RP, RV
 from alleycat.reactive import functions as rv
 from returns.maybe import Maybe, Some, Nothing
-from rx import operators as ops
+from rx import operators as ops, Observable
 
 from alleycat.ui import Context, Drawable, EventDispatcher, Graphics, StyleLookup, Point, \
-    PositionalEvent, MouseEventHandler, ErrorHandler, Input, RGBA, Bounds, Font
+    PositionalEvent, MouseEventHandler, ErrorHandler, Input, RGBA, Bounds, Font, Dimension, Bounded
 
 if TYPE_CHECKING:
     from alleycat.ui import LayoutContainer
@@ -28,16 +28,40 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
         ).or_else_call(lambda: rx.of(Point(0, 0)))
     ).pipe(lambda _: (ops.exclusive(),))
 
+    preferred_size: RP[Maybe[Dimension]] = rv.from_value(Nothing).pipe(lambda o: (
+        ops.combine_latest(o.observe("effective_minimum_size")),
+        ops.map(lambda t: t[0].map(
+            lambda v: t[1].copy(width=max(v.width, t[1].width), height=max(v.height, t[1].height)))),
+        ops.distinct_until_changed()))
+
+    minimum_size: RP[Maybe[Dimension]] = rv.from_value(Nothing)
+
+    effective_preferred_size: RV[Dimension] = preferred_size.as_view().pipe(lambda c: (
+        ops.combine_latest(c.ui.preferred_size(c)),
+        ops.map(lambda v: v[0].value_or(v[1])),
+        ops.combine_latest(c.observe("effective_minimum_size")),
+        ops.map(lambda v: v[0].copy(width=max(v[0].width, v[1].width), height=max(v[0].height, v[1].height))),
+        ops.distinct_until_changed()))
+
+    effective_minimum_size: RV[Dimension] = minimum_size.as_view().pipe(lambda c: (
+        ops.combine_latest(c.ui.minimum_size(c)),
+        ops.map(lambda v: v[0].value_or(v[1])),
+        ops.distinct_until_changed()))
+
+    bounds: RP[Bounds] = Bounded.bounds.pipe(lambda o: (
+        ops.combine_latest(o.observe("effective_minimum_size")),
+        ops.map(lambda v: v[0].copy(width=max(v[0].width, v[1].width), height=max(v[0].height, v[1].height)))))
+
     def __init__(self, context: Context) -> None:
         if context is None:
             raise ValueError("Argument 'context' is required.")
-
-        super().__init__()
 
         self._context = context
         self._ui = self.create_ui()
 
         assert self._ui is not None
+
+        super().__init__()
 
     @property
     def context(self) -> Context:
@@ -141,6 +165,13 @@ class ComponentUI(Generic[T], ABC):
 
     def __init__(self) -> None:
         super().__init__()
+
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
+    def minimum_size(self, component: T) -> Observable:
+        return rx.of(Dimension(0, 0))
+
+    def preferred_size(self, component: T) -> Observable:
+        return self.minimum_size(component)
 
     @abstractmethod
     def draw(self, g: Graphics, component: T) -> None:

@@ -1,12 +1,18 @@
 import unittest
 from typing import Iterable
 
-from returns.maybe import Nothing
+from alleycat.reactive import functions as rv
+from returns.maybe import Nothing, Some
+from rx import Observable
+from rx.subject import BehaviorSubject
 
-from alleycat.ui import Component, Panel, Bounds, Point, MouseMoveEvent, LayoutContainer, RGBA
+from alleycat.ui import Component, Panel, Bounds, Point, MouseMoveEvent, LayoutContainer, RGBA, Dimension, \
+    ComponentUI, Graphics
+from alleycat.ui.component import T
 from tests.ui import UITestCase
 
 
+# noinspection DuplicatedCode
 class ComponentTest(UITestCase):
 
     def test_offset(self):
@@ -85,6 +91,127 @@ class ComponentTest(UITestCase):
 
         laf.set_color("color", RGBA(1, 1, 1, 1))
         self.assertEqual(RGBA(0, 1, 0, 1), fixture.resolve_color("color").unwrap())
+
+    def test_minimum_size(self):
+        minimum_size = BehaviorSubject(Dimension(10, 10))
+
+        class FixtureComponent(Component):
+            def create_ui(self) -> ComponentUI:
+                return FixtureUI()
+
+        class FixtureUI(ComponentUI):
+            def minimum_size(self, component: T) -> Observable:
+                return minimum_size
+
+            def draw(self, g: Graphics, component: T) -> None:
+                pass
+
+        fixture = FixtureComponent(self.context)
+
+        sizes = []
+        effective_sizes = []
+
+        rv.observe(fixture.minimum_size).subscribe(sizes.append)
+        rv.observe(fixture.effective_minimum_size).subscribe(effective_sizes.append)
+
+        self.assertEqual(Nothing, fixture.minimum_size)
+        self.assertEqual(Dimension(10, 10), fixture.effective_minimum_size)
+        self.assertEqual([Nothing], sizes)
+        self.assertEqual([Dimension(10, 10)], effective_sizes)
+
+        fixture.bounds = Bounds(10, 20, 100, 50)
+
+        self.assertEqual(Bounds(10, 20, 100, 50), fixture.bounds)
+
+        fixture.minimum_size = Some(Dimension(200, 100))
+
+        self.assertEqual(Some(Dimension(200, 100)), fixture.minimum_size)
+        self.assertEqual(Dimension(200, 100), fixture.effective_minimum_size)
+        self.assertEqual([Some(Dimension(200, 100))], sizes[1:])
+        self.assertEqual([Dimension(200, 100)], effective_sizes[1:])
+        self.assertEqual(Bounds(10, 20, 200, 100), fixture.bounds)
+
+        minimum_size.on_next(Dimension(240, 260))
+
+        self.assertEqual(Some(Dimension(200, 100)), fixture.minimum_size)
+        self.assertEqual(Dimension(200, 100), fixture.effective_minimum_size)
+        self.assertEqual(2, len(effective_sizes))
+        self.assertEqual([Some(Dimension(200, 100))], sizes[1:])
+        self.assertEqual([Dimension(200, 100)], effective_sizes[1:])
+        self.assertEqual(Bounds(10, 20, 200, 100), fixture.bounds)
+
+        fixture.bounds = Bounds(0, 0, 30, 40)
+
+        self.assertEqual(Bounds(0, 0, 200, 100), fixture.bounds)
+
+        fixture.minimum_size = Nothing
+
+        self.assertEqual(Nothing, fixture.minimum_size)
+        self.assertEqual(Dimension(240, 260), fixture.effective_minimum_size)
+        self.assertEqual(3, len(effective_sizes))
+        self.assertEqual([Nothing], sizes[2:])
+        self.assertEqual([Dimension(240, 260)], effective_sizes[2:])
+        self.assertEqual(Bounds(0, 0, 240, 260), fixture.bounds)
+
+    def test_preferred_size(self):
+        preferred_size = BehaviorSubject(Dimension(10, 10))
+
+        class FixtureComponent(Component):
+            pass
+
+        class FixtureUI(ComponentUI):
+            def preferred_size(self, component: T) -> Observable:
+                return preferred_size
+
+            def draw(self, g: Graphics, component: T) -> None:
+                pass
+
+        self.context.look_and_feel.register_ui(FixtureComponent, FixtureUI)
+
+        fixture = FixtureComponent(self.context)
+
+        sizes = []
+        effective_sizes = []
+
+        rv.observe(fixture.preferred_size).subscribe(sizes.append)
+        rv.observe(fixture.effective_preferred_size).subscribe(effective_sizes.append)
+
+        self.assertEqual(Nothing, fixture.preferred_size)
+        self.assertEqual(Dimension(10, 10), fixture.effective_preferred_size)
+        self.assertEqual([Nothing], sizes)
+        self.assertEqual([Dimension(10, 10)], effective_sizes)
+
+        fixture.preferred_size = Some(Dimension(100, 80))
+
+        self.assertEqual(Some(Dimension(100, 80)), fixture.preferred_size)
+        self.assertEqual(Dimension(100, 80), fixture.effective_preferred_size)
+        self.assertEqual([Some(Dimension(100, 80))], sizes[1:])
+        self.assertEqual([Dimension(100, 80)], effective_sizes[1:])
+
+        preferred_size.on_next(Dimension(240, 300))
+
+        self.assertEqual(Some(Dimension(100, 80)), fixture.preferred_size)
+        self.assertEqual(Dimension(100, 80), fixture.effective_preferred_size)
+        self.assertEqual([Some(Dimension(100, 80))], sizes[1:])
+        self.assertEqual([Dimension(100, 80)], effective_sizes[1:])
+
+        fixture.preferred_size = Nothing
+
+        self.assertEqual(Nothing, fixture.preferred_size)
+        self.assertEqual(Dimension(240, 300), fixture.effective_preferred_size)
+        self.assertEqual([Nothing], sizes[2:])
+        self.assertEqual([Dimension(240, 300)], effective_sizes[2:])
+
+        fixture.minimum_size = Some(Dimension(400, 360))
+
+        self.assertEqual(Dimension(400, 360), fixture.effective_preferred_size)
+        self.assertEqual([Dimension(400, 360)], effective_sizes[3:])
+
+        fixture.preferred_size = Some(Dimension(300, 300))
+
+        self.assertEqual(Dimension(400, 360), fixture.effective_preferred_size)
+        self.assertEqual([Some(Dimension(400, 360))], sizes[3:])
+        self.assertEqual([Dimension(400, 360)], effective_sizes[3:])
 
 
 if __name__ == '__main__':

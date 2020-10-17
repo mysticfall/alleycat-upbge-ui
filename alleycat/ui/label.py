@@ -53,3 +53,6 @@ class LabelUI(ComponentUI[Label], ABC):
 
         return rx.combine_latest(text, font, size).pipe(
             ops.map(lambda v: registry.text_extent(v[0], v[1], v[2])))
+
+    def minimum_size(self, component: Label) -> Observable:
+        return self.on_extents_change(component)
