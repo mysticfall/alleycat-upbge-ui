@@ -16,11 +16,11 @@ from alleycat.ui import RGBA, Font, Event
 class StyleLookup(Disposable):
 
     def __init__(self) -> None:
-        super().__init__()
-
         self._colors: Dict[str, RGBA] = dict()
         self._fonts: Dict[str, Font] = dict()
         self._on_style_change = Subject()
+
+        super().__init__()
 
     @property
     def on_style_change(self) -> Observable:
