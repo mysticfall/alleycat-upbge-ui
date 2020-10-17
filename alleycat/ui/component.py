@@ -35,7 +35,7 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
         super().__init__()
 
         self._context = context
-        self._ui = context.look_and_feel.create_ui(self)
+        self._ui = self.create_ui()
 
         assert self._ui is not None
 
@@ -46,6 +46,9 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
     @property
     def ui(self) -> ComponentUI:
         return self._ui
+
+    def create_ui(self) -> ComponentUI:
+        return self.context.look_and_feel.create_ui(self)
 
     def draw(self, g: Graphics) -> None:
         offset = g.offset
