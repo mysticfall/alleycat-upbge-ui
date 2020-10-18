@@ -215,7 +215,7 @@ class WindowTest(UITestCase):
 
             self.context.process()
 
-            self.assertEquals(expected, window.bounds)
+            self.assertEqual(expected, window.bounds)
 
         resize(Point(40, 25), Point(40, 95), Bounds(20, 80, 60, 0))
         resize(Point(75, 25), Point(5, 95), Bounds(20, 80, 0, 0))
@@ -243,7 +243,7 @@ class WindowTest(UITestCase):
 
             self.context.process()
 
-            self.assertEquals(expected, window.bounds)
+            self.assertEqual(expected, window.bounds)
 
         resize(Point(40, 25), Point(40, 95), Bounds(20, 50, 60, 30))
         resize(Point(75, 25), Point(5, 95), Bounds(20, 50, 30, 30))
