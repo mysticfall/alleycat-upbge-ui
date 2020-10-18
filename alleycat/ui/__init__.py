@@ -16,7 +16,7 @@ from .style import StyleLookup, StyleChangeEvent, ColorChangeEvent, FontChangeEv
 from .container import Container
 from .component import Component, ComponentUI
 from .laf import LookAndFeel
-from .layout import Layout, LayoutContainer, Anchor
+from .layout import Layout, LayoutContainer, LayoutContainerUI, Anchor, AbsoluteLayout, FillLayout
 from .panel import Panel
 from .label import Label, LabelUI, TextAlign
 from .button import Button, LabelButton

@@ -3,10 +3,11 @@ import unittest
 from alleycat.reactive import functions as rv
 from returns.maybe import Some, Nothing
 
-from alleycat.ui import Bounds, Point, LayoutContainer, Component
+from alleycat.ui import Bounds, Point, LayoutContainer, Component, Dimension, Panel, AbsoluteLayout, FillLayout, Window
 from tests.ui import UITestCase
 
 
+# noinspection DuplicatedCode
 class LayoutContainerTest(UITestCase):
 
     def test_component_at_with_hierarchy(self):
@@ -112,6 +113,85 @@ class LayoutContainerTest(UITestCase):
 
         self.assertEqual(Nothing, component.parent)
         self.assertEqual([Nothing, Some(parent1), Nothing, Some(parent2), Nothing], parents)
+
+    def test_absolute_layout(self):
+        container = Window(self.context, AbsoluteLayout())
+        container.bounds = Bounds(30, 30, 200, 200)
+
+        child1 = Panel(self.context)
+        child1.bounds = Bounds(10, 10, 20, 20)
+
+        child2 = Panel(self.context)
+        child2.bounds = Bounds(50, 60, 20, 20)
+
+        container.add(child1)
+        container.add(child2)
+
+        self.context.process()
+
+        self.assertEqual(Bounds(10, 10, 20, 20), child1.bounds)
+        self.assertEqual(Bounds(50, 60, 20, 20), child2.bounds)
+        self.assertEqual(Dimension(0, 0), container.effective_minimum_size)
+
+        container.bounds = Bounds(20, 20, 100, 100)
+        child1.minimum_size = Some(Dimension(400, 400))
+        child2.bounds = Bounds(-30, -40, 50, 50)
+
+        self.context.process()
+
+        self.assertEqual(Bounds(10, 10, 400, 400), child1.bounds)
+        self.assertEqual(Bounds(-30, -40, 50, 50), child2.bounds)
+        self.assertEqual(Dimension(0, 0), container.effective_minimum_size)
+
+    def test_fill_layout(self):
+        container = Window(self.context, FillLayout())
+        container.bounds = Bounds(30, 30, 200, 200)
+
+        child1 = Panel(self.context)
+        child1.bounds = Bounds(10, 10, 20, 20)
+
+        child2 = Panel(self.context)
+        child2.bounds = Bounds(50, 60, 20, 20)
+
+        container.add(child1)
+        container.add(child2)
+
+        self.context.process()
+
+        self.assertEqual(Bounds(0, 0, 200, 200), child1.bounds)
+        self.assertEqual(Bounds(0, 0, 200, 200), child2.bounds)
+        self.assertEqual(Dimension(0, 0), container.effective_minimum_size)
+
+        container.bounds = Bounds(20, 20, 100, 100)
+
+        self.context.process()
+
+        self.assertEqual(Bounds(0, 0, 100, 100), child1.bounds)
+        self.assertEqual(Bounds(0, 0, 100, 100), child2.bounds)
+        self.assertEqual(Dimension(0, 0), container.effective_minimum_size)
+
+        child1.bounds = Bounds(10, 60, 300, 300)
+        child2.bounds = Bounds(-30, -40, 50, 50)
+
+        self.context.process()
+
+        self.assertEqual(Bounds(0, 0, 100, 100), child1.bounds)
+        self.assertEqual(Bounds(0, 0, 100, 100), child2.bounds)
+        self.assertEqual(Dimension(0, 0), container.effective_minimum_size)
+
+        child1.minimum_size = Some(Dimension(200, 300))
+        child2.minimum_size = Some(Dimension(500, 150))
+
+        child1.preferred_size = Some(Dimension(300, 450))
+        child2.preferred_size = Some(Dimension(640, 400))
+
+        self.context.process()
+
+        self.assertEqual(Bounds(0, 0, 500, 300), child1.bounds)
+        self.assertEqual(Bounds(0, 0, 500, 300), child2.bounds)
+        self.assertEqual(Bounds(20, 20, 500, 300), container.bounds)
+        self.assertEqual(Dimension(500, 300), container.effective_minimum_size)
+        self.assertEqual(Dimension(640, 450), container.effective_preferred_size)
 
 
 if __name__ == '__main__':

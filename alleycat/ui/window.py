@@ -11,7 +11,7 @@ from returns.maybe import Maybe, Nothing, Some
 from rx import operators as ops
 
 from alleycat.ui import Context, Graphics, Container, LayoutContainer, Layout, Drawable, Point, ErrorHandlerSupport, \
-    ErrorHandler, MouseButton, Event, PropagatingEvent, ComponentUI, Anchor, Bounds, MouseInput
+    ErrorHandler, MouseButton, Event, PropagatingEvent, LayoutContainerUI, Anchor, Bounds, MouseInput, Dimension
 
 
 class Window(LayoutContainer):
@@ -153,7 +153,7 @@ class WindowManager(Drawable, ErrorHandlerSupport, Container[Window]):
 T = TypeVar("T", bound=Window, contravariant=True)
 
 
-class WindowUI(ComponentUI[T], ABC):
+class WindowUI(LayoutContainerUI[T], ABC):
 
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def allow_drag(self, component: T, location: Point) -> bool:
