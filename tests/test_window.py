@@ -2,11 +2,12 @@ import unittest
 
 from returns.maybe import Some
 
-from alleycat.ui import Window, Bounds, Point, RGBA, Panel, MouseButton
+from alleycat.ui import Window, Bounds, Point, RGBA, Panel, MouseButton, Dimension
 from alleycat.ui.glass import ColorKeys
 from tests.ui import UITestCase
 
 
+# noinspection DuplicatedCode
 class WindowTest(UITestCase):
 
     def test_style_fallback(self):
@@ -186,9 +187,72 @@ class WindowTest(UITestCase):
         resize("resize_West", Point(25, 40), Point(10, 40))
         resize("resize_Northwest", Point(25, 25), Point(10, 10))
 
+        resize("resize_North_shrink", Point(40, 25), Point(40, 40))
+        resize("resize_Northeast_shrink", Point(75, 25), Point(60, 40))
+        resize("resize_East_shrink", Point(75, 40), Point(60, 40))
+        resize("resize_Southeast_shrink", Point(75, 75), Point(60, 60))
+        resize("resize_South_shrink", Point(40, 75), Point(40, 50))
+        resize("resize_Southwest_shrink", Point(25, 75), Point(40, 60))
+        resize("resize_West_shrink", Point(25, 40), Point(40, 40))
+        resize("resize_Northwest_shrink", Point(25, 25), Point(40, 40))
+
         window.resizable = False
 
         resize("resize_non_resizable", Point(40, 25), Point(40, 10))
+
+    def test_resize_to_collapse(self):
+        window = Window(self.context)
+        window.draggable = True
+        window.resizable = True
+
+        def resize(drag_from: Point, drag_to: Point, expected: Bounds) -> None:
+            window.bounds = Bounds(20, 20, 60, 60)
+
+            self.mouse.move_to(drag_from)
+            self.mouse.press(MouseButton.LEFT)
+            self.mouse.move_to(drag_to)
+            self.mouse.release(MouseButton.LEFT)
+
+            self.context.process()
+
+            self.assertEquals(expected, window.bounds)
+
+        resize(Point(40, 25), Point(40, 95), Bounds(20, 80, 60, 0))
+        resize(Point(75, 25), Point(5, 95), Bounds(20, 80, 0, 0))
+        resize(Point(75, 40), Point(5, 40), Bounds(20, 20, 0, 60))
+        resize(Point(75, 75), Point(5, 5), Bounds(20, 20, 0, 0))
+        resize(Point(40, 75), Point(40, 5), Bounds(20, 20, 60, 0))
+        resize(Point(25, 75), Point(95, 5), Bounds(80, 20, 0, 0))
+        resize(Point(25, 40), Point(95, 40), Bounds(80, 20, 0, 60))
+        resize(Point(25, 25), Point(95, 95), Bounds(80, 80, 0, 0))
+
+    def test_resize_with_min_size(self):
+        window = Window(self.context)
+        window.draggable = True
+        window.resizable = True
+
+        window.minimum_size = Some(Dimension(30, 30))
+
+        def resize(drag_from: Point, drag_to: Point, expected: Bounds) -> None:
+            window.bounds = Bounds(20, 20, 60, 60)
+
+            self.mouse.move_to(drag_from)
+            self.mouse.press(MouseButton.LEFT)
+            self.mouse.move_to(drag_to)
+            self.mouse.release(MouseButton.LEFT)
+
+            self.context.process()
+
+            self.assertEquals(expected, window.bounds)
+
+        resize(Point(40, 25), Point(40, 95), Bounds(20, 50, 60, 30))
+        resize(Point(75, 25), Point(5, 95), Bounds(20, 50, 30, 30))
+        resize(Point(75, 40), Point(5, 40), Bounds(20, 20, 30, 60))
+        resize(Point(75, 75), Point(5, 5), Bounds(20, 20, 30, 30))
+        resize(Point(40, 75), Point(40, 5), Bounds(20, 20, 60, 30))
+        resize(Point(25, 75), Point(95, 5), Bounds(50, 20, 30, 30))
+        resize(Point(25, 40), Point(95, 40), Bounds(50, 20, 30, 60))
+        resize(Point(25, 25), Point(95, 95), Bounds(50, 50, 30, 30))
 
 
 if __name__ == '__main__':

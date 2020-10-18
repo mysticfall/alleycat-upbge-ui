@@ -49,13 +49,13 @@ class Window(LayoutContainer):
         bounds = self.on_drag_start.pipe(
             ops.filter(lambda e: self.resizable and e.button == MouseButton.LEFT),
             ops.map(lambda e: ui.resize_handle_at(self, e.position).map(
-                lambda v: Window._ResizeState(v, e.position, self.bounds))),
+                lambda v: Window._ResizeState(v, e.position, self.bounds, self.effective_minimum_size))),
             ops.map(lambda v: v.map(rx.of).value_or(rx.empty())),
-            ops.exclusive(),
+            ops.switch_latest(),
             ops.map(lambda s: mouse.on_mouse_move.pipe(
                 ops.map(lambda e: self._bounds_for_state(s, e.position)),
                 ops.take_until(mouse.on_button_release(MouseButton.LEFT)))),
-            ops.exclusive(),
+            ops.switch_latest(),
             ops.take_until(self.on_dispose))
 
         def set_bounds(b: Bounds) -> None:
@@ -81,23 +81,26 @@ class Window(LayoutContainer):
 
     @staticmethod
     def _bounds_for_state(state: Window._ResizeState, location: Point) -> Bounds:
-        (handle, anchor, init_bounds) = state
+        (handle, anchor, init_bounds, min_size) = state
+        (mw, mh) = min_size.tuple
 
         delta = location - anchor
 
         (x, y, w, h) = init_bounds.tuple
 
         if handle in (Anchor.North, Anchor.Northeast, Anchor.Northwest):
-            y += delta.y
-            h -= delta.y
+            d = min(delta.y, max(h - mh, 0))
+            y += d
+            h -= d
         elif handle in (Anchor.South, Anchor.Southeast, Anchor.Southwest):
-            h += delta.y
+            h += max(delta.y, min(-h + mh, 0))
 
         if handle in (Anchor.East, Anchor.Northeast, Anchor.Southeast):
-            w += delta.x
+            w += max(delta.x, min(-w + mw, 0))
         elif handle in (Anchor.West, Anchor.Northwest, Anchor.Southwest):
-            x += delta.x
-            w -= delta.x
+            d = min(delta.x, max(w - mw, 0))
+            x += d
+            w -= d
 
         return Bounds(x, y, w, h)
 
@@ -105,6 +108,7 @@ class Window(LayoutContainer):
         handle: Anchor
         anchor: Point
         init_bounds: Bounds
+        min_size: Dimension
 
 
 class WindowManager(Drawable, ErrorHandlerSupport, Container[Window]):
