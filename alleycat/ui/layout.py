@@ -6,17 +6,23 @@ from functools import reduce
 from typing import Optional, Iterator, TypeVar
 
 import rx
+from alleycat.reactive import RP, ReactiveObject
+from alleycat.reactive import functions as rv
 from returns.maybe import Maybe, Nothing, Some
 from rx import Observable
 from rx import operators as ops
 
-from alleycat.ui import Component, Container, Point, Graphics, Context, ComponentUI, Bounds, Dimension
+from alleycat.ui import Component, Container, Point, Graphics, Context, ComponentUI, Bounds, Dimension, Insets
 
 
-class Layout(ABC):
+class Layout(ReactiveObject, ABC):
 
     def __init__(self) -> None:
         super().__init__()
+
+    @property
+    def on_constraints_change(self) -> Observable:
+        return rx.empty()
 
     @abstractmethod
     def perform(self, component: LayoutContainer) -> None:
@@ -47,22 +53,40 @@ class AbsoluteLayout(Layout):
 
 
 class FillLayout(Layout):
+    padding: RP[Insets] = rv.new_property()
 
-    def __init__(self) -> None:
+    def __init__(self, insets: Insets = Insets(0, 0, 0, 0)) -> None:
         super().__init__()
 
+        # noinspection PyTypeChecker
+        self.padding = insets
+
+    @property
+    def on_constraints_change(self) -> Observable:
+        return rx.merge(super().on_constraints_change, self.observe("padding"))
+
     def perform(self, component: LayoutContainer) -> None:
-        bounds = Bounds(0, 0, component.width, component.height)
+        p = self.padding
+
+        bounds = Bounds(
+            p.top,
+            p.left,
+            max(component.width - p.left - p.right, 0),
+            max(component.height - p.top - p.bottom, 0))
 
         # noinspection PyTypeChecker
         for child in component.children:
             child.bounds = bounds
 
     def minimum_size(self, component: LayoutContainer) -> Observable:
-        return self._calculate_size(component, "effective_minimum_size")
+        return self._calculate_size(component, "effective_minimum_size").pipe(
+            ops.combine_latest(self.observe("padding")),
+            ops.map(lambda v: Dimension(v[0].width + v[1].left + v[1].right, v[0].height + v[1].top + v[1].bottom)))
 
     def preferred_size(self, component: LayoutContainer) -> Observable:
-        return self._calculate_size(component, "effective_preferred_size")
+        return self._calculate_size(component, "effective_preferred_size").pipe(
+            ops.combine_latest(self.observe("padding")),
+            ops.map(lambda v: Dimension(v[0].width + v[1].left + v[1].right, v[0].height + v[1].top + v[1].bottom)))
 
     @staticmethod
     def _calculate_size(component: LayoutContainer, attribute: str) -> Observable:
@@ -102,7 +126,8 @@ class LayoutContainer(Component, Container[Component]):
             on_min_size_change,
             on_pre_size_change,
             on_children_change,
-            on_child_bounds_change).pipe(
+            on_child_bounds_change,
+            self.layout.on_constraints_change).pipe(
             ops.filter(lambda _: not self._layout_in_progress))
 
         self._layout_listener = should_invalidate.subscribe(

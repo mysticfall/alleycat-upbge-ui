@@ -3,7 +3,8 @@ import unittest
 from alleycat.reactive import functions as rv
 from returns.maybe import Some, Nothing
 
-from alleycat.ui import Bounds, Point, LayoutContainer, Component, Dimension, Panel, AbsoluteLayout, FillLayout, Window
+from alleycat.ui import Bounds, Point, LayoutContainer, Component, Dimension, Panel, AbsoluteLayout, FillLayout, \
+    Window, Insets
 from tests.ui import UITestCase
 
 
@@ -192,6 +193,37 @@ class LayoutContainerTest(UITestCase):
         self.assertEqual(Bounds(20, 20, 500, 300), container.bounds)
         self.assertEqual(Dimension(500, 300), container.effective_minimum_size)
         self.assertEqual(Dimension(640, 450), container.effective_preferred_size)
+
+    def test_fill_layout_insets(self):
+        layout = FillLayout(Insets(10, 5, 3, 6))
+        container = Window(self.context, layout)
+        container.bounds = Bounds(30, 30, 200, 200)
+
+        child = Panel(self.context)
+
+        container.add(child)
+
+        self.context.process()
+
+        self.assertEqual(Bounds(10, 6, 189, 187), child.bounds)
+        self.assertEqual(Dimension(11, 13), container.effective_minimum_size)
+        self.assertEqual(Dimension(11, 13), container.effective_preferred_size)
+
+        child.minimum_size = Some(Dimension(10, 10))
+
+        self.context.process()
+
+        self.assertEqual(Bounds(10, 6, 189, 187), child.bounds)
+        self.assertEqual(Dimension(21, 23), container.effective_minimum_size)
+        self.assertEqual(Dimension(21, 23), container.effective_preferred_size)
+
+        layout.padding = Insets(5, 5, 5, 5)
+
+        self.context.process()
+
+        self.assertEqual(Bounds(5, 5, 190, 190), child.bounds)
+        self.assertEqual(Dimension(20, 20), container.effective_minimum_size)
+        self.assertEqual(Dimension(20, 20), container.effective_preferred_size)
 
 
 if __name__ == '__main__':
