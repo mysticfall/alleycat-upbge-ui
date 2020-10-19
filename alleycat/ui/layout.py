@@ -70,7 +70,6 @@ class FillLayout(Layout):
             return Dimension(max(s1.width, s2.width), max(s1.height, s2.height))
 
         return component.observe("children").pipe(
-            ops.filter(lambda c: len(c) > 1),
             ops.map(lambda children: map(lambda c: c.observe(attribute), children)),
             ops.map(lambda b: rx.combine_latest(*b, rx.of(Dimension(0, 0)))),
             ops.switch_latest(),

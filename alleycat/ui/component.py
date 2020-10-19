@@ -50,7 +50,8 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
 
     bounds: RP[Bounds] = Bounded.bounds.pipe(lambda o: (
         ops.combine_latest(o.observe("effective_minimum_size")),
-        ops.map(lambda v: v[0].copy(width=max(v[0].width, v[1].width), height=max(v[0].height, v[1].height)))))
+        ops.map(lambda v: v[0].copy(width=max(v[0].width, v[1].width), height=max(v[0].height, v[1].height))),
+        ops.start_with(o.effective_preferred_size)))
 
     def __init__(self, context: Context) -> None:
         if context is None:
