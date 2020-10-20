@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Mapping, Iterable, TypeVar, Generic
+from typing import TYPE_CHECKING, Any, Mapping, TypeVar, Generic
 
 import rx
 from alleycat.reactive import ReactiveObject, RP, RV
@@ -9,14 +9,14 @@ from alleycat.reactive import functions as rv
 from returns.maybe import Maybe, Some, Nothing
 from rx import operators as ops, Observable
 
-from alleycat.ui import Context, ContextAware, Drawable, EventDispatcher, Graphics, StyleLookup, Point, \
-    PositionalEvent, MouseEventHandler, Input, RGBA, Bounds, Font, Dimension, Bounded
+from alleycat.ui import Context, ContextAware, Drawable, EventDispatcher, Graphics, StyleResolver, Point, \
+    PositionalEvent, MouseEventHandler, Input, Bounds, Dimension, Bounded
 
 if TYPE_CHECKING:
-    from alleycat.ui import LayoutContainer
+    from alleycat.ui import LayoutContainer, LookAndFeel
 
 
-class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, ContextAware, ReactiveObject):
+class Component(Drawable, StyleResolver, MouseEventHandler, EventDispatcher, ContextAware, ReactiveObject):
     visible: RP[bool] = rv.new_property()
 
     parent: RP[Maybe[LayoutContainer]] = rv.from_value(Nothing)
@@ -75,6 +75,10 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, Conte
     def ui(self) -> ComponentUI:
         return self._ui
 
+    @property
+    def look_and_feel(self) -> LookAndFeel:
+        return self.context.look_and_feel
+
     def create_ui(self) -> ComponentUI:
         return self.context.look_and_feel.create_ui(self)
 
@@ -104,47 +108,6 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, Conte
             raise ValueError("Argument 'event' is required.")
 
         return event.position - self.offset
-
-    @property
-    def style_fallback_prefixes(self) -> Iterable[str]:
-        yield from ()
-
-    def style_fallback_keys(self, key: str) -> Iterable[str]:
-        if key is None:
-            raise ValueError("Argument 'key' is required.")
-
-        for prefix in self.style_fallback_prefixes:
-            yield str.join(".", [prefix, key])
-
-        yield key
-
-    def resolve_color(self, key: str) -> Maybe[RGBA]:
-        color = self.get_color(key)
-
-        if color is not Nothing:
-            return color
-
-        for k in self.style_fallback_keys(key):
-            color = self.context.look_and_feel.get_color(k)
-
-            if color is not Nothing:
-                return color
-
-        return Nothing
-
-    def resolve_font(self, key: str) -> Maybe[Font]:
-        font = self.get_font(key)
-
-        if font is not Nothing:
-            return font
-
-        for k in self.style_fallback_keys(key):
-            font = self.context.look_and_feel.get_font(k)
-
-            if font is not Nothing:
-                return font
-
-        return Nothing
 
     @property
     def inputs(self) -> Mapping[str, Input]:

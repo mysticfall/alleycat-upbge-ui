@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, TypeVar, Generic, Any
+from typing import Dict, TypeVar, Generic, Any, Iterable, TYPE_CHECKING
 
 from returns.maybe import Maybe, Some, Nothing
 from rx import Observable
@@ -11,6 +11,9 @@ from rx.disposable import Disposable
 from rx.subject import Subject
 
 from alleycat.ui import RGBA, Font, Event
+
+if TYPE_CHECKING:
+    from alleycat.ui import LookAndFeel
 
 
 class StyleLookup(Disposable):
@@ -84,6 +87,57 @@ class StyleLookup(Disposable):
         super().dispose()
 
         self._on_style_change.dispose()
+
+
+class StyleResolver(StyleLookup, ABC):
+    def __init__(self):
+        super().__init__()
+
+    @property
+    @abstractmethod
+    def look_and_feel(self) -> LookAndFeel:
+        pass
+
+    @property
+    def style_fallback_prefixes(self) -> Iterable[str]:
+        yield from ()
+
+    def style_fallback_keys(self, key: str) -> Iterable[str]:
+        if key is None:
+            raise ValueError("Argument 'key' is required.")
+
+        for prefix in self.style_fallback_prefixes:
+            yield str.join(".", [prefix, key])
+
+        yield key
+
+    def resolve_color(self, key: str) -> Maybe[RGBA]:
+        color = self.get_color(key)
+
+        if color is not Nothing:
+            return color
+
+        for k in self.style_fallback_keys(key):
+            color = self.look_and_feel.get_color(k)
+
+            if color is not Nothing:
+                return color
+
+        return Nothing
+
+    def resolve_font(self, key: str) -> Maybe[Font]:
+        font = self.get_font(key)
+
+        if font is not Nothing:
+            return font
+
+        for k in self.style_fallback_keys(key):
+            font = self.look_and_feel.get_font(k)
+
+            if font is not Nothing:
+                return font
+
+        return Nothing
 
 
 T = TypeVar("T")
