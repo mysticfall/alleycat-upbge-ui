@@ -2,9 +2,10 @@
 from .primitives import Point, Dimension, Bounds, Insets, RGBA
 from .error import ErrorHandler, ErrorHandlerSupport
 from .font import Font, FontRegistry
+from .context_aware import ContextAware
 from .input import Input, InputLookup
 from .event import Event, EventDispatcher, EventHandler, EventLoopAware, PositionalEvent, PropagatingEvent
-from .context import Context, ContextAware, ErrorHandler
+from .context import Context
 from .bounded import Bounded
 from .graphics import Graphics
 from .drawable import Drawable
