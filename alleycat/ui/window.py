@@ -19,8 +19,8 @@ class Window(LayoutContainer):
 
     resizable: RP[bool] = rv.from_value(False)
 
-    def __init__(self, context: Context, layout: Optional[Layout] = None) -> None:
-        super().__init__(context, layout)
+    def __init__(self, context: Context, layout: Optional[Layout] = None, visible: bool = True) -> None:
+        super().__init__(context, layout, visible)
 
         context.window_manager.add(self)
 

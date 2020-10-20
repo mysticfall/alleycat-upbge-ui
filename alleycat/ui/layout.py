@@ -102,10 +102,10 @@ class FillLayout(Layout):
 
 class LayoutContainer(Component, Container[Component]):
 
-    def __init__(self, context: Context, layout: Optional[Layout] = None):
+    def __init__(self, context: Context, layout: Optional[Layout] = None, visible: bool = True):
         self._layout = Maybe.from_value(layout).or_else_call(AbsoluteLayout)
 
-        super().__init__(context)
+        super().__init__(context, visible)
 
         self._layout_valid = True
         self._layout_in_progress = False

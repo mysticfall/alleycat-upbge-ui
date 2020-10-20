@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, ReactiveObject):
-    visible: RP[bool] = rv.from_value(True)
+    visible: RP[bool] = rv.new_property()
 
     parent: RP[Maybe[LayoutContainer]] = rv.from_value(Nothing)
 
@@ -53,9 +53,12 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
         ops.map(lambda v: v[0].copy(width=max(v[0].width, v[1].width), height=max(v[0].height, v[1].height))),
         ops.start_with(o.effective_preferred_size)))
 
-    def __init__(self, context: Context) -> None:
+    def __init__(self, context: Context, visible: bool = True) -> None:
         if context is None:
             raise ValueError("Argument 'context' is required.")
+
+        # noinspection PyTypeChecker
+        self.visible = visible
 
         self._context = context
         self._ui = self.create_ui()
@@ -76,21 +79,22 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
         return self.context.look_and_feel.create_ui(self)
 
     def draw(self, g: Graphics) -> None:
-        offset = g.offset
-        clip = g.clip
+        if self.visible:
+            offset = g.offset
+            clip = g.clip
 
-        g.offset = self.offset
+            g.offset = self.offset
 
-        def draw_clipped_area(bounds: Bounds) -> None:
-            g.clip = Some(bounds)
+            def draw_clipped_area(bounds: Bounds) -> None:
+                g.clip = Some(bounds)
 
-            self.draw_component(g)
+                self.draw_component(g)
 
-        new_clip = Some(self.bounds) if g.clip == Nothing else g.clip.bind(lambda c: self.bounds & c)
-        new_clip.map(draw_clipped_area)
+            new_clip = Some(self.bounds) if g.clip == Nothing else g.clip.bind(lambda c: self.bounds & c)
+            new_clip.map(draw_clipped_area)
 
-        g.offset = offset
-        g.clip = clip
+            g.offset = offset
+            g.clip = clip
 
     def draw_component(self, g: Graphics) -> None:
         self.ui.draw(g, self)

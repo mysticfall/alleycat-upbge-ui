@@ -19,16 +19,32 @@ class TextAlign(Enum):
 
 
 class Label(Component):
-    text: RP[str] = rv.from_value("")
+    text: RP[str] = rv.new_property()
 
-    text_align: RP[TextAlign] = rv.from_value(TextAlign.Center)
+    text_align: RP[TextAlign] = rv.new_property()
 
-    text_vertical_align: RP[TextAlign] = rv.from_value(TextAlign.Center)
+    text_vertical_align: RP[TextAlign] = rv.new_property()
 
-    text_size: RP[int] = rv.from_value(10)
+    text_size: RP[int] = rv.new_property()
 
-    def __init__(self, context: Context) -> None:
-        super().__init__(context)
+    # noinspection PyTypeChecker
+    def __init__(
+            self,
+            context: Context,
+            text: str = "",
+            text_align: TextAlign = TextAlign.Center,
+            text_vertical_align: TextAlign = TextAlign.Center,
+            text_size: int = 10,
+            visible: bool = True) -> None:
+        if text_size < 0:
+            raise ValueError("Argument 'text_size' should be zero or a positive number.")
+
+        self.text = text
+        self.text_align = text_align
+        self.text_vertical_align = text_vertical_align
+        self.text_size = text_size
+
+        super().__init__(context, visible)
 
     @property
     def style_fallback_prefixes(self) -> Iterable[str]:

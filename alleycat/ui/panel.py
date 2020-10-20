@@ -8,8 +8,8 @@ from alleycat.ui import Context, Layout, LayoutContainer
 
 class Panel(LayoutContainer):
 
-    def __init__(self, context: Context, layout: Optional[Layout] = None) -> None:
-        super().__init__(context, layout)
+    def __init__(self, context: Context, layout: Optional[Layout] = None, visible: bool = True) -> None:
+        super().__init__(context, layout, visible)
 
     @property
     def style_fallback_prefixes(self) -> Iterable[str]:
