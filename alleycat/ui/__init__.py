@@ -4,7 +4,7 @@ from .error import ErrorHandler, ErrorHandlerSupport
 from .font import Font, FontRegistry
 from .input import Input, InputLookup
 from .event import Event, EventDispatcher, EventHandler, EventLoopAware, PositionalEvent, PropagatingEvent
-from .context import Context, ErrorHandler
+from .context import Context, ContextAware, ErrorHandler
 from .bounded import Bounded
 from .graphics import Graphics
 from .drawable import Drawable

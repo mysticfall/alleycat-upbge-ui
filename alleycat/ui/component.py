@@ -9,14 +9,14 @@ from alleycat.reactive import functions as rv
 from returns.maybe import Maybe, Some, Nothing
 from rx import operators as ops, Observable
 
-from alleycat.ui import Context, Drawable, EventDispatcher, Graphics, StyleLookup, Point, \
-    PositionalEvent, MouseEventHandler, ErrorHandler, Input, RGBA, Bounds, Font, Dimension, Bounded
+from alleycat.ui import Context, ContextAware, Drawable, EventDispatcher, Graphics, StyleLookup, Point, \
+    PositionalEvent, MouseEventHandler, Input, RGBA, Bounds, Font, Dimension, Bounded
 
 if TYPE_CHECKING:
     from alleycat.ui import LayoutContainer
 
 
-class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, ReactiveObject):
+class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, ContextAware, ReactiveObject):
     visible: RP[bool] = rv.new_property()
 
     parent: RP[Maybe[LayoutContainer]] = rv.from_value(Nothing)
@@ -149,10 +149,6 @@ class Component(Drawable, StyleLookup, MouseEventHandler, EventDispatcher, React
     @property
     def inputs(self) -> Mapping[str, Input]:
         return self.context.inputs
-
-    @property
-    def error_handler(self) -> ErrorHandler:
-        return self.context.error_handler
 
     @property
     def parent_dispatcher(self) -> Maybe[EventDispatcher]:

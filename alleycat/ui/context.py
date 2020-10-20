@@ -108,6 +108,18 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
 T = TypeVar("T", bound=Context, covariant=True)
 
 
+class ContextAware(ErrorHandlerSupport, ABC):
+
+    @property
+    @abstractmethod
+    def context(self) -> Context:
+        pass
+
+    @property
+    def error_handler(self) -> ErrorHandler:
+        return self.context.error_handler
+
+
 class ContextBuilder(ABC, Generic[T]):
 
     def __init__(self, toolkit: Toolkit[T]) -> None:

@@ -6,13 +6,13 @@ from typing import Mapping, TYPE_CHECKING
 from alleycat.reactive import ReactiveObject
 from rx.disposable import Disposable
 
-from alleycat.ui import ErrorHandlerSupport, ErrorHandler
+from alleycat.ui import ErrorHandlerSupport, ContextAware
 
 if TYPE_CHECKING:
     from alleycat.ui import Context
 
 
-class Input(ErrorHandlerSupport, ReactiveObject, ABC):
+class Input(ContextAware, ReactiveObject, ABC):
 
     def __init__(self, context: Context) -> None:
         if context is None:
@@ -30,10 +30,6 @@ class Input(ErrorHandlerSupport, ReactiveObject, ABC):
     @property
     def context(self) -> Context:
         return self._context
-
-    @property
-    def error_handler(self) -> ErrorHandler:
-        return self.context.error_handler
 
 
 class InputLookup(ErrorHandlerSupport, Disposable, ABC):
