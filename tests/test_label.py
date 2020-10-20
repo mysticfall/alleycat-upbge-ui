@@ -5,7 +5,7 @@ from returns.maybe import Nothing, Some
 from rx import operators as ops
 
 from alleycat.ui import Label, Bounds, Window, RGBA, TextAlign, LabelUI, Dimension
-from alleycat.ui.glass import ColorKeys
+from alleycat.ui.glass import StyleKeys
 from alleycat.reactive import functions as rv
 from tests.ui import UITestCase
 
@@ -17,7 +17,7 @@ class LabelTest(UITestCase):
         label = Label(self.context)
 
         prefixes = list(label.style_fallback_prefixes)
-        keys = list(label.style_fallback_keys(ColorKeys.Background))
+        keys = list(label.style_fallback_keys(StyleKeys.Background))
 
         self.assertEqual(["Label"], prefixes)
         self.assertEqual(["Label.background", "background"], keys)
@@ -35,7 +35,7 @@ class LabelTest(UITestCase):
 
         label2.text = "AlleyCat"
         label2.text_size = 18
-        label2.set_color(ColorKeys.Text, RGBA(1, 0, 0, 1))
+        label2.set_color(StyleKeys.Text, RGBA(1, 0, 0, 1))
         label2.bounds = Bounds(20, 0, 80, 60)
 
         window.add(label)

@@ -1,7 +1,7 @@
 import unittest
 
 from alleycat.ui import Label, Bounds, Window, Panel, RGBA
-from alleycat.ui.glass import ColorKeys
+from alleycat.ui.glass import StyleKeys
 from tests.ui import UITestCase
 
 
@@ -11,7 +11,7 @@ class PanelTest(UITestCase):
         label = Label(self.context)
 
         prefixes = list(label.style_fallback_prefixes)
-        keys = list(label.style_fallback_keys(ColorKeys.Background))
+        keys = list(label.style_fallback_keys(StyleKeys.Background))
 
         self.assertEqual(["Label"], prefixes)
         self.assertEqual(["Label.background", "background"], keys)
@@ -27,7 +27,7 @@ class PanelTest(UITestCase):
 
         panel2 = Panel(self.context)
         panel2.bounds = Bounds(50, 40, 40, 40)
-        panel2.set_color(ColorKeys.Background, RGBA(1, 0, 0, 1))
+        panel2.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
 
         window.add(panel1)
         window.add(panel2)

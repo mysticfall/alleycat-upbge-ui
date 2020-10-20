@@ -3,7 +3,7 @@ import unittest
 from returns.maybe import Some
 
 from alleycat.ui import Window, Bounds, Point, RGBA, Panel, MouseButton, Dimension
-from alleycat.ui.glass import ColorKeys
+from alleycat.ui.glass import StyleKeys
 from tests.ui import UITestCase
 
 
@@ -14,7 +14,7 @@ class WindowTest(UITestCase):
         window = Window(self.context)
 
         prefixes = list(window.style_fallback_prefixes)
-        keys = list(window.style_fallback_keys(ColorKeys.Background))
+        keys = list(window.style_fallback_keys(StyleKeys.Background))
 
         self.assertEqual(["Window"], prefixes)
         self.assertEqual(["Window.background", "background"], keys)
@@ -27,7 +27,7 @@ class WindowTest(UITestCase):
         window2 = Window(self.context)
 
         window2.bounds = Bounds(50, 40, 50, 50)
-        window2.set_color(ColorKeys.Background, RGBA(1, 0, 0, 1))
+        window2.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
 
         self.context.process()
 
@@ -37,17 +37,17 @@ class WindowTest(UITestCase):
         window = Window(self.context)
 
         window.bounds = Bounds(10, 20, 80, 60)
-        window.set_color(ColorKeys.Background, RGBA(0.5, 0.5, 0.5, 1))
+        window.set_color(StyleKeys.Background, RGBA(0.5, 0.5, 0.5, 1))
 
         child1 = Panel(self.context)
 
         child1.bounds = Bounds(10, 10, 40, 40)
-        child1.set_color(ColorKeys.Background, RGBA(1, 0, 0, 1))
+        child1.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
 
         child2 = Panel(self.context)
 
         child2.bounds = Bounds(30, 30, 40, 40)
-        child2.set_color(ColorKeys.Background, RGBA(0, 0, 1, 1))
+        child2.set_color(StyleKeys.Background, RGBA(0, 0, 1, 1))
 
         window.add(child1)
         window.add(child2)
@@ -136,12 +136,12 @@ class WindowTest(UITestCase):
         bottom = Window(self.context)
         bottom.draggable = True
         bottom.bounds = Bounds(10, 10, 50, 50)
-        bottom.set_color(ColorKeys.Background, RGBA(1, 0, 0, 1))
+        bottom.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
 
         top = Window(self.context)
         top.draggable = True
         top.bounds = Bounds(20, 20, 50, 50)
-        top.set_color(ColorKeys.Background, RGBA(0, 0, 1, 1))
+        top.set_color(StyleKeys.Background, RGBA(0, 0, 1, 1))
 
         self.mouse.move_to(Point(30, 30))
         self.mouse.press(MouseButton.LEFT)

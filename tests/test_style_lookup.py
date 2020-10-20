@@ -3,7 +3,7 @@ import unittest
 from cairo import ToyFontFace
 from returns.maybe import Nothing, Some
 
-from alleycat.ui import StyleLookup, RGBA, ColorChangeEvent, FontChangeEvent
+from alleycat.ui import StyleLookup, RGBA, ColorChangeEvent, FontChangeEvent, Insets, InsetsChangeEvent
 from alleycat.ui.cairo import CairoFont
 
 
@@ -48,6 +48,26 @@ class StyleLookupTest(unittest.TestCase):
 
         self.assertEqual(Nothing, lookup.get_font(label_key))
 
+    def test_lookup_insets(self):
+        lookup = StyleLookup()
+
+        padding = Insets(5, 5, 5, 5)
+        margin = Insets(10, 10, 10, 10)
+
+        padding_key = "padding"
+        margin_key = "margin"
+
+        lookup.set_insets(padding_key, padding)
+        lookup.set_insets(margin_key, margin)
+
+        self.assertEqual(Nothing, lookup.get_insets("button_padding"))
+        self.assertEqual(padding, lookup.get_insets(padding_key).unwrap())
+        self.assertEqual(margin, lookup.get_insets(margin_key).unwrap())
+
+        lookup.clear_insets(padding_key)
+
+        self.assertEqual(Nothing, lookup.get_insets(padding_key))
+
     def test_on_style_change(self):
         lookup = StyleLookup()
 
@@ -81,6 +101,16 @@ class StyleLookupTest(unittest.TestCase):
 
         self.assertEqual([ColorChangeEvent(lookup, "color1", Nothing)], changes[4:5])
         self.assertEqual([FontChangeEvent(lookup, "font1", Nothing)], changes[5:])
+
+        padding = Insets(5, 5, 5, 5)
+
+        lookup.set_insets("padding", padding)
+
+        self.assertEqual([InsetsChangeEvent(lookup, "padding", Some(padding))], changes[6:])
+
+        lookup.clear_insets("padding")
+
+        self.assertEqual([InsetsChangeEvent(lookup, "padding", Nothing)], changes[7:])
 
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@ from returns.maybe import Nothing, Some
 from rx import operators as ops
 
 from alleycat.ui import Bounds, Window, RGBA, TextAlign, LabelButton, Point, MouseButton, Dimension, LabelUI
-from alleycat.ui.glass import ColorKeys
+from alleycat.ui.glass import StyleKeys
 from tests.ui import UITestCase
 
 
@@ -17,7 +17,7 @@ class ButtonTest(UITestCase):
         button = LabelButton(self.context)
 
         prefixes = list(button.style_fallback_prefixes)
-        keys = list(button.style_fallback_keys(ColorKeys.Background))
+        keys = list(button.style_fallback_keys(StyleKeys.Background))
 
         self.assertEqual(["LabelButton", "Button"], prefixes)
         self.assertEqual(["LabelButton.background", "Button.background", "background"], keys)
@@ -35,7 +35,7 @@ class ButtonTest(UITestCase):
 
         button2.text = "AlleyCat"
         button2.text_size = 16
-        button2.set_color(ColorKeys.Text, RGBA(1, 0, 0, 1))
+        button2.set_color(StyleKeys.Text, RGBA(1, 0, 0, 1))
         button2.bounds = Bounds(10, 50, 80, 30)
 
         window.add(button1)

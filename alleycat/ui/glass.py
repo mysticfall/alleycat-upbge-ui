@@ -25,16 +25,16 @@ class GlassLookAndFeel(LookAndFeel):
 
         self.set_font("text", toolkit.font_registry.fallback_font)
 
-        self.set_color(with_prefix(ColorKeys.Background, "Window"), RGBA(0, 0, 0, 0.8))
-        self.set_color(with_prefix(ColorKeys.Border, "Window"), active_color)
-        self.set_color(with_prefix(ColorKeys.Border, "Button"), active_color)
-        self.set_color(with_prefix(ColorKeys.BorderHover, "Button"), highlight_color)
-        self.set_color(with_prefix(ColorKeys.BackgroundActive, "Button"), active_color)
-        self.set_color(with_prefix(ColorKeys.BorderActive, "Button"), active_color)
+        self.set_color(with_prefix(StyleKeys.Background, "Window"), RGBA(0, 0, 0, 0.8))
+        self.set_color(with_prefix(StyleKeys.Border, "Window"), active_color)
+        self.set_color(with_prefix(StyleKeys.Border, "Button"), active_color)
+        self.set_color(with_prefix(StyleKeys.BorderHover, "Button"), highlight_color)
+        self.set_color(with_prefix(StyleKeys.BackgroundActive, "Button"), active_color)
+        self.set_color(with_prefix(StyleKeys.BorderActive, "Button"), active_color)
 
-        self.set_color(ColorKeys.Text, RGBA(0.8, 0.8, 0.8, 1))
-        self.set_color(with_prefix(ColorKeys.TextHover, "Button"), highlight_color)
-        self.set_color(with_prefix(ColorKeys.TextActive, "Button"), RGBA(0, 0, 0, 1))
+        self.set_color(StyleKeys.Text, RGBA(0.8, 0.8, 0.8, 1))
+        self.set_color(with_prefix(StyleKeys.TextHover, "Button"), highlight_color)
+        self.set_color(with_prefix(StyleKeys.TextActive, "Button"), RGBA(0, 0, 0, 1))
 
         self.register_ui(Window, GlassWindowUI)
         self.register_ui(Panel, GlassPanelUI)
@@ -61,10 +61,10 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
         self.border_color(component).map(lambda c: self.draw_border(g, component, c))
 
     def background_color(self, component: T) -> Maybe[RGBA]:
-        return component.resolve_color(ColorKeys.Background)
+        return component.resolve_color(StyleKeys.Background)
 
     def border_color(self, component: T) -> Maybe[RGBA]:
-        return component.resolve_color(ColorKeys.Border)
+        return component.resolve_color(StyleKeys.Border)
 
     def draw_background(self, g: Graphics, component: T, color: RGBA) -> None:
         g.color = color
@@ -128,19 +128,19 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
         g.draw_text(text, size, Point(tx, ty))
 
     def text_color(self, component: Label) -> Maybe[RGBA]:
-        return component.resolve_color(ColorKeys.Text)
+        return component.resolve_color(StyleKeys.Text)
 
     def text_font(self, component: Label) -> Font:
         font_registry = component.context.toolkit.font_registry
 
-        return component.resolve_font(FontKeys.Text).value_or(font_registry.fallback_font)
+        return component.resolve_font(StyleKeys.Text).value_or(font_registry.fallback_font)
 
     def on_font_change(self, component: Label) -> Observable:
-        font_keys = set(component.style_fallback_keys(FontKeys.Text))
+        font_keys = set(component.style_fallback_keys(StyleKeys.Text))
         fallback = component.context.toolkit.font_registry.fallback_font
 
         def effective_font() -> Font:
-            return component.resolve_font(FontKeys.Text).value_or(fallback)
+            return component.resolve_font(StyleKeys.Text).value_or(fallback)
 
         style_changes = rx.merge(component.on_style_change, component.context.look_and_feel.on_style_change)
         font_changes = style_changes.pipe(
@@ -160,10 +160,10 @@ class GlassButtonUI(GlassComponentUI[Button]):
         super().__init__()
 
     def background_color(self, component: T) -> Maybe[RGBA]:
-        return self.resolve_color(component, ColorKeys.Background)
+        return self.resolve_color(component, StyleKeys.Background)
 
     def border_color(self, component: T) -> Maybe[RGBA]:
-        return self.resolve_color(component, ColorKeys.Border)
+        return self.resolve_color(component, StyleKeys.Border)
 
     def resolve_color(self, component: LabelButton, key: str) -> Maybe[RGBA]:
         color: Maybe[RGBA] = Nothing
@@ -182,10 +182,10 @@ class GlassLabelButtonUI(GlassButtonUI, GlassLabelUI):
         super().__init__()
 
     def text_color(self, component: T) -> Maybe[RGBA]:
-        return self.resolve_color(component, ColorKeys.Text)
+        return self.resolve_color(component, StyleKeys.Text)
 
 
-class ColorKeys:
+class StyleKeys:
     Background: Final = "background"
     BackgroundHover: Final = "background:hover"
     BackgroundActive: Final = "background:active"
@@ -197,7 +197,3 @@ class ColorKeys:
     Text: Final = "text"
     TextHover: Final = "text:hover"
     TextActive: Final = "text:active"
-
-
-class FontKeys:
-    Text: Final = "text"
