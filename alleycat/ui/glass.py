@@ -6,7 +6,8 @@ from rx import Observable
 from rx import operators as ops
 
 from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window, Label, Point, Toolkit, \
-    TextAlign, Font, Button, LabelButton, WindowUI, LayoutContainerUI, FontChangeEvent, LabelUI
+    TextAlign, Font, Button, LabelButton, WindowUI, LayoutContainerUI, FontChangeEvent, LabelUI, Insets, \
+    InsetsChangeEvent, Dimension
 
 T = TypeVar("T", bound=Component, contravariant=True)
 
@@ -35,6 +36,8 @@ class GlassLookAndFeel(LookAndFeel):
         self.set_color(StyleKeys.Text, RGBA(0.8, 0.8, 0.8, 1))
         self.set_color(with_prefix(StyleKeys.TextHover, "Button"), highlight_color)
         self.set_color(with_prefix(StyleKeys.TextActive, "Button"), RGBA(0, 0, 0, 1))
+
+        self.set_insets(StyleKeys.Padding, Insets(5, 10, 5, 10))
 
         self.register_ui(Window, GlassWindowUI)
         self.register_ui(Panel, GlassPanelUI)
@@ -108,6 +111,12 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
 
         color.map(lambda c: self.draw_text(g, component, font, c))
 
+    def minimum_size(self, component: Label) -> Observable:
+        text_extents = super().minimum_size(component)
+
+        return rx.combine_latest(text_extents, self.on_padding_change(component)).pipe(
+            ops.map(lambda v: Dimension(v[0].width + v[1].left + v[1].right, v[0].height + v[1].top + v[1].bottom)))
+
     def draw_text(self, g: Graphics, component: Label, font: Font, color: RGBA) -> None:
         g.font = font
         g.color = color
@@ -116,14 +125,15 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
         size = component.text_size
 
         extents = component.context.toolkit.font_registry.text_extent(text, font, size)
+        padding = component.resolve_insets(StyleKeys.Padding).value_or(Insets(0, 0, 0, 0))
 
         (x, y, w, h) = component.bounds.tuple
 
         rh = self._ratio_for_align[component.text_align]
         rv = self._ratio_for_align[component.text_vertical_align]
 
-        tx = (w - extents.width) * rh + x
-        ty = (h - extents.height) * rv + extents.height + y
+        tx = (w - extents.width - padding.left - padding.right) * rh + x + padding.left
+        ty = (h - extents.height - padding.top - padding.bottom) * rv + extents.height + y + padding.top
 
         g.draw_text(text, size, Point(tx, ty))
 
@@ -136,7 +146,7 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
         return component.resolve_font(StyleKeys.Text).value_or(font_registry.fallback_font)
 
     def on_font_change(self, component: Label) -> Observable:
-        font_keys = set(component.style_fallback_keys(StyleKeys.Text))
+        keys = set(component.style_fallback_keys(StyleKeys.Text))
         fallback = component.context.toolkit.font_registry.fallback_font
 
         def effective_font() -> Font:
@@ -145,12 +155,28 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
         style_changes = rx.merge(component.on_style_change, component.context.look_and_feel.on_style_change)
         font_changes = style_changes.pipe(
             ops.filter(lambda e: isinstance(e, FontChangeEvent)),
-            ops.filter(lambda e: e.key in font_keys),
+            ops.filter(lambda e: e.key in keys),
             ops.map(lambda _: effective_font()),
             ops.start_with(effective_font()),
             ops.distinct_until_changed())
 
         return font_changes
+
+    def on_padding_change(self, component: Label) -> Observable:
+        keys = set(component.style_fallback_keys(StyleKeys.Padding))
+
+        def effective_padding() -> Insets:
+            return component.resolve_insets(StyleKeys.Padding).value_or(Insets(0, 0, 0, 0))
+
+        style_changes = rx.merge(component.on_style_change, component.context.look_and_feel.on_style_change)
+        padding_changes = style_changes.pipe(
+            ops.filter(lambda e: isinstance(e, InsetsChangeEvent)),
+            ops.filter(lambda e: e.key in keys),
+            ops.map(lambda _: effective_padding()),
+            ops.start_with(effective_padding()),
+            ops.distinct_until_changed())
+
+        return padding_changes
 
 
 # noinspection PyMethodMayBeStatic
@@ -197,3 +223,5 @@ class StyleKeys:
     Text: Final = "text"
     TextHover: Final = "text:hover"
     TextActive: Final = "text:active"
+
+    Padding: Final = "padding"

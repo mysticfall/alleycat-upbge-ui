@@ -4,7 +4,7 @@ from typing import cast
 from returns.maybe import Nothing, Some
 from rx import operators as ops
 
-from alleycat.ui import Label, Bounds, Window, RGBA, TextAlign, LabelUI, Dimension
+from alleycat.ui import Label, Bounds, Window, RGBA, TextAlign, LabelUI, Dimension, Insets
 from alleycat.ui.glass import StyleKeys
 from alleycat.reactive import functions as rv
 from tests.ui import UITestCase
@@ -151,110 +151,126 @@ class LabelTest(UITestCase):
         self.assertEqual(4, len(changes))
 
     def test_minimum_size(self):
-        label = Label(self.context)
-
         tolerance = 0.1
 
-        calculated = []
+        def test_with_padding(padding: Insets):
+            with Label(self.context) as label:
+                calculated = []
 
-        rv.observe(label.effective_minimum_size).subscribe(calculated.append)
+                label.set_insets(StyleKeys.Padding, padding)
 
-        self.assertEqual(Nothing, label.minimum_size)
-        self.assertEqual(Dimension(0, 0), label.effective_minimum_size)
-        self.assertEqual([Dimension(0, 0)], calculated)
+                pw = padding.left + padding.right
+                ph = padding.top + padding.bottom
 
-        label.text = "Test"
+                rv.observe(label.effective_minimum_size).subscribe(calculated.append)
 
-        self.assertEqual(2, len(calculated))
+                self.assertEqual(Nothing, label.minimum_size)
+                self.assertEqual(Dimension(pw, ph), label.effective_minimum_size)
+                self.assertEqual([Dimension(pw, ph)], calculated)
 
-        self.assertEqual(Nothing, label.minimum_size)
-        self.assertAlmostEqual(18.476, label.effective_minimum_size.width, delta=tolerance)
-        self.assertAlmostEqual(7.227, label.effective_minimum_size.height, delta=tolerance)
-        self.assertAlmostEqual(18.476, calculated[1].width, delta=tolerance)
-        self.assertAlmostEqual(7.227, calculated[1].height, delta=tolerance)
+                label.text = "Test"
 
-        self.assertEqual(Bounds(0, 0, calculated[1].width, calculated[1].height), label.bounds)
+                self.assertEqual(2, len(calculated))
 
-        label.text_size = 15
+                self.assertEqual(Nothing, label.minimum_size)
+                self.assertAlmostEqual(18.476 + pw, label.effective_minimum_size.width, delta=tolerance)
+                self.assertAlmostEqual(7.227 + ph, label.effective_minimum_size.height, delta=tolerance)
+                self.assertAlmostEqual(18.476 + pw, calculated[1].width, delta=tolerance)
+                self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=tolerance)
 
-        self.assertEqual(3, len(calculated))
+                self.assertEqual(Bounds(0, 0, calculated[1].width, calculated[1].height), label.bounds)
 
-        self.assertEqual(Nothing, label.minimum_size)
-        self.assertAlmostEqual(27.715, label.effective_minimum_size.width, delta=tolerance)
-        self.assertAlmostEqual(10.840, label.effective_minimum_size.height, delta=tolerance)
-        self.assertAlmostEqual(27.715, calculated[2].width, delta=tolerance)
-        self.assertAlmostEqual(10.840, calculated[2].height, delta=tolerance)
+                label.text_size = 15
 
-        label.bounds = Bounds(10, 20, 60, 40)
+                self.assertEqual(3, len(calculated))
 
-        self.assertEqual(Bounds(10, 20, 60, 40), label.bounds)
+                self.assertEqual(Nothing, label.minimum_size)
+                self.assertAlmostEqual(27.715 + pw, label.effective_minimum_size.width, delta=tolerance)
+                self.assertAlmostEqual(10.840 + ph, label.effective_minimum_size.height, delta=tolerance)
+                self.assertAlmostEqual(27.715 + pw, calculated[2].width, delta=tolerance)
+                self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
-        label.minimum_size = Some(Dimension(80, 50))
+                label.bounds = Bounds(10, 20, 60, 40)
 
-        self.assertEqual(Some(Dimension(80, 50)), label.minimum_size)
-        self.assertEqual(Dimension(80, 50), label.effective_minimum_size)
-        self.assertAlmostEqual(27.715, calculated[2].width, delta=tolerance)
-        self.assertAlmostEqual(10.840, calculated[2].height, delta=tolerance)
+                self.assertEqual(Bounds(10, 20, 60, 40), label.bounds)
 
-        self.assertEqual(Bounds(10, 20, 80, 50), label.bounds)
+                label.minimum_size = Some(Dimension(80, 50))
 
-        label.bounds = Bounds(0, 0, 30, 40)
+                self.assertEqual(Some(Dimension(80, 50)), label.minimum_size)
+                self.assertEqual(Dimension(80, 50), label.effective_minimum_size)
+                self.assertAlmostEqual(27.715 + pw, calculated[2].width, delta=tolerance)
+                self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
-        self.assertEqual(Bounds(0, 0, 80, 50), label.bounds)
+                self.assertEqual(Bounds(10, 20, 80, 50), label.bounds)
+
+                label.bounds = Bounds(0, 0, 30, 40)
+
+                self.assertEqual(Bounds(0, 0, 80, 50), label.bounds)
+
+        for p in [Insets(0, 0, 0, 0), Insets(5, 5, 5, 5), Insets(10, 5, 0, 3)]:
+            test_with_padding(p)
 
     def test_preferred_size(self):
-        label = Label(self.context)
-
         tolerance = 0.1
 
-        calculated = []
+        def test_with_padding(padding: Insets):
+            with Label(self.context) as label:
+                calculated = []
 
-        rv.observe(label.effective_preferred_size).subscribe(calculated.append)
+                label.set_insets(StyleKeys.Padding, padding)
 
-        self.assertEqual(Nothing, label.preferred_size)
-        self.assertEqual(Dimension(0, 0), label.effective_preferred_size)
-        self.assertEqual([Dimension(0, 0)], calculated)
+                pw = padding.left + padding.right
+                ph = padding.top + padding.bottom
 
-        label.text = "Test"
+                rv.observe(label.effective_preferred_size).subscribe(calculated.append)
 
-        self.assertEqual(2, len(calculated))
+                self.assertEqual(Nothing, label.preferred_size)
+                self.assertEqual(Dimension(pw, ph), label.effective_preferred_size)
+                self.assertEqual([Dimension(pw, ph)], calculated)
 
-        self.assertEqual(Nothing, label.preferred_size)
-        self.assertAlmostEqual(18.476, label.effective_preferred_size.width, delta=tolerance)
-        self.assertAlmostEqual(7.227, label.effective_preferred_size.height, delta=tolerance)
-        self.assertEqual(2, len(calculated))
-        self.assertAlmostEqual(18.476, calculated[1].width, delta=tolerance)
-        self.assertAlmostEqual(7.227, calculated[1].height, delta=tolerance)
+                label.text = "Test"
 
-        label.text_size = 15
+                self.assertEqual(2, len(calculated))
 
-        self.assertEqual(3, len(calculated))
+                self.assertEqual(Nothing, label.preferred_size)
+                self.assertAlmostEqual(18.476 + pw, label.effective_preferred_size.width, delta=tolerance)
+                self.assertAlmostEqual(7.227 + ph, label.effective_preferred_size.height, delta=tolerance)
+                self.assertEqual(2, len(calculated))
+                self.assertAlmostEqual(18.476 + pw, calculated[1].width, delta=tolerance)
+                self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=tolerance)
 
-        self.assertEqual(Nothing, label.preferred_size)
-        self.assertAlmostEqual(27.715, label.effective_preferred_size.width, delta=tolerance)
-        self.assertAlmostEqual(10.840, label.effective_preferred_size.height, delta=tolerance)
-        self.assertEqual(3, len(calculated))
-        self.assertAlmostEqual(27.715, calculated[2].width, delta=tolerance)
-        self.assertAlmostEqual(10.840, calculated[2].height, delta=tolerance)
+                label.text_size = 15
 
-        label.preferred_size = Some(Dimension(80, 50))
+                self.assertEqual(3, len(calculated))
 
-        self.assertEqual(Some(Dimension(80, 50)), label.preferred_size)
-        self.assertEqual(Dimension(80, 50), label.effective_preferred_size)
-        self.assertEqual(4, len(calculated))
-        self.assertEqual(Dimension(80, 50), calculated[3])
+                self.assertEqual(Nothing, label.preferred_size)
+                self.assertAlmostEqual(27.715 + pw, label.effective_preferred_size.width, delta=tolerance)
+                self.assertAlmostEqual(10.840 + ph, label.effective_preferred_size.height, delta=tolerance)
+                self.assertEqual(3, len(calculated))
+                self.assertAlmostEqual(27.715 + pw, calculated[2].width, delta=tolerance)
+                self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
-        label.preferred_size = Some(Dimension(10, 10))
+                label.preferred_size = Some(Dimension(80, 50))
 
-        self.assertEqual(calculated[2], label.effective_preferred_size)
-        self.assertEqual(5, len(calculated))
-        self.assertEqual(calculated[2], calculated[4])
+                self.assertEqual(Some(Dimension(80, 50)), label.preferred_size)
+                self.assertEqual(Dimension(80, 50), label.effective_preferred_size)
+                self.assertEqual(4, len(calculated))
+                self.assertEqual(Dimension(80, 50), calculated[3])
 
-        label.minimum_size = Some(Dimension(400, 360))
+                label.preferred_size = Some(Dimension(10, 10))
 
-        self.assertEqual(Dimension(400, 360), label.effective_preferred_size)
-        self.assertEqual(6, len(calculated))
-        self.assertEqual(Dimension(400, 360), calculated[5])
+                self.assertEqual(calculated[2], label.effective_preferred_size)
+                self.assertEqual(5, len(calculated))
+                self.assertEqual(calculated[2], calculated[4])
+
+                label.minimum_size = Some(Dimension(400, 360))
+
+                self.assertEqual(Dimension(400, 360), label.effective_preferred_size)
+                self.assertEqual(6, len(calculated))
+                self.assertEqual(Dimension(400, 360), calculated[5])
+
+        for p in [Insets(0, 0, 0, 0), Insets(5, 5, 5, 5), Insets(10, 5, 0, 3)]:
+            test_with_padding(p)
 
 
 if __name__ == '__main__':

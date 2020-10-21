@@ -5,7 +5,7 @@ from alleycat.reactive import functions as rv
 from returns.maybe import Nothing, Some
 from rx import operators as ops
 
-from alleycat.ui import Bounds, Window, RGBA, TextAlign, LabelButton, Point, MouseButton, Dimension, LabelUI
+from alleycat.ui import Bounds, Window, RGBA, TextAlign, LabelButton, Point, MouseButton, Dimension, LabelUI, Insets
 from alleycat.ui.glass import StyleKeys
 from tests.ui import UITestCase
 
@@ -52,7 +52,7 @@ class ButtonTest(UITestCase):
         button = LabelButton(self.context)
 
         button.text = "AlleyCat"
-        button.text_size = 18
+        button.text_size = 16
         button.bounds = Bounds(0, 0, 100, 100)
 
         window.add(button)
@@ -77,7 +77,7 @@ class ButtonTest(UITestCase):
         button = LabelButton(self.context)
 
         button.text = "AlleyCat"
-        button.text_size = 18
+        button.text_size = 14
         button.bounds = Bounds(10, 10, 80, 40)
 
         window.add(button)
@@ -117,7 +117,7 @@ class ButtonTest(UITestCase):
         button = LabelButton(self.context)
 
         button.text = "AlleyCat"
-        button.text_size = 18
+        button.text_size = 14
         button.bounds = Bounds(10, 10, 80, 40)
 
         window.add(button)
@@ -250,110 +250,126 @@ class ButtonTest(UITestCase):
         self.assertEqual(4, len(changes))
 
     def test_minimum_size(self):
-        button = LabelButton(self.context)
-
         tolerance = 0.1
 
-        calculated = []
+        def test_with_padding(padding: Insets):
+            with LabelButton(self.context) as button:
+                calculated = []
 
-        rv.observe(button.effective_minimum_size).subscribe(calculated.append)
+                button.set_insets(StyleKeys.Padding, padding)
 
-        self.assertEqual(Nothing, button.minimum_size)
-        self.assertEqual(Dimension(0, 0), button.effective_minimum_size)
-        self.assertEqual([Dimension(0, 0)], calculated)
+                pw = padding.left + padding.right
+                ph = padding.top + padding.bottom
 
-        button.text = "Test"
+                rv.observe(button.effective_minimum_size).subscribe(calculated.append)
 
-        self.assertEqual(2, len(calculated))
+                self.assertEqual(Nothing, button.minimum_size)
+                self.assertEqual(Dimension(pw, ph), button.effective_minimum_size)
+                self.assertEqual([Dimension(pw, ph)], calculated)
 
-        self.assertEqual(Nothing, button.minimum_size)
-        self.assertAlmostEqual(18.476, button.effective_minimum_size.width, delta=tolerance)
-        self.assertAlmostEqual(7.227, button.effective_minimum_size.height, delta=tolerance)
-        self.assertAlmostEqual(18.476, calculated[1].width, delta=tolerance)
-        self.assertAlmostEqual(7.227, calculated[1].height, delta=tolerance)
+                button.text = "Test"
 
-        self.assertEqual(Bounds(0, 0, calculated[1].width, calculated[1].height), button.bounds)
+                self.assertEqual(2, len(calculated))
 
-        button.text_size = 15
+                self.assertEqual(Nothing, button.minimum_size)
+                self.assertAlmostEqual(18.476 + pw, button.effective_minimum_size.width, delta=tolerance)
+                self.assertAlmostEqual(7.227 + ph, button.effective_minimum_size.height, delta=tolerance)
+                self.assertAlmostEqual(18.476 + pw, calculated[1].width, delta=tolerance)
+                self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=tolerance)
 
-        self.assertEqual(3, len(calculated))
+                self.assertEqual(Bounds(0, 0, calculated[1].width, calculated[1].height), button.bounds)
 
-        self.assertEqual(Nothing, button.minimum_size)
-        self.assertAlmostEqual(27.715, button.effective_minimum_size.width, delta=tolerance)
-        self.assertAlmostEqual(10.840, button.effective_minimum_size.height, delta=tolerance)
-        self.assertAlmostEqual(27.715, calculated[2].width, delta=tolerance)
-        self.assertAlmostEqual(10.840, calculated[2].height, delta=tolerance)
+                button.text_size = 15
 
-        button.bounds = Bounds(10, 20, 60, 40)
+                self.assertEqual(3, len(calculated))
 
-        self.assertEqual(Bounds(10, 20, 60, 40), button.bounds)
+                self.assertEqual(Nothing, button.minimum_size)
+                self.assertAlmostEqual(27.715 + pw, button.effective_minimum_size.width, delta=tolerance)
+                self.assertAlmostEqual(10.840 + ph, button.effective_minimum_size.height, delta=tolerance)
+                self.assertAlmostEqual(27.715 + pw, calculated[2].width, delta=tolerance)
+                self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
-        button.minimum_size = Some(Dimension(80, 50))
+                button.bounds = Bounds(10, 20, 60, 40)
 
-        self.assertEqual(Some(Dimension(80, 50)), button.minimum_size)
-        self.assertEqual(Dimension(80, 50), button.effective_minimum_size)
-        self.assertAlmostEqual(27.715, calculated[2].width, delta=tolerance)
-        self.assertAlmostEqual(10.840, calculated[2].height, delta=tolerance)
+                self.assertEqual(Bounds(10, 20, 60, 40), button.bounds)
 
-        self.assertEqual(Bounds(10, 20, 80, 50), button.bounds)
+                button.minimum_size = Some(Dimension(80, 50))
 
-        button.bounds = Bounds(0, 0, 30, 40)
+                self.assertEqual(Some(Dimension(80, 50)), button.minimum_size)
+                self.assertEqual(Dimension(80, 50), button.effective_minimum_size)
+                self.assertAlmostEqual(27.715 + pw, calculated[2].width, delta=tolerance)
+                self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
-        self.assertEqual(Bounds(0, 0, 80, 50), button.bounds)
+                self.assertEqual(Bounds(10, 20, 80, 50), button.bounds)
+
+                button.bounds = Bounds(0, 0, 30, 40)
+
+                self.assertEqual(Bounds(0, 0, 80, 50), button.bounds)
+
+        for p in [Insets(0, 0, 0, 0), Insets(5, 5, 5, 5), Insets(10, 5, 0, 3)]:
+            test_with_padding(p)
 
     def test_preferred_size(self):
-        button = LabelButton(self.context)
-
         tolerance = 0.1
 
-        calculated = []
+        def test_with_padding(padding: Insets):
+            with LabelButton(self.context) as button:
+                calculated = []
 
-        rv.observe(button.effective_preferred_size).subscribe(calculated.append)
+                button.set_insets(StyleKeys.Padding, padding)
 
-        self.assertEqual(Nothing, button.preferred_size)
-        self.assertEqual(Dimension(0, 0), button.effective_preferred_size)
-        self.assertEqual([Dimension(0, 0)], calculated)
+                pw = padding.left + padding.right
+                ph = padding.top + padding.bottom
 
-        button.text = "Test"
+                rv.observe(button.effective_preferred_size).subscribe(calculated.append)
 
-        self.assertEqual(2, len(calculated))
+                self.assertEqual(Nothing, button.preferred_size)
+                self.assertEqual(Dimension(pw, ph), button.effective_preferred_size)
+                self.assertEqual([Dimension(pw, ph)], calculated)
 
-        self.assertEqual(Nothing, button.preferred_size)
-        self.assertAlmostEqual(18.476, button.effective_preferred_size.width, delta=tolerance)
-        self.assertAlmostEqual(7.227, button.effective_preferred_size.height, delta=tolerance)
-        self.assertEqual(2, len(calculated))
-        self.assertAlmostEqual(18.476, calculated[1].width, delta=tolerance)
-        self.assertAlmostEqual(7.227, calculated[1].height, delta=tolerance)
+                button.text = "Test"
 
-        button.text_size = 15
+                self.assertEqual(2, len(calculated))
 
-        self.assertEqual(3, len(calculated))
+                self.assertEqual(Nothing, button.preferred_size)
+                self.assertAlmostEqual(18.476 + pw, button.effective_preferred_size.width, delta=tolerance)
+                self.assertAlmostEqual(7.227 + ph, button.effective_preferred_size.height, delta=tolerance)
+                self.assertEqual(2, len(calculated))
+                self.assertAlmostEqual(18.476 + pw, calculated[1].width, delta=tolerance)
+                self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=tolerance)
 
-        self.assertEqual(Nothing, button.preferred_size)
-        self.assertAlmostEqual(27.715, button.effective_preferred_size.width, delta=tolerance)
-        self.assertAlmostEqual(10.840, button.effective_preferred_size.height, delta=tolerance)
-        self.assertEqual(3, len(calculated))
-        self.assertAlmostEqual(27.715, calculated[2].width, delta=tolerance)
-        self.assertAlmostEqual(10.840, calculated[2].height, delta=tolerance)
+                button.text_size = 15
 
-        button.preferred_size = Some(Dimension(80, 50))
+                self.assertEqual(3, len(calculated))
 
-        self.assertEqual(Some(Dimension(80, 50)), button.preferred_size)
-        self.assertEqual(Dimension(80, 50), button.effective_preferred_size)
-        self.assertEqual(4, len(calculated))
-        self.assertEqual(Dimension(80, 50), calculated[3])
+                self.assertEqual(Nothing, button.preferred_size)
+                self.assertAlmostEqual(27.715 + pw, button.effective_preferred_size.width, delta=tolerance)
+                self.assertAlmostEqual(10.840 + ph, button.effective_preferred_size.height, delta=tolerance)
+                self.assertEqual(3, len(calculated))
+                self.assertAlmostEqual(27.715 + pw, calculated[2].width, delta=tolerance)
+                self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
-        button.preferred_size = Some(Dimension(10, 10))
+                button.preferred_size = Some(Dimension(80, 50))
 
-        self.assertEqual(calculated[2], button.effective_preferred_size)
-        self.assertEqual(5, len(calculated))
-        self.assertEqual(calculated[2], calculated[4])
+                self.assertEqual(Some(Dimension(80, 50)), button.preferred_size)
+                self.assertEqual(Dimension(80, 50), button.effective_preferred_size)
+                self.assertEqual(4, len(calculated))
+                self.assertEqual(Dimension(80, 50), calculated[3])
 
-        button.minimum_size = Some(Dimension(400, 360))
+                button.preferred_size = Some(Dimension(10, 10))
 
-        self.assertEqual(Dimension(400, 360), button.effective_preferred_size)
-        self.assertEqual(6, len(calculated))
-        self.assertEqual(Dimension(400, 360), calculated[5])
+                self.assertEqual(calculated[2], button.effective_preferred_size)
+                self.assertEqual(5, len(calculated))
+                self.assertEqual(calculated[2], calculated[4])
+
+                button.minimum_size = Some(Dimension(400, 360))
+
+                self.assertEqual(Dimension(400, 360), button.effective_preferred_size)
+                self.assertEqual(6, len(calculated))
+                self.assertEqual(Dimension(400, 360), calculated[5])
+
+        for p in [Insets(0, 0, 0, 0), Insets(5, 5, 5, 5), Insets(10, 5, 0, 3)]:
+            test_with_padding(p)
 
 
 if __name__ == '__main__':
