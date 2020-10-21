@@ -3,8 +3,8 @@ import unittest
 from alleycat.reactive import functions as rv
 from returns.maybe import Some, Nothing
 
-from alleycat.ui import Bounds, Point, LayoutContainer, Component, Dimension, Panel, AbsoluteLayout, FillLayout, \
-    Window, Insets
+from alleycat.ui import Bounds, Point, LayoutContainer, Component, Dimension, Panel, Window, Insets
+from alleycat.ui.layout import AbsoluteLayout, FillLayout
 from tests.ui import UITestCase
 
 
