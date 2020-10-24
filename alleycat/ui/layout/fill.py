@@ -35,12 +35,12 @@ class FillLayout(Layout):
             child.bounds = bounds
 
     def minimum_size(self, component: LayoutContainer) -> Observable:
-        return self._calculate_size_with_padding(component, "effective_minimum_size")
+        return self._calculate_size(component, "effective_minimum_size")
 
     def preferred_size(self, component: LayoutContainer) -> Observable:
-        return self._calculate_size_with_padding(component, "effective_preferred_size")
+        return self._calculate_size(component, "effective_preferred_size")
 
-    def _calculate_size_with_padding(self, component: LayoutContainer, size_attribute: str) -> Observable:
+    def _calculate_size(self, component: LayoutContainer, size_attribute: str) -> Observable:
         children = component.observe("children")
 
         def max_size(s1: Dimension, s2: Dimension):
