@@ -2,8 +2,9 @@ import unittest
 
 from returns.maybe import Some
 
-from alleycat.ui import Bounds, Dimension, Panel, Window, Insets
-from alleycat.ui.layout import AbsoluteLayout, FillLayout
+from alleycat.ui import Bounds, Dimension, Panel, Window, Insets, RGBA
+from alleycat.ui.glass import StyleKeys
+from alleycat.ui.layout import AbsoluteLayout, FillLayout, HBoxLayout, BoxAlign, VBoxLayout
 from tests.ui import UITestCase
 
 
@@ -119,6 +120,106 @@ class LayoutTest(UITestCase):
         self.assertEqual(Bounds(5, 5, 190, 190), child.bounds)
         self.assertEqual(Dimension(20, 20), container.effective_minimum_size)
         self.assertEqual(Dimension(20, 20), container.effective_preferred_size)
+
+    def test_hbox_layout(self):
+        layout = HBoxLayout()
+
+        container = Window(self.context, layout)
+        container.bounds = Bounds(5, 5, 90, 90)
+
+        child1 = Panel(self.context)
+        child1.preferred_size = Some(Dimension(20, 50))
+        child1.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
+
+        container.add(child1)
+
+        child2 = Panel(self.context)
+        child2.preferred_size = Some(Dimension(15, 60))
+        child2.minimum_size = Some(Dimension(15, 60))
+        child2.set_color(StyleKeys.Background, RGBA(0, 1, 0, 1))
+
+        container.add(child2)
+
+        child3 = Panel(self.context)
+        child3.preferred_size = Some(Dimension(30, 40))
+        child3.minimum_size = Some(Dimension(10, 20))
+        child3.set_color(StyleKeys.Background, RGBA(0, 0, 1, 1))
+
+        container.add(child3)
+
+        def test(spacing: float, padding: Insets, align: BoxAlign):
+            container.bounds = Bounds(5, 5, 90, 90)
+
+            layout.spacing = spacing
+            layout.padding = padding
+            layout.align = align
+
+            self.context.process()
+
+            prefix = f"hbox-{spacing}-{padding.top},{padding.right},{padding.bottom},{padding.left}-{align.name}-"
+
+            self.assertImage(prefix + "full-size", self.context)
+
+            container.bounds = Bounds(5, 5, 45, 45)
+
+            self.context.process()
+
+            self.assertImage(prefix + "half-size", self.context)
+
+        for s in [0, 10]:
+            for p in [Insets(0, 0, 0, 0), Insets(15, 20, 10, 5)]:
+                for a in BoxAlign:
+                    test(s, p, a)
+
+    def test_vbox_layout(self):
+        layout = VBoxLayout()
+
+        container = Window(self.context, layout)
+        container.bounds = Bounds(5, 5, 90, 90)
+
+        child1 = Panel(self.context)
+        child1.preferred_size = Some(Dimension(50, 20))
+        child1.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
+
+        container.add(child1)
+
+        child2 = Panel(self.context)
+        child2.preferred_size = Some(Dimension(60, 15))
+        child2.minimum_size = Some(Dimension(60, 15))
+        child2.set_color(StyleKeys.Background, RGBA(0, 1, 0, 1))
+
+        container.add(child2)
+
+        child3 = Panel(self.context)
+        child3.preferred_size = Some(Dimension(40, 30))
+        child3.minimum_size = Some(Dimension(20, 10))
+        child3.set_color(StyleKeys.Background, RGBA(0, 0, 1, 1))
+
+        container.add(child3)
+
+        def test(spacing: float, padding: Insets, align: BoxAlign):
+            container.bounds = Bounds(5, 5, 90, 90)
+
+            layout.spacing = spacing
+            layout.padding = padding
+            layout.align = align
+
+            self.context.process()
+
+            prefix = f"vbox-{spacing}-{padding.top},{padding.right},{padding.bottom},{padding.left}-{align.name}-"
+
+            self.assertImage(prefix + "full-size", self.context)
+
+            container.bounds = Bounds(5, 5, 45, 45)
+
+            self.context.process()
+
+            self.assertImage(prefix + "half-size", self.context)
+
+        for s in [0, 10]:
+            for p in [Insets(0, 0, 0, 0), Insets(15, 20, 10, 5)]:
+                for a in BoxAlign:
+                    test(s, p, a)
 
 
 if __name__ == '__main__':
