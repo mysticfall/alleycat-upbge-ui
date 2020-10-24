@@ -11,7 +11,7 @@ from returns.maybe import Maybe, Nothing, Some
 from rx import operators as ops
 
 from alleycat.ui import Context, Graphics, Container, LayoutContainer, Layout, Drawable, Point, ErrorHandlerSupport, \
-    ErrorHandler, MouseButton, Event, PropagatingEvent, LayoutContainerUI, Anchor, Bounds, MouseInput, Dimension
+    ErrorHandler, MouseButton, Event, PropagatingEvent, LayoutContainerUI, Bounds, MouseInput, Dimension, Direction
 
 
 class Window(LayoutContainer):
@@ -88,16 +88,16 @@ class Window(LayoutContainer):
 
         (x, y, w, h) = init_bounds.tuple
 
-        if handle in (Anchor.North, Anchor.Northeast, Anchor.Northwest):
+        if handle in (Direction.North, Direction.Northeast, Direction.Northwest):
             d = min(delta.y, max(h - mh, 0))
             y += d
             h -= d
-        elif handle in (Anchor.South, Anchor.Southeast, Anchor.Southwest):
+        elif handle in (Direction.South, Direction.Southeast, Direction.Southwest):
             h += max(delta.y, min(-h + mh, 0))
 
-        if handle in (Anchor.East, Anchor.Northeast, Anchor.Southeast):
+        if handle in (Direction.East, Direction.Northeast, Direction.Southeast):
             w += max(delta.x, min(-w + mw, 0))
-        elif handle in (Anchor.West, Anchor.Northwest, Anchor.Southwest):
+        elif handle in (Direction.West, Direction.Northwest, Direction.Southwest):
             d = min(delta.x, max(w - mw, 0))
             x += d
             w -= d
@@ -105,7 +105,7 @@ class Window(LayoutContainer):
         return Bounds(x, y, w, h)
 
     class _ResizeState(NamedTuple):
-        handle: Anchor
+        handle: Direction
         anchor: Point
         init_bounds: Bounds
         min_size: Dimension
@@ -163,26 +163,26 @@ class WindowUI(LayoutContainerUI[T], ABC):
     def resize_handle_size(self) -> int:
         return 5
 
-    def resize_handle_at(self, component: T, location: Point) -> Maybe[Anchor]:
+    def resize_handle_at(self, component: T, location: Point) -> Maybe[Direction]:
         (px, py) = (location - component.offset).tuple
         (x, y, w, h) = component.bounds.tuple
 
-        handle: Optional[Anchor] = None
+        handle: Optional[Direction] = None
 
         if y <= py <= y + self.resize_handle_size:
-            handle = Anchor.North
+            handle = Direction.North
         elif y + h - self.resize_handle_size <= py <= y + h:
-            handle = Anchor.South
+            handle = Direction.South
 
         if x + w - self.resize_handle_size <= px <= x + w:
             if handle is None:
-                handle = Anchor.East
+                handle = Direction.East
             else:
-                handle = Anchor.Northeast if handle == Anchor.North else Anchor.Southeast
+                handle = Direction.Northeast if handle == Direction.North else Direction.Southeast
         elif x <= px <= x + self.resize_handle_size:
             if handle is None:
-                handle = Anchor.West
+                handle = Direction.West
             else:
-                handle = Anchor.Northwest if handle == Anchor.North else Anchor.Southwest
+                handle = Direction.Northwest if handle == Direction.North else Direction.Southwest
 
         return Maybe.from_value(handle)

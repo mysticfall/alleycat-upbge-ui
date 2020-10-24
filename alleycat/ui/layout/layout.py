@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from enum import Enum
 from functools import reduce
 from typing import Optional, Iterator, TypeVar, Callable
 
@@ -177,14 +176,3 @@ class LayoutContainerUI(ComponentUI[T], ABC):
 
     def preferred_size(self, component: T) -> Observable:
         return component.layout.preferred_size(component)
-
-
-class Anchor(Enum):
-    North = 0
-    Northeast = 1
-    East = 2
-    Southeast = 3
-    South = 4
-    Southwest = 5
-    West = 6
-    Northwest = 7

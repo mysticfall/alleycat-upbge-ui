@@ -1,5 +1,5 @@
 # Import order should not be changed to avoid a circular dependency.
-from .primitives import Point, Dimension, Bounds, Insets, RGBA
+from .common import Point, Dimension, Bounds, Insets, RGBA, Direction
 from .error import ErrorHandler, ErrorHandlerSupport
 from .font import Font, FontRegistry
 from .context_aware import ContextAware
@@ -17,7 +17,7 @@ from .style import StyleLookup, StyleResolver, StyleChangeEvent, ColorChangeEven
 from .container import Container
 from .component import Component, ComponentUI
 from .laf import LookAndFeel
-from .layout.layout import Layout, LayoutContainer, LayoutContainerUI, Anchor
+from .layout.layout import Layout, LayoutContainer, LayoutContainerUI
 from .panel import Panel
 from .label import Label, LabelUI, TextAlign
 from .button import Button, LabelButton
