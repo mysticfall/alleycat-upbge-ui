@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Optional, Iterator, TypeVar
+from functools import reduce
+from typing import Optional, Iterator, TypeVar, Callable
 
 import rx
 from alleycat.reactive import ReactiveObject
@@ -10,7 +11,7 @@ from returns.maybe import Maybe, Nothing, Some
 from rx import Observable
 from rx import operators as ops
 
-from alleycat.ui import Component, Container, Point, Graphics, Context, ComponentUI
+from alleycat.ui import Component, Container, Point, Graphics, Context, ComponentUI, Dimension
 
 
 class Layout(ReactiveObject, ABC):
@@ -33,6 +34,24 @@ class Layout(ReactiveObject, ABC):
     @abstractmethod
     def preferred_size(self, component: LayoutContainer) -> Observable:
         pass
+
+    @staticmethod
+    def calculate_size(
+            children: Observable,
+            size_attribute: str,
+            reducer: Callable[[Dimension, Dimension], Dimension]) -> Observable:
+        if children is None:
+            raise ValueError("Argument 'children' is required.")
+        if size_attribute is None:
+            raise ValueError("Argument 'size_attribute' is required.")
+        if size_attribute is None:
+            raise ValueError("Argument 'size_attribute' is required.")
+
+        return children.pipe(
+            ops.map(lambda v: map(lambda c: c.observe(size_attribute), v)),
+            ops.map(lambda b: rx.combine_latest(*b, rx.of(Dimension(0, 0)))),
+            ops.switch_latest(),
+            ops.map(lambda b: reduce(reducer, b)))
 
 
 class LayoutContainer(Component, Container[Component]):

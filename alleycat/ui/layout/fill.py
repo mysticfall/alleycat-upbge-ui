@@ -1,5 +1,3 @@
-from functools import reduce
-
 import rx
 from alleycat.reactive import RP
 from alleycat.reactive import functions as rv
@@ -13,11 +11,11 @@ from .layout import Layout, LayoutContainer
 class FillLayout(Layout):
     padding: RP[Insets] = rv.new_property()
 
-    def __init__(self, insets: Insets = Insets(0, 0, 0, 0)) -> None:
+    def __init__(self, padding: Insets = Insets(0, 0, 0, 0)) -> None:
         super().__init__()
 
         # noinspection PyTypeChecker
-        self.padding = insets
+        self.padding = padding
 
     @property
     def on_constraints_change(self) -> Observable:
@@ -37,22 +35,17 @@ class FillLayout(Layout):
             child.bounds = bounds
 
     def minimum_size(self, component: LayoutContainer) -> Observable:
-        return self._calculate_size(component, "effective_minimum_size").pipe(
-            ops.combine_latest(self.observe("padding")),
-            ops.map(lambda v: Dimension(v[0].width + v[1].left + v[1].right, v[0].height + v[1].top + v[1].bottom)))
+        return self._calculate_size_with_padding(component, "effective_minimum_size")
 
     def preferred_size(self, component: LayoutContainer) -> Observable:
-        return self._calculate_size(component, "effective_preferred_size").pipe(
-            ops.combine_latest(self.observe("padding")),
-            ops.map(lambda v: Dimension(v[0].width + v[1].left + v[1].right, v[0].height + v[1].top + v[1].bottom)))
+        return self._calculate_size_with_padding(component, "effective_preferred_size")
 
-    @staticmethod
-    def _calculate_size(component: LayoutContainer, attribute: str) -> Observable:
+    def _calculate_size_with_padding(self, component: LayoutContainer, size_attribute: str) -> Observable:
+        children = component.observe("children")
+
         def max_size(s1: Dimension, s2: Dimension):
             return Dimension(max(s1.width, s2.width), max(s1.height, s2.height))
 
-        return component.observe("children").pipe(
-            ops.map(lambda children: map(lambda c: c.observe(attribute), children)),
-            ops.map(lambda b: rx.combine_latest(*b, rx.of(Dimension(0, 0)))),
-            ops.switch_latest(),
-            ops.map(lambda b: reduce(max_size, b)))
+        return self.calculate_size(children, size_attribute, max_size).pipe(
+            ops.combine_latest(self.observe("padding")),
+            ops.map(lambda v: Dimension(v[0].width + v[1].left + v[1].right, v[0].height + v[1].top + v[1].bottom)))
