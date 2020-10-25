@@ -45,11 +45,11 @@ class BoxLayout(Layout, ABC):
     def on_constraints_change(self) -> Observable:
         return rx.merge(super().on_constraints_change, self.observe("spacing"), self.observe("padding"))
 
-    def minimum_size(self, component: LayoutContainer) -> Observable:
-        return self._calculate_size(component, "effective_minimum_size")
+    def minimum_size(self, container: LayoutContainer) -> Observable:
+        return self._calculate_size(container, "effective_minimum_size")
 
-    def preferred_size(self, component: LayoutContainer) -> Observable:
-        return self._calculate_size(component, "effective_preferred_size")
+    def preferred_size(self, container: LayoutContainer) -> Observable:
+        return self._calculate_size(container, "effective_preferred_size")
 
     @abstractmethod
     def _from_size(self, size: Dimension) -> float:
@@ -63,13 +63,13 @@ class BoxLayout(Layout, ABC):
     def _calculate_bounds(self, size: float, offset: float, preferred: Dimension, parent: Bounds) -> Bounds:
         pass
 
-    def perform(self, component: LayoutContainer) -> None:
+    def perform(self, container: LayoutContainer) -> None:
         s = self._from_size
 
         # noinspection PyTypeChecker
-        children: Sequence[Component] = component.children
+        children: Sequence[Component] = container.children
 
-        area = component.bounds.copy(x=0, y=0) - self.padding
+        area = container.bounds.copy(x=0, y=0) - self.padding
         spacing = self.spacing
 
         space_between = max(len(children) - 1, 0) * spacing
@@ -117,8 +117,8 @@ class BoxLayout(Layout, ABC):
     def _reduce_size(self, s1: Dimension, s2: Dimension) -> Dimension:
         pass
 
-    def _calculate_size(self, component: LayoutContainer, size_attribute: str) -> Observable:
-        children = component.observe("children")
+    def _calculate_size(self, container: LayoutContainer, size_attribute: str) -> Observable:
+        children = container.observe("children")
 
         padding = self.observe("padding").pipe(ops.map(lambda p: Dimension(p.left + p.right, p.top + p.bottom)))
         spacing = rx.combine_latest(children, self.observe("spacing")).pipe(

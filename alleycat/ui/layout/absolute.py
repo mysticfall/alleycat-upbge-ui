@@ -10,11 +10,11 @@ class AbsoluteLayout(Layout):
     def __init__(self) -> None:
         super().__init__()
 
-    def perform(self, component: LayoutContainer) -> None:
+    def perform(self, container: LayoutContainer) -> None:
         pass
 
-    def minimum_size(self, component: LayoutContainer) -> Observable:
+    def minimum_size(self, container: LayoutContainer) -> Observable:
         return rx.of(Dimension(0, 0))
 
-    def preferred_size(self, component: LayoutContainer) -> Observable:
-        return component.observe("size")
+    def preferred_size(self, container: LayoutContainer) -> Observable:
+        return container.observe("size")

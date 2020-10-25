@@ -23,15 +23,15 @@ class Layout(ReactiveObject, ABC):
         return rx.empty()
 
     @abstractmethod
-    def perform(self, component: LayoutContainer) -> None:
+    def perform(self, container: LayoutContainer) -> None:
         pass
 
     @abstractmethod
-    def minimum_size(self, component: LayoutContainer) -> Observable:
+    def minimum_size(self, container: LayoutContainer) -> Observable:
         pass
 
     @abstractmethod
-    def preferred_size(self, component: LayoutContainer) -> Observable:
+    def preferred_size(self, container: LayoutContainer) -> Observable:
         pass
 
     @staticmethod
