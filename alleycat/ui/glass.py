@@ -6,7 +6,7 @@ from rx import Observable
 from rx import operators as ops
 
 from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window, Label, Point, Toolkit, \
-    TextAlign, Font, Button, LabelButton, WindowUI, LayoutContainerUI, FontChangeEvent, LabelUI, Insets, \
+    TextAlign, Font, Button, LabelButton, WindowUI, ContainerUI, FontChangeEvent, LabelUI, Insets, \
     InsetsChangeEvent, Dimension
 
 T = TypeVar("T", bound=Component, contravariant=True)
@@ -84,7 +84,7 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
         g.draw_rect(component.bounds)
 
 
-class GlassPanelUI(GlassComponentUI[Panel], LayoutContainerUI[Panel]):
+class GlassPanelUI(GlassComponentUI[Panel], ContainerUI[Panel]):
 
     def __init__(self) -> None:
         super().__init__()

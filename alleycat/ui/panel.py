@@ -3,10 +3,10 @@ from __future__ import annotations
 from itertools import chain
 from typing import Optional, Iterable
 
-from alleycat.ui import Context, Layout, LayoutContainer
+from alleycat.ui import Context, Layout, Container
 
 
-class Panel(LayoutContainer):
+class Panel(Container):
 
     def __init__(self, context: Context, layout: Optional[Layout] = None, visible: bool = True) -> None:
         super().__init__(context, layout, visible)

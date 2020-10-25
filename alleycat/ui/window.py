@@ -2,19 +2,20 @@ from __future__ import annotations
 
 from abc import ABC
 from itertools import chain
-from typing import Optional, Iterator, Iterable, TypeVar, cast, NamedTuple
+from typing import Optional, Iterator, Iterable, TypeVar, cast, NamedTuple, Sequence, Tuple
 
 import rx
-from alleycat.reactive import RP
+from alleycat.reactive import RP, RV, ReactiveObject
 from alleycat.reactive import functions as rv
 from returns.maybe import Maybe, Nothing, Some
 from rx import operators as ops
+from rx.subject import Subject
 
-from alleycat.ui import Context, Graphics, Container, LayoutContainer, Layout, Drawable, Point, ErrorHandlerSupport, \
-    ErrorHandler, MouseButton, Event, PropagatingEvent, LayoutContainerUI, Bounds, MouseInput, Dimension, Direction
+from alleycat.ui import Context, Graphics, Container, Layout, Drawable, Point, ErrorHandlerSupport, \
+    ErrorHandler, MouseButton, Event, PropagatingEvent, ContainerUI, Bounds, MouseInput, Dimension, Direction
 
 
-class Window(LayoutContainer):
+class Window(Container):
     draggable: RP[bool] = rv.from_value(False)
 
     resizable: RP[bool] = rv.from_value(False)
@@ -111,7 +112,8 @@ class Window(LayoutContainer):
         min_size: Dimension
 
 
-class WindowManager(Drawable, ErrorHandlerSupport, Container[Window]):
+class WindowManager(Drawable, ErrorHandlerSupport, ReactiveObject):
+    windows: RV[Sequence[Window]] = rv.new_view()
 
     def __init__(self, error_handler: ErrorHandler) -> None:
         if error_handler is None:
@@ -121,13 +123,44 @@ class WindowManager(Drawable, ErrorHandlerSupport, Container[Window]):
 
         self._error_handler = error_handler
 
+        self._added_window = Subject()
+        self._removed_window = Subject()
+
+        changed_window = rx.merge(
+            self._added_window.pipe(ops.map(lambda v: (v, True))),
+            self._removed_window.pipe(ops.map(lambda v: (v, False))))
+
+        def on_window_change(windows: Tuple[Window, ...], event: Tuple[Window, bool]):
+            (window, added) = event
+
+            if added and window not in windows:
+                return windows + (window,)
+            elif not added and window in windows:
+                return tuple(c for c in windows if c is not window)
+
+        # noinspection PyTypeChecker
+        self.windows = changed_window.pipe(
+            ops.scan(on_window_change, ()), ops.start_with(()), ops.distinct_until_changed())
+
+    def add(self, window: Window) -> None:
+        if window is None:
+            raise ValueError("Argument 'window' is required.")
+
+        self._added_window.on_next(window)
+
+    def remove(self, window: Window) -> None:
+        if window is None:
+            raise ValueError("Argument 'window' is required.")
+
+        self._removed_window.on_next(window)
+
     def window_at(self, location: Point) -> Maybe[Window]:
         if location is None:
             raise ValueError("Argument 'location' is required.")
 
         try:
             # noinspection PyTypeChecker
-            children: Iterator[Window] = reversed(self.children)
+            children: Iterator[Window] = reversed(self.windows)
 
             return Some(next(c for c in children if c.bounds.contains(location)))
         except StopIteration:
@@ -135,8 +168,8 @@ class WindowManager(Drawable, ErrorHandlerSupport, Container[Window]):
 
     def draw(self, g: Graphics) -> None:
         # noinspection PyTypeChecker
-        for child in self.children:
-            child.draw(g)
+        for window in self.windows:
+            window.draw(g)
 
     @property
     def error_handler(self) -> ErrorHandler:
@@ -144,8 +177,8 @@ class WindowManager(Drawable, ErrorHandlerSupport, Container[Window]):
 
     def dispose(self) -> None:
         # noinspection PyTypeChecker
-        for child in self.children:
-            self.execute_safely(child.dispose)
+        for window in self.windows:
+            self.execute_safely(window.dispose)
 
         super().dispose()
 
@@ -153,7 +186,7 @@ class WindowManager(Drawable, ErrorHandlerSupport, Container[Window]):
 T = TypeVar("T", bound=Window, contravariant=True)
 
 
-class WindowUI(LayoutContainerUI[T], ABC):
+class WindowUI(ContainerUI[T], ABC):
 
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def allow_drag(self, component: T, location: Point) -> bool:

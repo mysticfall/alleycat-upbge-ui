@@ -13,13 +13,13 @@ from alleycat.ui import Context, ContextAware, Drawable, EventDispatcher, Graphi
     PositionalEvent, MouseEventHandler, Input, Bounds, Dimension, Bounded
 
 if TYPE_CHECKING:
-    from alleycat.ui import LayoutContainer, LookAndFeel
+    from alleycat.ui import Container, LookAndFeel
 
 
 class Component(Drawable, StyleResolver, MouseEventHandler, EventDispatcher, ContextAware, ReactiveObject):
     visible: RP[bool] = rv.new_property()
 
-    parent: RP[Maybe[LayoutContainer]] = rv.from_value(Nothing)
+    parent: RP[Maybe[Container]] = rv.from_value(Nothing)
 
     offset: RV[Point] = parent.as_view().map(
         lambda _, parent: parent.map(

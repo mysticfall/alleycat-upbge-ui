@@ -1,6 +1,6 @@
 import unittest
 
-from alleycat.ui import Panel, ComponentUI, Graphics, LayoutContainer, LookAndFeel, LabelButton, Button, Label
+from alleycat.ui import Panel, ComponentUI, Graphics, Container, LookAndFeel, LabelButton, Button, Label
 from alleycat.ui.component import T, Component
 from alleycat.ui.glass import GlassPanelUI, GlassComponentUI, GlassLabelUI, GlassButtonUI, GlassLabelButtonUI
 from tests.ui import UITestCase
@@ -18,7 +18,7 @@ class LookAndFeelTest(UITestCase):
         laf.register_ui(Panel, CustomPanelUI)
 
         panel_ui = laf.create_ui(Panel(self.context))
-        container_ui = laf.create_ui(LayoutContainer(self.context))
+        container_ui = laf.create_ui(Container(self.context))
 
         self.assertTrue(isinstance(panel_ui, CustomPanelUI))
         self.assertFalse(isinstance(container_ui, CustomPanelUI))

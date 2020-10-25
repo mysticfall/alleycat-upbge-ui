@@ -6,7 +6,7 @@ from returns.maybe import Nothing, Some
 from rx import Observable
 from rx.subject import BehaviorSubject
 
-from alleycat.ui import Component, Panel, Bounds, Point, MouseMoveEvent, LayoutContainer, RGBA, Dimension, \
+from alleycat.ui import Component, Panel, Bounds, Point, MouseMoveEvent, Container, RGBA, Dimension, \
     ComponentUI, Graphics
 from alleycat.ui.component import T
 from tests.ui import UITestCase
@@ -19,7 +19,7 @@ class ComponentTest(UITestCase):
         parent = Panel(self.context)
         parent.bounds = Bounds(10, 20, 80, 60)
 
-        grand_parent = LayoutContainer(self.context)
+        grand_parent = Container(self.context)
         grand_parent.bounds = Bounds(20, 10, 40, 20)
 
         component = Component(self.context)
@@ -48,7 +48,7 @@ class ComponentTest(UITestCase):
         self.assertEqual(Point(20, 40), component.offset)
 
     def test_position_of(self):
-        parent = LayoutContainer(self.context)
+        parent = Container(self.context)
         parent.bounds = Bounds(10, 20, 80, 60)
 
         component = Component(self.context)

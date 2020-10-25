@@ -14,10 +14,10 @@ from .mouse import MouseButton, MouseEvent, MouseDownEvent, MouseUpEvent, MouseM
     MouseEventHandler, MouseInput, FakeMouseInput
 from .toolkit import Toolkit
 from .style import StyleLookup, StyleResolver, StyleChangeEvent, ColorChangeEvent, FontChangeEvent, InsetsChangeEvent
-from .container import Container
 from .component import Component, ComponentUI
 from .laf import LookAndFeel
-from .layout.layout import Layout, LayoutContainer, LayoutContainerUI
+from .layout.layout import Layout
+from .container import Container, ContainerUI
 from .panel import Panel
 from .label import Label, LabelUI, TextAlign
 from .button import Button, LabelButton
