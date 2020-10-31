@@ -22,7 +22,8 @@ class Container(Component):
         self._layout_in_progress = False
 
         # noinspection PyTypeChecker
-        self.children = self.layout.observe("children")
+        self.children = self.layout.observe("children").pipe(
+            ops.map(lambda children: tuple(map(lambda c: c.component, children))))
 
         super().__init__(context, visible)
 
@@ -88,8 +89,8 @@ class Container(Component):
 
         return Nothing
 
-    def add(self, child: Component) -> None:
-        self.layout.add(child)
+    def add(self, child: Component, *args, **kwargs) -> None:
+        self.layout.add(child, *args, **kwargs)
 
         child.parent.map(lambda p: p.remove(child))
         child.parent = Some(self)

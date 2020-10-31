@@ -40,7 +40,7 @@ class FillLayout(Layout):
 
         # noinspection PyTypeChecker
         for child in self.children:
-            child.bounds = child_bounds
+            child.component.bounds = child_bounds
 
     def calculate_size(self, size_attr: str) -> Observable:
         if size_attr is None:
@@ -50,7 +50,7 @@ class FillLayout(Layout):
             return Dimension(max(s1.width, s2.width), max(s1.height, s2.height))
 
         return self.observe("children").pipe(
-            ops.map(lambda v: map(lambda c: c.observe(size_attr), v)),
+            ops.map(lambda v: map(lambda c: c.component.observe(size_attr), v)),
             ops.map(lambda b: rx.combine_latest(*b, rx.of(Dimension(0, 0)))),
             ops.switch_latest(),
             ops.map(lambda b: reduce(max_size, b)),

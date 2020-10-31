@@ -16,7 +16,7 @@ from .toolkit import Toolkit
 from .style import StyleLookup, StyleResolver, StyleChangeEvent, ColorChangeEvent, FontChangeEvent, InsetsChangeEvent
 from .component import Component, ComponentUI
 from .laf import LookAndFeel
-from .layout.layout import Layout
+from .layout.layout import Layout, LayoutItem
 from .container import Container, ContainerUI
 from .panel import Panel
 from .label import Label, LabelUI, TextAlign
