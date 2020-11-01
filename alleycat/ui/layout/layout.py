@@ -50,13 +50,6 @@ class Layout(ReactiveObject, ABC):
     def perform(self, bounds: Bounds) -> None:
         pass
 
-    def dispose(self) -> None:
-        # noinspection PyTypeChecker
-        for child in self.children:
-            child.component.dispose()
-
-        super().dispose()
-
 
 @dataclass(frozen=True)
 class LayoutItem:

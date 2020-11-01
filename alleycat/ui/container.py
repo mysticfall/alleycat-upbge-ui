@@ -116,6 +116,10 @@ class Container(Component):
             child.draw(g)
 
     def dispose(self) -> None:
+        # noinspection PyTypeChecker
+        for child in self.children:
+            self.execute_safely(child.dispose)
+
         self.execute_safely(self._layout_listener.dispose)
         self.execute_safely(self.layout.dispose)
 
