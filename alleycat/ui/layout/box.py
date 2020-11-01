@@ -20,6 +20,7 @@ class BoxAlign(Enum):
     Stretch = 3
 
 
+# noinspection PyProtectedMember
 class BoxLayout(Layout, ABC):
     spacing: RP[float] = rv.new_property()
 
@@ -28,10 +29,10 @@ class BoxLayout(Layout, ABC):
     align: RP[BoxAlign] = rv.new_property()
 
     minimum_size: RV[Dimension] = rv.from_instance(
-        lambda i: i.calculate_size("effective_minimum_size"), read_only=True)
+        lambda i: i._calculate_size("effective_minimum_size"), read_only=True)
 
     preferred_size: RV[Dimension] = rv.from_instance(
-        lambda i: i.calculate_size("effective_preferred_size"), read_only=True)
+        lambda i: i._calculate_size("effective_preferred_size"), read_only=True)
 
     # noinspection PyTypeChecker
     def __init__(
@@ -118,10 +119,7 @@ class BoxLayout(Layout, ABC):
     def _reduce_size(self, s1: Dimension, s2: Dimension) -> Dimension:
         pass
 
-    def calculate_size(self, size_attr: str) -> Observable:
-        if size_attr is None:
-            raise ValueError("Argument 'size_attribute' is required.")
-
+    def _calculate_size(self, size_attr: str) -> Observable:
         children = self.observe("children")
 
         padding = self.observe("padding").pipe(ops.map(lambda p: Dimension(p.left + p.right, p.top + p.bottom)))

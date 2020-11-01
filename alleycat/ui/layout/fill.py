@@ -10,14 +10,15 @@ from alleycat.ui import Bounds, Dimension, Insets
 from .layout import Layout
 
 
+# noinspection PyProtectedMember
 class FillLayout(Layout):
     padding: RP[Insets] = rv.new_property()
 
     minimum_size: RV[Dimension] = rv.from_instance(
-        lambda i: i.calculate_size("effective_minimum_size"), read_only=True)
+        lambda i: i._calculate_size("effective_minimum_size"), read_only=True)
 
     preferred_size: RV[Dimension] = rv.from_instance(
-        lambda i: i.calculate_size("effective_preferred_size"), read_only=True)
+        lambda i: i._calculate_size("effective_preferred_size"), read_only=True)
 
     def __init__(self, padding: Insets = Insets(0, 0, 0, 0)) -> None:
         super().__init__()
@@ -42,10 +43,7 @@ class FillLayout(Layout):
         for child in self.children:
             child.component.bounds = child_bounds
 
-    def calculate_size(self, size_attr: str) -> Observable:
-        if size_attr is None:
-            raise ValueError("Argument 'size_attribute' is required.")
-
+    def _calculate_size(self, size_attr: str) -> Observable:
         def max_size(s1: Dimension, s2: Dimension):
             return Dimension(max(s1.width, s2.width), max(s1.height, s2.height))
 
