@@ -90,9 +90,10 @@ class Container(Component):
         return Nothing
 
     def add(self, child: Component, *args, **kwargs) -> None:
+        child.parent.map(lambda p: p.remove(child))
+
         self.layout.add(child, *args, **kwargs)
 
-        child.parent.map(lambda p: p.remove(child))
         child.parent = Some(self)
 
     def remove(self, child: Component) -> None:
