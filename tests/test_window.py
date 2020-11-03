@@ -231,7 +231,7 @@ class WindowTest(UITestCase):
         window.draggable = True
         window.resizable = True
 
-        window.minimum_size = Some(Dimension(30, 30))
+        window.minimum_size_override = Some(Dimension(30, 30))
 
         def resize(drag_from: Point, drag_to: Point, expected: Bounds) -> None:
             window.bounds = Bounds(20, 20, 60, 60)

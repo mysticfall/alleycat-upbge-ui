@@ -28,17 +28,17 @@ class LayoutTest(UITestCase):
 
         self.assertEqual(Bounds(10, 10, 20, 20), child1.bounds)
         self.assertEqual(Bounds(50, 60, 20, 20), child2.bounds)
-        self.assertEqual(Dimension(0, 0), container.effective_minimum_size)
+        self.assertEqual(Dimension(0, 0), container.minimum_size)
 
         container.bounds = Bounds(20, 20, 100, 100)
-        child1.minimum_size = Some(Dimension(400, 400))
+        child1.minimum_size_override = Some(Dimension(400, 400))
         child2.bounds = Bounds(-30, -40, 50, 50)
 
         self.context.process()
 
         self.assertEqual(Bounds(10, 10, 400, 400), child1.bounds)
         self.assertEqual(Bounds(-30, -40, 50, 50), child2.bounds)
-        self.assertEqual(Dimension(0, 0), container.effective_minimum_size)
+        self.assertEqual(Dimension(0, 0), container.minimum_size)
 
     def test_fill_layout(self):
         container = Window(self.context, FillLayout())
@@ -57,7 +57,7 @@ class LayoutTest(UITestCase):
 
         self.assertEqual(Bounds(0, 0, 200, 200), child1.bounds)
         self.assertEqual(Bounds(0, 0, 200, 200), child2.bounds)
-        self.assertEqual(Dimension(0, 0), container.effective_minimum_size)
+        self.assertEqual(Dimension(0, 0), container.minimum_size)
 
         container.bounds = Bounds(20, 20, 100, 100)
 
@@ -65,7 +65,7 @@ class LayoutTest(UITestCase):
 
         self.assertEqual(Bounds(0, 0, 100, 100), child1.bounds)
         self.assertEqual(Bounds(0, 0, 100, 100), child2.bounds)
-        self.assertEqual(Dimension(0, 0), container.effective_minimum_size)
+        self.assertEqual(Dimension(0, 0), container.minimum_size)
 
         child1.bounds = Bounds(10, 60, 300, 300)
         child2.bounds = Bounds(-30, -40, 50, 50)
@@ -74,21 +74,21 @@ class LayoutTest(UITestCase):
 
         self.assertEqual(Bounds(0, 0, 100, 100), child1.bounds)
         self.assertEqual(Bounds(0, 0, 100, 100), child2.bounds)
-        self.assertEqual(Dimension(0, 0), container.effective_minimum_size)
+        self.assertEqual(Dimension(0, 0), container.minimum_size)
 
-        child1.minimum_size = Some(Dimension(200, 300))
-        child2.minimum_size = Some(Dimension(500, 150))
+        child1.minimum_size_override = Some(Dimension(200, 300))
+        child2.minimum_size_override = Some(Dimension(500, 150))
 
-        child1.preferred_size = Some(Dimension(300, 450))
-        child2.preferred_size = Some(Dimension(640, 400))
+        child1.preferred_size_override = Some(Dimension(300, 450))
+        child2.preferred_size_override = Some(Dimension(640, 400))
 
         self.context.process()
 
         self.assertEqual(Bounds(0, 0, 500, 300), child1.bounds)
         self.assertEqual(Bounds(0, 0, 500, 300), child2.bounds)
         self.assertEqual(Bounds(20, 20, 500, 300), container.bounds)
-        self.assertEqual(Dimension(500, 300), container.effective_minimum_size)
-        self.assertEqual(Dimension(640, 450), container.effective_preferred_size)
+        self.assertEqual(Dimension(500, 300), container.minimum_size)
+        self.assertEqual(Dimension(640, 450), container.preferred_size)
 
     def test_fill_layout_insets(self):
         layout = FillLayout(Insets(10, 5, 3, 6))
@@ -102,24 +102,24 @@ class LayoutTest(UITestCase):
         self.context.process()
 
         self.assertEqual(Bounds(10, 6, 189, 187), child.bounds)
-        self.assertEqual(Dimension(11, 13), container.effective_minimum_size)
-        self.assertEqual(Dimension(11, 13), container.effective_preferred_size)
+        self.assertEqual(Dimension(11, 13), container.minimum_size)
+        self.assertEqual(Dimension(11, 13), container.preferred_size)
 
-        child.minimum_size = Some(Dimension(10, 10))
+        child.minimum_size_override = Some(Dimension(10, 10))
 
         self.context.process()
 
         self.assertEqual(Bounds(10, 6, 189, 187), child.bounds)
-        self.assertEqual(Dimension(21, 23), container.effective_minimum_size)
-        self.assertEqual(Dimension(21, 23), container.effective_preferred_size)
+        self.assertEqual(Dimension(21, 23), container.minimum_size)
+        self.assertEqual(Dimension(21, 23), container.preferred_size)
 
         layout.padding = Insets(5, 5, 5, 5)
 
         self.context.process()
 
         self.assertEqual(Bounds(5, 5, 190, 190), child.bounds)
-        self.assertEqual(Dimension(20, 20), container.effective_minimum_size)
-        self.assertEqual(Dimension(20, 20), container.effective_preferred_size)
+        self.assertEqual(Dimension(20, 20), container.minimum_size)
+        self.assertEqual(Dimension(20, 20), container.preferred_size)
 
     def test_hbox_layout(self):
         layout = HBoxLayout()
@@ -128,21 +128,21 @@ class LayoutTest(UITestCase):
         container.bounds = Bounds(5, 5, 90, 90)
 
         child1 = Panel(self.context)
-        child1.preferred_size = Some(Dimension(20, 50))
+        child1.preferred_size_override = Some(Dimension(20, 50))
         child1.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
 
         container.add(child1)
 
         child2 = Panel(self.context)
-        child2.preferred_size = Some(Dimension(15, 60))
-        child2.minimum_size = Some(Dimension(15, 60))
+        child2.preferred_size_override = Some(Dimension(15, 60))
+        child2.minimum_size_override = Some(Dimension(15, 60))
         child2.set_color(StyleKeys.Background, RGBA(0, 1, 0, 1))
 
         container.add(child2)
 
         child3 = Panel(self.context)
-        child3.preferred_size = Some(Dimension(30, 40))
-        child3.minimum_size = Some(Dimension(10, 20))
+        child3.preferred_size_override = Some(Dimension(30, 40))
+        child3.minimum_size_override = Some(Dimension(10, 20))
         child3.set_color(StyleKeys.Background, RGBA(0, 0, 1, 1))
 
         container.add(child3)
@@ -178,21 +178,21 @@ class LayoutTest(UITestCase):
         container.bounds = Bounds(5, 5, 90, 90)
 
         child1 = Panel(self.context)
-        child1.preferred_size = Some(Dimension(50, 20))
+        child1.preferred_size_override = Some(Dimension(50, 20))
         child1.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
 
         container.add(child1)
 
         child2 = Panel(self.context)
-        child2.preferred_size = Some(Dimension(60, 15))
-        child2.minimum_size = Some(Dimension(60, 15))
+        child2.preferred_size_override = Some(Dimension(60, 15))
+        child2.minimum_size_override = Some(Dimension(60, 15))
         child2.set_color(StyleKeys.Background, RGBA(0, 1, 0, 1))
 
         container.add(child2)
 
         child3 = Panel(self.context)
-        child3.preferred_size = Some(Dimension(40, 30))
-        child3.minimum_size = Some(Dimension(20, 10))
+        child3.preferred_size_override = Some(Dimension(40, 30))
+        child3.minimum_size_override = Some(Dimension(20, 10))
         child3.set_color(StyleKeys.Background, RGBA(0, 0, 1, 1))
 
         container.add(child3)

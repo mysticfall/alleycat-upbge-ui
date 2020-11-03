@@ -158,17 +158,17 @@ class ContainerTest(UITestCase):
 
         self.assertEqual(Bounds(10, 10, 20, 20), child1.bounds)
         self.assertEqual(Bounds(50, 60, 20, 20), child2.bounds)
-        self.assertEqual(Dimension(0, 0), container.effective_minimum_size)
+        self.assertEqual(Dimension(0, 0), container.minimum_size)
 
         container.bounds = Bounds(20, 20, 100, 100)
-        child1.minimum_size = Some(Dimension(400, 400))
+        child1.minimum_size_override = Some(Dimension(400, 400))
         child2.bounds = Bounds(-30, -40, 50, 50)
 
         self.context.process()
 
         self.assertEqual(Bounds(10, 10, 400, 400), child1.bounds)
         self.assertEqual(Bounds(-30, -40, 50, 50), child2.bounds)
-        self.assertEqual(Dimension(0, 0), container.effective_minimum_size)
+        self.assertEqual(Dimension(0, 0), container.minimum_size)
 
 
 if __name__ == '__main__':

@@ -29,10 +29,10 @@ class BoxLayout(Layout, ABC):
     align: RP[BoxAlign] = rv.new_property()
 
     minimum_size: RV[Dimension] = rv.from_instance(
-        lambda i: i._calculate_size("effective_minimum_size"), read_only=True)
+        lambda i: i._calculate_size("minimum_size"), read_only=True)
 
     preferred_size: RV[Dimension] = rv.from_instance(
-        lambda i: i._calculate_size("effective_preferred_size"), read_only=True)
+        lambda i: i._calculate_size("preferred_size"), read_only=True)
 
     # noinspection PyTypeChecker
     def __init__(
@@ -76,7 +76,7 @@ class BoxLayout(Layout, ABC):
 
         space_between = max(len(children) - 1, 0) * spacing
         space_available = s(area.size) - space_between
-        space_needed = sum(map(lambda c: s(c.effective_preferred_size), children))
+        space_needed = sum(map(lambda c: s(c.preferred_size), children))
         space_to_reduce = max(space_needed - space_available, 0)
 
         reduced_size = dict.fromkeys(children, 0.)
@@ -90,7 +90,7 @@ class BoxLayout(Layout, ABC):
             next_remaining = remaining
 
             for c in comps:
-                available = s(c.effective_preferred_size - c.effective_minimum_size)
+                available = s(c.preferred_size - c.minimum_size)
 
                 if available > target:
                     next_comps.append(c)
@@ -108,7 +108,7 @@ class BoxLayout(Layout, ABC):
         offset = 0
 
         for child in children:
-            preferred = child.effective_preferred_size
+            preferred = child.preferred_size
             size = s(preferred) - reduced_size[child]
 
             child.bounds = self._calculate_bounds(size, offset, preferred, area)

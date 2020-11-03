@@ -162,19 +162,19 @@ class LabelTest(UITestCase):
                 pw = padding.left + padding.right
                 ph = padding.top + padding.bottom
 
-                rv.observe(label.effective_minimum_size).subscribe(calculated.append)
+                rv.observe(label.minimum_size).subscribe(calculated.append)
 
-                self.assertEqual(Nothing, label.minimum_size)
-                self.assertEqual(Dimension(pw, ph), label.effective_minimum_size)
+                self.assertEqual(Nothing, label.minimum_size_override)
+                self.assertEqual(Dimension(pw, ph), label.minimum_size)
                 self.assertEqual([Dimension(pw, ph)], calculated)
 
                 label.text = "Test"
 
                 self.assertEqual(2, len(calculated))
 
-                self.assertEqual(Nothing, label.minimum_size)
-                self.assertAlmostEqual(18.476 + pw, label.effective_minimum_size.width, delta=tolerance)
-                self.assertAlmostEqual(7.227 + ph, label.effective_minimum_size.height, delta=tolerance)
+                self.assertEqual(Nothing, label.minimum_size_override)
+                self.assertAlmostEqual(18.476 + pw, label.minimum_size.width, delta=tolerance)
+                self.assertAlmostEqual(7.227 + ph, label.minimum_size.height, delta=tolerance)
                 self.assertAlmostEqual(18.476 + pw, calculated[1].width, delta=tolerance)
                 self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=tolerance)
 
@@ -184,9 +184,9 @@ class LabelTest(UITestCase):
 
                 self.assertEqual(3, len(calculated))
 
-                self.assertEqual(Nothing, label.minimum_size)
-                self.assertAlmostEqual(27.715 + pw, label.effective_minimum_size.width, delta=tolerance)
-                self.assertAlmostEqual(10.840 + ph, label.effective_minimum_size.height, delta=tolerance)
+                self.assertEqual(Nothing, label.minimum_size_override)
+                self.assertAlmostEqual(27.715 + pw, label.minimum_size.width, delta=tolerance)
+                self.assertAlmostEqual(10.840 + ph, label.minimum_size.height, delta=tolerance)
                 self.assertAlmostEqual(27.715 + pw, calculated[2].width, delta=tolerance)
                 self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
@@ -194,10 +194,10 @@ class LabelTest(UITestCase):
 
                 self.assertEqual(Bounds(10, 20, 60, 40), label.bounds)
 
-                label.minimum_size = Some(Dimension(80, 50))
+                label.minimum_size_override = Some(Dimension(80, 50))
 
-                self.assertEqual(Some(Dimension(80, 50)), label.minimum_size)
-                self.assertEqual(Dimension(80, 50), label.effective_minimum_size)
+                self.assertEqual(Some(Dimension(80, 50)), label.minimum_size_override)
+                self.assertEqual(Dimension(80, 50), label.minimum_size)
                 self.assertAlmostEqual(27.715 + pw, calculated[2].width, delta=tolerance)
                 self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
@@ -222,19 +222,19 @@ class LabelTest(UITestCase):
                 pw = padding.left + padding.right
                 ph = padding.top + padding.bottom
 
-                rv.observe(label.effective_preferred_size).subscribe(calculated.append)
+                rv.observe(label.preferred_size).subscribe(calculated.append)
 
-                self.assertEqual(Nothing, label.preferred_size)
-                self.assertEqual(Dimension(pw, ph), label.effective_preferred_size)
+                self.assertEqual(Nothing, label.preferred_size_override)
+                self.assertEqual(Dimension(pw, ph), label.preferred_size)
                 self.assertEqual([Dimension(pw, ph)], calculated)
 
                 label.text = "Test"
 
                 self.assertEqual(2, len(calculated))
 
-                self.assertEqual(Nothing, label.preferred_size)
-                self.assertAlmostEqual(18.476 + pw, label.effective_preferred_size.width, delta=tolerance)
-                self.assertAlmostEqual(7.227 + ph, label.effective_preferred_size.height, delta=tolerance)
+                self.assertEqual(Nothing, label.preferred_size_override)
+                self.assertAlmostEqual(18.476 + pw, label.preferred_size.width, delta=tolerance)
+                self.assertAlmostEqual(7.227 + ph, label.preferred_size.height, delta=tolerance)
                 self.assertEqual(2, len(calculated))
                 self.assertAlmostEqual(18.476 + pw, calculated[1].width, delta=tolerance)
                 self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=tolerance)
@@ -243,29 +243,29 @@ class LabelTest(UITestCase):
 
                 self.assertEqual(3, len(calculated))
 
-                self.assertEqual(Nothing, label.preferred_size)
-                self.assertAlmostEqual(27.715 + pw, label.effective_preferred_size.width, delta=tolerance)
-                self.assertAlmostEqual(10.840 + ph, label.effective_preferred_size.height, delta=tolerance)
+                self.assertEqual(Nothing, label.preferred_size_override)
+                self.assertAlmostEqual(27.715 + pw, label.preferred_size.width, delta=tolerance)
+                self.assertAlmostEqual(10.840 + ph, label.preferred_size.height, delta=tolerance)
                 self.assertEqual(3, len(calculated))
                 self.assertAlmostEqual(27.715 + pw, calculated[2].width, delta=tolerance)
                 self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
-                label.preferred_size = Some(Dimension(80, 50))
+                label.preferred_size_override = Some(Dimension(80, 50))
 
-                self.assertEqual(Some(Dimension(80, 50)), label.preferred_size)
-                self.assertEqual(Dimension(80, 50), label.effective_preferred_size)
+                self.assertEqual(Some(Dimension(80, 50)), label.preferred_size_override)
+                self.assertEqual(Dimension(80, 50), label.preferred_size)
                 self.assertEqual(4, len(calculated))
                 self.assertEqual(Dimension(80, 50), calculated[3])
 
-                label.preferred_size = Some(Dimension(10, 10))
+                label.preferred_size_override = Some(Dimension(10, 10))
 
-                self.assertEqual(calculated[2], label.effective_preferred_size)
+                self.assertEqual(calculated[2], label.preferred_size)
                 self.assertEqual(5, len(calculated))
                 self.assertEqual(calculated[2], calculated[4])
 
-                label.minimum_size = Some(Dimension(400, 360))
+                label.minimum_size_override = Some(Dimension(400, 360))
 
-                self.assertEqual(Dimension(400, 360), label.effective_preferred_size)
+                self.assertEqual(Dimension(400, 360), label.preferred_size)
                 self.assertEqual(6, len(calculated))
                 self.assertEqual(Dimension(400, 360), calculated[5])
 

@@ -50,7 +50,7 @@ class Window(Container):
         bounds = self.on_drag_start.pipe(
             ops.filter(lambda e: self.resizable and e.button == MouseButton.LEFT),
             ops.map(lambda e: ui.resize_handle_at(self, e.position).map(
-                lambda v: Window._ResizeState(v, e.position, self.bounds, self.effective_minimum_size))),
+                lambda v: Window._ResizeState(v, e.position, self.bounds, self.minimum_size))),
             ops.map(lambda v: v.map(rx.of).value_or(rx.empty())),
             ops.switch_latest(),
             ops.map(lambda s: mouse.on_mouse_move.pipe(

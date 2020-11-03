@@ -111,11 +111,11 @@ class ComponentTest(UITestCase):
         sizes = []
         effective_sizes = []
 
-        rv.observe(fixture.minimum_size).subscribe(sizes.append)
-        rv.observe(fixture.effective_minimum_size).subscribe(effective_sizes.append)
+        rv.observe(fixture.minimum_size_override).subscribe(sizes.append)
+        rv.observe(fixture.minimum_size).subscribe(effective_sizes.append)
 
-        self.assertEqual(Nothing, fixture.minimum_size)
-        self.assertEqual(Dimension(10, 10), fixture.effective_minimum_size)
+        self.assertEqual(Nothing, fixture.minimum_size_override)
+        self.assertEqual(Dimension(10, 10), fixture.minimum_size)
         self.assertEqual([Nothing], sizes)
         self.assertEqual([Dimension(10, 10)], effective_sizes)
 
@@ -123,18 +123,18 @@ class ComponentTest(UITestCase):
 
         self.assertEqual(Bounds(10, 20, 100, 50), fixture.bounds)
 
-        fixture.minimum_size = Some(Dimension(200, 100))
+        fixture.minimum_size_override = Some(Dimension(200, 100))
 
-        self.assertEqual(Some(Dimension(200, 100)), fixture.minimum_size)
-        self.assertEqual(Dimension(200, 100), fixture.effective_minimum_size)
+        self.assertEqual(Some(Dimension(200, 100)), fixture.minimum_size_override)
+        self.assertEqual(Dimension(200, 100), fixture.minimum_size)
         self.assertEqual([Some(Dimension(200, 100))], sizes[1:])
         self.assertEqual([Dimension(200, 100)], effective_sizes[1:])
         self.assertEqual(Bounds(10, 20, 200, 100), fixture.bounds)
 
         minimum_size.on_next(Dimension(240, 260))
 
-        self.assertEqual(Some(Dimension(200, 100)), fixture.minimum_size)
-        self.assertEqual(Dimension(200, 100), fixture.effective_minimum_size)
+        self.assertEqual(Some(Dimension(200, 100)), fixture.minimum_size_override)
+        self.assertEqual(Dimension(200, 100), fixture.minimum_size)
         self.assertEqual(2, len(effective_sizes))
         self.assertEqual([Some(Dimension(200, 100))], sizes[1:])
         self.assertEqual([Dimension(200, 100)], effective_sizes[1:])
@@ -144,10 +144,10 @@ class ComponentTest(UITestCase):
 
         self.assertEqual(Bounds(0, 0, 200, 100), fixture.bounds)
 
-        fixture.minimum_size = Nothing
+        fixture.minimum_size_override = Nothing
 
-        self.assertEqual(Nothing, fixture.minimum_size)
-        self.assertEqual(Dimension(240, 260), fixture.effective_minimum_size)
+        self.assertEqual(Nothing, fixture.minimum_size_override)
+        self.assertEqual(Dimension(240, 260), fixture.minimum_size)
         self.assertEqual(3, len(effective_sizes))
         self.assertEqual([Nothing], sizes[2:])
         self.assertEqual([Dimension(240, 260)], effective_sizes[2:])
@@ -173,43 +173,43 @@ class ComponentTest(UITestCase):
         sizes = []
         effective_sizes = []
 
-        rv.observe(fixture.preferred_size).subscribe(sizes.append)
-        rv.observe(fixture.effective_preferred_size).subscribe(effective_sizes.append)
+        rv.observe(fixture.preferred_size_override).subscribe(sizes.append)
+        rv.observe(fixture.preferred_size).subscribe(effective_sizes.append)
 
-        self.assertEqual(Nothing, fixture.preferred_size)
-        self.assertEqual(Dimension(10, 10), fixture.effective_preferred_size)
+        self.assertEqual(Nothing, fixture.preferred_size_override)
+        self.assertEqual(Dimension(10, 10), fixture.preferred_size)
         self.assertEqual([Nothing], sizes)
         self.assertEqual([Dimension(10, 10)], effective_sizes)
 
-        fixture.preferred_size = Some(Dimension(100, 80))
+        fixture.preferred_size_override = Some(Dimension(100, 80))
 
-        self.assertEqual(Some(Dimension(100, 80)), fixture.preferred_size)
-        self.assertEqual(Dimension(100, 80), fixture.effective_preferred_size)
+        self.assertEqual(Some(Dimension(100, 80)), fixture.preferred_size_override)
+        self.assertEqual(Dimension(100, 80), fixture.preferred_size)
         self.assertEqual([Some(Dimension(100, 80))], sizes[1:])
         self.assertEqual([Dimension(100, 80)], effective_sizes[1:])
 
         preferred_size.on_next(Dimension(240, 300))
 
-        self.assertEqual(Some(Dimension(100, 80)), fixture.preferred_size)
-        self.assertEqual(Dimension(100, 80), fixture.effective_preferred_size)
+        self.assertEqual(Some(Dimension(100, 80)), fixture.preferred_size_override)
+        self.assertEqual(Dimension(100, 80), fixture.preferred_size)
         self.assertEqual([Some(Dimension(100, 80))], sizes[1:])
         self.assertEqual([Dimension(100, 80)], effective_sizes[1:])
 
-        fixture.preferred_size = Nothing
+        fixture.preferred_size_override = Nothing
 
-        self.assertEqual(Nothing, fixture.preferred_size)
-        self.assertEqual(Dimension(240, 300), fixture.effective_preferred_size)
+        self.assertEqual(Nothing, fixture.preferred_size_override)
+        self.assertEqual(Dimension(240, 300), fixture.preferred_size)
         self.assertEqual([Nothing], sizes[2:])
         self.assertEqual([Dimension(240, 300)], effective_sizes[2:])
 
-        fixture.minimum_size = Some(Dimension(400, 360))
+        fixture.minimum_size_override = Some(Dimension(400, 360))
 
-        self.assertEqual(Dimension(400, 360), fixture.effective_preferred_size)
+        self.assertEqual(Dimension(400, 360), fixture.preferred_size)
         self.assertEqual([Dimension(400, 360)], effective_sizes[3:])
 
-        fixture.preferred_size = Some(Dimension(300, 300))
+        fixture.preferred_size_override = Some(Dimension(300, 300))
 
-        self.assertEqual(Dimension(400, 360), fixture.effective_preferred_size)
+        self.assertEqual(Dimension(400, 360), fixture.preferred_size)
         self.assertEqual([Some(Dimension(400, 360))], sizes[3:])
         self.assertEqual([Dimension(400, 360)], effective_sizes[3:])
 

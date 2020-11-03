@@ -28,8 +28,8 @@ class Container(Component):
         super().__init__(context, visible)
 
         on_size_change = self.observe("size")
-        on_min_size_change = self.observe("effective_minimum_size")
-        on_pre_size_change = self.observe("effective_preferred_size")
+        on_min_size_change = self.observe("minimum_size_override")
+        on_pre_size_change = self.observe("preferred_size_override")
         on_children_change = self.observe("children")
 
         on_child_bounds_change = on_children_change.pipe(

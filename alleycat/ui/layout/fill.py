@@ -15,10 +15,10 @@ class FillLayout(Layout):
     padding: RP[Insets] = rv.new_property()
 
     minimum_size: RV[Dimension] = rv.from_instance(
-        lambda i: i._calculate_size("effective_minimum_size"), read_only=True)
+        lambda i: i._calculate_size("minimum_size"), read_only=True)
 
     preferred_size: RV[Dimension] = rv.from_instance(
-        lambda i: i._calculate_size("effective_preferred_size"), read_only=True)
+        lambda i: i._calculate_size("preferred_size"), read_only=True)
 
     def __init__(self, padding: Insets = Insets(0, 0, 0, 0)) -> None:
         super().__init__()

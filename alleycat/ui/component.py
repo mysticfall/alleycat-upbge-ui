@@ -28,30 +28,30 @@ class Component(Drawable, StyleResolver, MouseEventHandler, EventDispatcher, Con
         ).or_else_call(lambda: rx.of(Point(0, 0)))
     ).pipe(lambda _: (ops.exclusive(),))
 
-    preferred_size: RP[Maybe[Dimension]] = rv.from_value(Nothing).pipe(lambda o: (
-        ops.combine_latest(o.observe("effective_minimum_size")),
+    preferred_size_override: RP[Maybe[Dimension]] = rv.from_value(Nothing).pipe(lambda o: (
+        ops.combine_latest(o.observe("minimum_size")),
         ops.map(lambda t: t[0].map(
             lambda v: t[1].copy(width=max(v.width, t[1].width), height=max(v.height, t[1].height)))),
         ops.distinct_until_changed()))
 
-    minimum_size: RP[Maybe[Dimension]] = rv.from_value(Nothing)
+    minimum_size_override: RP[Maybe[Dimension]] = rv.from_value(Nothing)
 
-    effective_preferred_size: RV[Dimension] = preferred_size.as_view().pipe(lambda c: (
+    preferred_size: RV[Dimension] = preferred_size_override.as_view().pipe(lambda c: (
         ops.combine_latest(c.ui.preferred_size(c)),
         ops.map(lambda v: v[0].value_or(v[1])),
-        ops.combine_latest(c.observe("effective_minimum_size")),
+        ops.combine_latest(c.observe("minimum_size")),
         ops.map(lambda v: v[0].copy(width=max(v[0].width, v[1].width), height=max(v[0].height, v[1].height))),
         ops.distinct_until_changed()))
 
-    effective_minimum_size: RV[Dimension] = minimum_size.as_view().pipe(lambda c: (
+    minimum_size: RV[Dimension] = minimum_size_override.as_view().pipe(lambda c: (
         ops.combine_latest(c.ui.minimum_size(c)),
         ops.map(lambda v: v[0].value_or(v[1])),
         ops.distinct_until_changed()))
 
     bounds: RP[Bounds] = Bounded.bounds.pipe(lambda o: (
-        ops.combine_latest(o.observe("effective_minimum_size")),
+        ops.combine_latest(o.observe("minimum_size")),
         ops.map(lambda v: v[0].copy(width=max(v[0].width, v[1].width), height=max(v[0].height, v[1].height))),
-        ops.start_with(o.effective_preferred_size)))
+        ops.start_with(o.preferred_size)))
 
     def __init__(self, context: Context, visible: bool = True) -> None:
         if context is None:
