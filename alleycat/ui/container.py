@@ -62,7 +62,7 @@ class Container(Component):
             self._layout_in_progress = True
 
             try:
-                self.layout.perform(self.bounds)
+                self.layout.perform(self.bounds.copy(x=0, y=0))
             except BaseException as e:
                 self.context.error_handler(e)
 
