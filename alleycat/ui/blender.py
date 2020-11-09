@@ -252,7 +252,7 @@ class BlenderFont(Font, Disposable):
 
         self._family = family
         self._font_id = font_id
-        self._path = Maybe.from_value(path)
+        self._path = Maybe.from_optional(path)
 
     @property
     def family(self) -> str:

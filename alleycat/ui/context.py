@@ -32,10 +32,10 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
 
         self._toolkit = toolkit
 
-        self._look_and_feel = Maybe.from_value(look_and_feel).or_else_call(lambda: GlassLookAndFeel(toolkit))
-        self._error_handler = Maybe.from_value(error_handler).value_or(toolkit.error_handler)
+        self._look_and_feel = Maybe.from_optional(look_and_feel).or_else_call(lambda: GlassLookAndFeel(toolkit))
+        self._error_handler = Maybe.from_optional(error_handler).value_or(toolkit.error_handler)
 
-        self._window_manager = Maybe.from_value(window_manager) \
+        self._window_manager = Maybe.from_optional(window_manager) \
             .or_else_call(lambda: WindowManager(self.error_handler))
 
         inputs = toolkit.create_inputs(self)

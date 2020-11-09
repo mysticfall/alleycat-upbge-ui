@@ -28,11 +28,9 @@ class BoxLayout(Layout, ABC):
 
     align: RP[BoxAlign] = rv.new_property()
 
-    minimum_size: RV[Dimension] = rv.from_instance(
-        lambda i: i._calculate_size("minimum_size"), read_only=True)
+    minimum_size: RV[Dimension] = rv.from_instance(lambda i: i._calculate_size("minimum_size"))
 
-    preferred_size: RV[Dimension] = rv.from_instance(
-        lambda i: i._calculate_size("preferred_size"), read_only=True)
+    preferred_size: RV[Dimension] = rv.from_instance(lambda i: i._calculate_size("preferred_size"))
 
     # noinspection PyTypeChecker
     def __init__(

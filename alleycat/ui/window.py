@@ -218,4 +218,4 @@ class WindowUI(ContainerUI[T], ABC):
             else:
                 handle = Direction.Northwest if handle == Direction.North else Direction.Southwest
 
-        return Maybe.from_value(handle)
+        return Maybe.from_optional(handle)

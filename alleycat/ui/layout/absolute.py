@@ -7,9 +7,9 @@ from .layout import Layout
 
 
 class AbsoluteLayout(Layout):
-    minimum_size: RV[Dimension] = rv.from_observable(rx.of(Dimension(0, 0)), read_only=True)
+    minimum_size: RV[Dimension] = rv.from_observable(rx.of(Dimension(0, 0)))
 
-    preferred_size: RV[Dimension] = rv.from_observable(rx.of(Dimension(0, 0)), read_only=True)
+    preferred_size: RV[Dimension] = rv.from_observable(rx.of(Dimension(0, 0)))
 
     def __init__(self) -> None:
         super().__init__()

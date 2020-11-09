@@ -17,7 +17,7 @@ class Container(Component):
     def __init__(self, context: Context, layout: Optional[Layout] = None, visible: bool = True):
         from .layout import AbsoluteLayout
 
-        self._layout = Maybe.from_value(layout).or_else_call(AbsoluteLayout)
+        self._layout = Maybe.from_optional(layout).or_else_call(AbsoluteLayout)
         self._layout_valid = True
         self._layout_in_progress = False
 
