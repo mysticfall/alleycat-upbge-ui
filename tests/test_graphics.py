@@ -106,7 +106,7 @@ class GraphicsTest(UITestCase):
         self.assertImage("draw_text_with_clip", self.context, tolerance=50)
 
     def test_draw_image(self):
-        image = self.context.toolkit.images.load(Path("fixtures/test_graphics/cat.png"))
+        image = self.context.toolkit.images.load(Path("fixtures/cat.png"))
 
         self.assertEqual(Dimension(64, 64), image.size)
 
@@ -116,7 +116,7 @@ class GraphicsTest(UITestCase):
         self.assertImage("draw_image", self.context)
 
     def test_draw_image_with_clip(self):
-        image = self.context.toolkit.images.load(Path("fixtures/test_graphics/cat.png"))
+        image = self.context.toolkit.images.load(Path("fixtures/cat.png"))
 
         self.g.clip = Some(Bounds(20, 30, 60, 60))
 
