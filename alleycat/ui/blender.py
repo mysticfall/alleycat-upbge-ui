@@ -404,6 +404,9 @@ class BlenderImage(Image):
         if source is None:
             raise ValueError("Argument 'source' is required.")
 
+        if source.gl_load():
+            raise IOError(f"Failed to load image : {source}.")
+
         super().__init__()
 
         s = source.size
@@ -445,9 +448,6 @@ class BlenderImageRegistry(ImageRegistry[BlenderImage]):
 
         images = cast(BlendDataImages, bpy.data.images)
         image = images.load(str(path), check_existing=False)
-
-        if image.gl_load():
-            raise IOError(f"Failed to load image from path: '{path}'.")
 
         return BlenderImage(image)
 
