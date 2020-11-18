@@ -16,6 +16,8 @@ from alleycat.reactive import functions as rv
 from bge.logic import mouse, KX_INPUT_ACTIVE, KX_INPUT_JUST_ACTIVATED
 from bge.types import SCA_InputEvent
 from bgl import GL_BLEND
+from bpy.types import Image as BLImage, BlendDataImages
+from gpu.types import GPUShader
 from gpu_extras.batch import batch_for_shader
 from returns.maybe import Maybe, Some, Nothing
 from rx import operators as ops, Observable
@@ -23,7 +25,7 @@ from rx.disposable import Disposable
 from rx.subject import Subject, BehaviorSubject
 
 from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, MouseInput, Point, LookAndFeel, WindowManager, \
-    Dimension, MouseButton, Font, FontRegistry
+    Dimension, MouseButton, Font, FontRegistry, Image, ImageRegistry
 from alleycat.ui.context import ContextBuilder, ErrorHandler
 from alleycat.ui.event import EventLoopAware
 
@@ -70,10 +72,15 @@ class BlenderToolkit(Toolkit[BlenderContext]):
         fonts_path = resource_path / "fonts"
 
         self._font_registry = BlenderFontRegistry(fonts_path, self.error_handler)
+        self._image_registry = BlenderImageRegistry(self.error_handler)
 
     @property
     def fonts(self) -> FontRegistry:
         return self._font_registry
+
+    @property
+    def images(self) -> ImageRegistry:
+        return self._image_registry
 
     def create_graphics(self, context: BlenderContext) -> Graphics:
         return BlenderGraphics(context)
@@ -83,8 +90,9 @@ class BlenderToolkit(Toolkit[BlenderContext]):
 
 
 class BlenderGraphics(Graphics[BlenderContext]):
-    # noinspection PyUnresolvedReferences
-    shader = gpu.shader.from_builtin("2D_UNIFORM_COLOR")
+    color_shader: Final = cast(GPUShader, gpu.shader.from_builtin("2D_UNIFORM_COLOR"))
+
+    image_shader: Final = cast(GPUShader, gpu.shader.from_builtin("2D_IMAGE"))
 
     def __init__(self, context: BlenderContext) -> None:
         super().__init__(context)
@@ -119,11 +127,13 @@ class BlenderGraphics(Graphics[BlenderContext]):
             vertices = tuple(map(lambda p: p.tuple, map(bc.translate, points)))
             indices = ((0, 1, 3), (3, 1, 2))
 
-            self.shader.bind()
-            self.shader.uniform_float("color", self.color.tuple)
+            self.color_shader.bind()
 
-            batch = batch_for_shader(self.shader, "TRIS", {"pos": vertices}, indices=indices)
-            batch.draw(self.shader)
+            # noinspection PyTypeChecker
+            self.color_shader.uniform_float("color", self.color.tuple)
+
+            batch = batch_for_shader(self.color_shader, "TRIS", {"pos": vertices}, indices=indices)
+            batch.draw(self.color_shader)
 
         clip = Some(bounds) if self.clip == Nothing else self.clip.bind(lambda c: bounds & c)
         clip.map(draw)
@@ -176,6 +186,50 @@ class BlenderGraphics(Graphics[BlenderContext]):
                 draw()
 
                 blf.disable(font_id, blf.CLIPPING)
+
+        return self
+
+    def draw_image(self, image: Image, location: Point) -> Graphics:
+        if image is None:
+            raise ValueError("Argument 'image' is required.")
+
+        if location is None:
+            raise ValueError("Argument 'location' is required.")
+
+        (x, y) = location.tuple
+        (w, h) = image.size.tuple
+
+        bounds = Bounds(x, y, w, h)
+
+        bl_image = cast(BlenderImage, image)
+
+        def draw(area: Bounds):
+            cx = (area.x - x) / w if w > 0. else 0.
+            cy = (area.y - y) / h if h > 0. else 0.
+            cw = area.width / w if w > 0. else 0.
+            ch = area.height / h if h > 0. else 0.
+
+            points = area.move_by(self.offset).points
+
+            bc = cast(BlenderContext, self.context)
+            vertices = tuple(map(lambda p: p.tuple, map(bc.translate, points)))
+            coords = ((cx, cy), (cx + cw, cy), (cx + cw, cy + ch), (cx, cy + ch))
+
+            bgl.glActiveTexture(int(bgl.GL_TEXTURE0))
+            bgl.glBindTexture(int(bgl.GL_TEXTURE_2D), bl_image.source.bindcode)
+
+            self.image_shader.bind()
+
+            # noinspection PyTypeChecker
+            self.image_shader.uniform_int("image", 0)
+
+            batch = batch_for_shader(self.image_shader, "TRI_FAN", {"pos": vertices, "texCoord": coords})
+            batch.draw(self.image_shader)
+
+        bounds = Bounds(x, y, w, h)
+
+        clip = Some(bounds) if self.clip == Nothing else self.clip.bind(lambda c: bounds & c)
+        clip.map(draw)
 
         return self
 
@@ -332,3 +386,67 @@ class BlenderFontRegistry(FontRegistry[BlenderFont]):
             self.execute_safely(font.dispose)
 
         self._fonts = dict()
+
+
+class BlenderImage(Image):
+
+    def __init__(self, source: BLImage) -> None:
+        if source is None:
+            raise ValueError("Argument 'source' is required.")
+
+        super().__init__()
+
+        s = source.size
+
+        self._source = source
+        self._size = Dimension(s[0], s[1])
+
+    @property
+    def source(self) -> BLImage:
+        return self._source
+
+    @property
+    def size(self) -> Dimension:
+        return self._size
+
+    def dispose(self) -> None:
+        self.source.gl_free()
+
+        super().dispose()
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, BlenderImage):
+            return False
+
+        return o.source.bindcode == self.source.bindcode
+
+    def __hash__(self) -> int:
+        return self.source.bindcode.__hash__()
+
+
+class BlenderImageRegistry(ImageRegistry[BlenderImage]):
+
+    def __init__(self, error_handler: ErrorHandler) -> None:
+        super().__init__(error_handler)
+
+    def load(self, path: Path) -> BlenderImage:
+        if path is None:
+            raise ValueError("Argument 'path' is required.")
+
+        images = cast(BlendDataImages, bpy.data.images)
+        image = images.load(str(path), check_existing=False)
+
+        if image.gl_load():
+            raise IOError(f"Failed to load image from path: '{path}'.")
+
+        return BlenderImage(image)
+
+    def resolve(self, name: str) -> Maybe[BlenderImage]:
+        if name is None:
+            raise ValueError("Argument 'name' is required.")
+
+        try:
+            # noinspection PyTypeChecker
+            return Some(BlenderImage(bpy.data.images[name]))
+        except KeyError:
+            return super().resolve(name)

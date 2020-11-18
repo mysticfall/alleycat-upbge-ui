@@ -1,8 +1,9 @@
 import unittest
+from pathlib import Path
 
 from returns.maybe import Nothing, Some
 
-from alleycat.ui import Bounds, RGBA, Point
+from alleycat.ui import Bounds, RGBA, Point, Dimension
 from tests.ui import UITestCase
 
 
@@ -103,6 +104,26 @@ class GraphicsTest(UITestCase):
             self.g.draw_text("Text", 10 + 2 * i, Point(5 * i, 10 * (i + 1)))
 
         self.assertImage("draw_text_with_clip", self.context, tolerance=50)
+
+    def test_draw_image(self):
+        image = self.context.toolkit.images.load(Path("fixtures/test_graphics/cat.png"))
+
+        self.assertEqual(Dimension(64, 64), image.size)
+
+        self.g.draw_image(image, Point(10, 10))
+        self.g.draw_image(image, Point(30, 40))
+
+        self.assertImage("draw_image", self.context)
+
+    def test_draw_image_with_clip(self):
+        image = self.context.toolkit.images.load(Path("fixtures/test_graphics/cat.png"))
+
+        self.g.clip = Some(Bounds(20, 30, 60, 60))
+
+        self.g.draw_image(image, Point(10, 10))
+        self.g.draw_image(image, Point(30, 40))
+
+        self.assertImage("draw_image_with_clip", self.context)
 
 
 if __name__ == '__main__':

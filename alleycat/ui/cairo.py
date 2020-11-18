@@ -1,18 +1,18 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, cast, Sequence, Mapping
+from typing import Optional, cast, Sequence, Mapping, Callable
 
-import cairo
 import rx
 from alleycat.reactive import RV
 from alleycat.reactive import functions as rv
-from cairo import Surface, FontFace, Format, ImageSurface, ToyFontFace
 from returns.maybe import Maybe, Some, Nothing
 
-from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, Dimension, LookAndFeel, WindowManager, \
-    FakeMouseInput, Font, Point, FontRegistry
+import cairo
+from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, Image, ImageRegistry, Dimension, LookAndFeel, \
+    WindowManager, FakeMouseInput, Font, Point, FontRegistry
 from alleycat.ui.context import ContextBuilder, ErrorHandler
+from cairo import Surface, FontFace, Format, ImageSurface, ToyFontFace
 
 
 class CairoContext(Context):
@@ -54,10 +54,15 @@ class CairoToolkit(Toolkit[CairoContext]):
         super().__init__(resource_path, error_handler)
 
         self._font_registry = CairoFontRegistry(self.error_handler)
+        self._image_registry = CairoImageRegistry(self.error_handler)
 
     @property
     def fonts(self) -> FontRegistry:
         return self._font_registry
+
+    @property
+    def images(self) -> ImageRegistry:
+        return self._image_registry
 
     def create_graphics(self, context: CairoContext) -> Graphics:
         if context is None:
@@ -136,6 +141,30 @@ class CairoGraphics(Graphics[CairoContext]):
 
             self.g.show_text(text)
 
+        self._draw_with_clip(draw)
+
+        return self
+
+    def draw_image(self, image: Image, location: Point) -> Graphics:
+        if image is None:
+            raise ValueError("Argument 'image' is required.")
+
+        if location is None:
+            raise ValueError("Argument 'location' is required.")
+
+        source = cast(CairoImage, image).source
+
+        def draw():
+            (x, y) = (location + self.offset).tuple
+
+            self.g.set_source_surface(source, x, y)
+            self.g.paint()
+
+        self._draw_with_clip(draw)
+
+        return self
+
+    def _draw_with_clip(self, draw: Callable[[], None]) -> None:
         if self.clip == Nothing:
             draw()
         else:
@@ -151,8 +180,6 @@ class CairoGraphics(Graphics[CairoContext]):
                 draw()
 
                 self.g.restore()
-
-        return self
 
     def reset(self) -> Graphics:
         super().reset()
@@ -264,3 +291,42 @@ class CairoFontRegistry(FontRegistry[CairoFont]):
         extents = context.text_extents(text)
 
         return Dimension(extents.x_advance, extents.height)
+
+
+class CairoImage(Image):
+    def __init__(self, source: ImageSurface) -> None:
+        if source is None:
+            raise ValueError("Argument 'source' is required.")
+
+        super().__init__()
+
+        self._source = source
+        self._size = Dimension(source.get_width(), source.get_height())
+
+    @property
+    def source(self) -> ImageSurface:
+        return self._source
+
+    @property
+    def size(self) -> Dimension:
+        return self._size
+
+    def dispose(self) -> None:
+        self.source.finish()
+
+        super().dispose()
+
+
+class CairoImageRegistry(ImageRegistry[CairoImage]):
+
+    def __init__(self, error_handler: ErrorHandler) -> None:
+        super().__init__(error_handler)
+
+    def load(self, path: Path) -> CairoImage:
+        if path is None:
+            raise ValueError("Argument 'path' is required.")
+
+        # noinspection PyTypeChecker
+        source = ImageSurface.create_from_png(path.absolute())  # type:ignore
+
+        return CairoImage(source)

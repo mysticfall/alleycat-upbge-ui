@@ -6,7 +6,7 @@ from typing import TypeVar, Generic
 from returns.maybe import Maybe, Nothing
 from rx.disposable import Disposable
 
-from alleycat.ui import Bounds, RGBA, Context, Point, Font
+from alleycat.ui import Bounds, RGBA, Context, Point, Font, Image
 
 T = TypeVar("T", bound=Context, contravariant=True)
 
@@ -104,6 +104,10 @@ class Graphics(Disposable, ABC, Generic[T]):
 
     @abstractmethod
     def draw_text(self, text: str, size: float, location: Point, allow_wrap: bool = False) -> Graphics:
+        pass
+
+    @abstractmethod
+    def draw_image(self, image: Image, location: Point) -> Graphics:
         pass
 
     def reset(self) -> Graphics:

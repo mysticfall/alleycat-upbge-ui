@@ -6,6 +6,7 @@ from rx.disposable import Disposable
 
 from alleycat.ui import Graphics, Context, Input, FontRegistry, ErrorHandler
 from alleycat.ui.error import default_error_handler
+from alleycat.ui.image import ImageRegistry
 
 T = TypeVar("T", bound=Context, contravariant=True)
 
@@ -28,6 +29,11 @@ class Toolkit(Disposable, Generic[T], ABC):
     @property
     @abstractmethod
     def fonts(self) -> FontRegistry:
+        pass
+
+    @property
+    @abstractmethod
+    def images(self) -> ImageRegistry:
         pass
 
     @property

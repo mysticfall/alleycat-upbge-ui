@@ -2,6 +2,7 @@
 from .common import Point, Dimension, Bounds, Insets, RGBA, Direction
 from .error import ErrorHandler, ErrorHandlerSupport
 from .font import Font, FontRegistry
+from .image import Image, ImageRegistry
 from .context_aware import ContextAware
 from .input import Input, InputLookup
 from .event import Event, EventDispatcher, EventHandler, EventLoopAware, PositionalEvent, PropagatingEvent
