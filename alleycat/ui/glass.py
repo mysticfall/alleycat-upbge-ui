@@ -6,7 +6,7 @@ from rx import Observable
 from rx import operators as ops
 
 from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window, Label, Point, Toolkit, \
-    TextAlign, Font, Button, LabelButton, WindowUI, ContainerUI, FontChangeEvent, LabelUI, Insets, \
+    TextAlign, Font, Button, LabelButton, WindowUI, Container, ContainerUI, FontChangeEvent, LabelUI, Insets, \
     InsetsChangeEvent, Dimension
 
 T = TypeVar("T", bound=Component, contravariant=True)
@@ -61,7 +61,11 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
         assert component is not None
 
         self.background_color(component).map(lambda c: self.draw_background(g, component, c))
+        self.draw_component(g, component)
         self.border_color(component).map(lambda c: self.draw_border(g, component, c))
+
+    def draw_component(self, g: Graphics, component: T) -> None:
+        pass
 
     def background_color(self, component: T) -> Maybe[RGBA]:
         return component.resolve_color(StyleKeys.Background)
@@ -84,13 +88,37 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
         g.draw_rect(component.bounds)
 
 
-class GlassPanelUI(GlassComponentUI[Panel], ContainerUI[Panel]):
+C = TypeVar("C", bound=Container, contravariant=True)
+
+
+class GlassContainerUI(GlassComponentUI[C], ContainerUI[C]):
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    def draw(self, g: Graphics, component: C) -> None:
+        assert g is not None
+        assert component is not None
+
+        self.background_color(component).map(lambda c: self.draw_background(g, component, c))
+        self.draw_component(g, component)
+
+    def post_draw(self, g: Graphics, component: C) -> None:
+        assert g is not None
+        assert component is not None
+
+        super().post_draw(g, component)
+
+        self.border_color(component).map(lambda c: self.draw_border(g, component, c))
+
+
+class GlassPanelUI(GlassContainerUI[Panel]):
 
     def __init__(self) -> None:
         super().__init__()
 
 
-class GlassWindowUI(GlassComponentUI[Window], WindowUI[Window]):
+class GlassWindowUI(GlassContainerUI[Window], WindowUI[Window]):
 
     def __init__(self) -> None:
         super().__init__()
@@ -103,8 +131,8 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
     def __init__(self) -> None:
         super().__init__()
 
-    def draw(self, g: Graphics, component: Label) -> None:
-        super().draw(g, component)
+    def draw_component(self, g: Graphics, component: Label) -> None:
+        super().draw_component(g, component)
 
         font = self.text_font(component)
         color = self.text_color(component)

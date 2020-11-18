@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Optional, Iterator, TypeVar, Sequence
+from typing import Optional, Iterator, TypeVar, Sequence, cast
 
 import rx
 from alleycat.reactive import RV
@@ -111,6 +111,8 @@ class Container(Component):
 
         self.draw_children(g)
 
+        cast(ContainerUI, self.ui).post_draw(g, self)
+
     def draw_children(self, g: Graphics) -> None:
         # noinspection PyTypeChecker
         for child in self.children:
@@ -140,3 +142,6 @@ class ContainerUI(ComponentUI[T], ABC):
 
     def preferred_size(self, component: T) -> Observable:
         return component.layout.observe("preferred_size")
+
+    def post_draw(self, g: Graphics, component: T) -> None:
+        pass
