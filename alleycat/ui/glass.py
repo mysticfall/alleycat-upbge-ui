@@ -7,7 +7,7 @@ from rx import operators as ops
 
 from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window, Label, Point, Toolkit, \
     TextAlign, Font, Button, LabelButton, WindowUI, Container, ContainerUI, FontChangeEvent, LabelUI, Insets, \
-    InsetsChangeEvent, Dimension
+    InsetsChangeEvent, Dimension, Canvas, CanvasUI
 
 T = TypeVar("T", bound=Component, contravariant=True)
 
@@ -44,6 +44,7 @@ class GlassLookAndFeel(LookAndFeel):
         self.register_ui(LabelButton, GlassLabelButtonUI)
         self.register_ui(Button, GlassButtonUI)
         self.register_ui(Label, GlassLabelUI)
+        self.register_ui(Canvas, GlassCanvasUI)
 
     @property
     def default_ui(self) -> ComponentUI[Component]:
@@ -237,6 +238,48 @@ class GlassLabelButtonUI(GlassButtonUI, GlassLabelUI):
 
     def text_color(self, component: T) -> Maybe[RGBA]:
         return self.resolve_color(component, StyleKeys.Text)
+
+
+# noinspection PyMethodMayBeStatic
+class GlassCanvasUI(GlassComponentUI[Canvas], CanvasUI):
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    def draw_component(self, g: Graphics, component: Canvas) -> None:
+        super().draw_component(g, component)
+
+        if component.image == Nothing:
+            return
+
+        image = component.image.unwrap()
+        padding = component.resolve_insets(StyleKeys.Padding).value_or(Insets(0, 0, 0, 0)) + component.padding
+
+        (iw, ih) = image.size.tuple
+        (x, y, w, h) = component.bounds.tuple
+
+        px = x + max((w - iw) / 2., padding.left)
+        py = y + max((h - ih) / 2., padding.top)
+
+        g.draw_image(image, Point(px, py))
+
+    def on_padding_change(self, component: Canvas) -> Observable:
+        keys = set(component.style_fallback_keys(StyleKeys.Padding))
+
+        def effective_padding() -> Insets:
+            return component.resolve_insets(StyleKeys.Padding).value_or(Insets(0, 0, 0, 0))
+
+        style_changes = rx.merge(component.on_style_change, component.context.look_and_feel.on_style_change)
+        padding_changes = style_changes.pipe(
+            ops.filter(lambda e: isinstance(e, InsetsChangeEvent)),
+            ops.filter(lambda e: e.key in keys),
+            ops.map(lambda _: effective_padding()),
+            ops.start_with(effective_padding()),
+            ops.combine_latest(super().on_padding_change(component)),
+            ops.map(lambda p: p[0] + p[1]),
+            ops.distinct_until_changed())
+
+        return padding_changes
 
 
 class StyleKeys:

@@ -22,4 +22,5 @@ from .container import Container, ContainerUI
 from .panel import Panel
 from .label import Label, LabelUI, TextAlign
 from .button import Button, LabelButton
+from .canvas import Canvas, CanvasUI
 from .window import Window, WindowUI, WindowManager
