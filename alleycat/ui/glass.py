@@ -75,8 +75,9 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
         return component.resolve_color(StyleKeys.Border)
 
     def draw_background(self, g: Graphics, component: T, color: RGBA) -> None:
-        g.color = color
-        g.fill_rect(component.bounds)
+        if color.a > 0:  # FIXME: Make overlapping transparent/translucent components work properly.
+            g.color = color
+            g.fill_rect(component.bounds)
 
     def draw_border(
             self,
