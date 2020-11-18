@@ -24,7 +24,7 @@ class GlassLookAndFeel(LookAndFeel):
         active_color = RGBA(0.3, 0.7, 0.3, 1)
         highlight_color = RGBA(0.9, 0.8, 0.5, 1)
 
-        self.set_font("text", toolkit.font_registry.fallback_font)
+        self.set_font("text", toolkit.fonts.fallback_font)
 
         self.set_color(with_prefix(StyleKeys.Background, "Window"), RGBA(0, 0, 0, 0.8))
         self.set_color(with_prefix(StyleKeys.Border, "Window"), active_color)
@@ -124,7 +124,7 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
         text = component.text
         size = component.text_size
 
-        extents = component.context.toolkit.font_registry.text_extent(text, font, size)
+        extents = component.context.toolkit.fonts.text_extent(text, font, size)
         padding = component.resolve_insets(StyleKeys.Padding).value_or(Insets(0, 0, 0, 0))
 
         (x, y, w, h) = component.bounds.tuple
@@ -141,13 +141,13 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
         return component.resolve_color(StyleKeys.Text)
 
     def text_font(self, component: Label) -> Font:
-        font_registry = component.context.toolkit.font_registry
+        font_registry = component.context.toolkit.fonts
 
         return component.resolve_font(StyleKeys.Text).value_or(font_registry.fallback_font)
 
     def on_font_change(self, component: Label) -> Observable:
         keys = set(component.style_fallback_keys(StyleKeys.Text))
-        fallback = component.context.toolkit.font_registry.fallback_font
+        fallback = component.context.toolkit.fonts.fallback_font
 
         def effective_font() -> Font:
             return component.resolve_font(StyleKeys.Text).value_or(fallback)

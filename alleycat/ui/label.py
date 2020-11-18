@@ -65,7 +65,7 @@ class LabelUI(ComponentUI[Label], ABC):
         size = component.observe("text_size")
         font = self.on_font_change(component)
 
-        registry = component.context.toolkit.font_registry
+        registry = component.context.toolkit.fonts
 
         return rx.combine_latest(text, font, size).pipe(
             ops.map(lambda v: registry.text_extent(v[0], v[1], v[2])))

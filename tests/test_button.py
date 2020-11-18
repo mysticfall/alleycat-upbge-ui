@@ -173,7 +173,7 @@ class ButtonTest(UITestCase):
         button = LabelButton(self.context)
         laf = self.context.look_and_feel
         ui = cast(LabelUI, button.ui)
-        font_registry = self.context.toolkit.font_registry
+        font_registry = self.context.toolkit.fonts
 
         font1 = font_registry.resolve("Font 1").unwrap()
         font2 = font_registry.resolve("Font 2").unwrap()
@@ -219,7 +219,7 @@ class ButtonTest(UITestCase):
         button = LabelButton(self.context)
         laf = self.context.look_and_feel
         ui = cast(LabelUI, button.ui)
-        font_registry = self.context.toolkit.font_registry
+        font_registry = self.context.toolkit.fonts
 
         tolerance = 0.1
 

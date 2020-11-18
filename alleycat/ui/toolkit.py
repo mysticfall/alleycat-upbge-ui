@@ -27,7 +27,7 @@ class Toolkit(Disposable, Generic[T], ABC):
 
     @property
     @abstractmethod
-    def font_registry(self) -> FontRegistry:
+    def fonts(self) -> FontRegistry:
         pass
 
     @property

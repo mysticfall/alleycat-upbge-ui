@@ -72,7 +72,7 @@ class BlenderToolkit(Toolkit[BlenderContext]):
         self._font_registry = BlenderFontRegistry(fonts_path, self.error_handler)
 
     @property
-    def font_registry(self) -> FontRegistry:
+    def fonts(self) -> FontRegistry:
         return self._font_registry
 
     def create_graphics(self, context: BlenderContext) -> Graphics:
