@@ -103,7 +103,7 @@ class Graphics(Disposable, ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def draw_text(self, text: str, size: float, location: Point, allow_wrap: bool = False) -> Graphics:
+    def draw_text(self, text: str, size: float, location: Point, shadow: bool = False) -> Graphics:
         pass
 
     @abstractmethod

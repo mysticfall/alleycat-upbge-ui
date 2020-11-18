@@ -140,7 +140,7 @@ class BlenderGraphics(Graphics[BlenderContext]):
 
         return self
 
-    def draw_text(self, text: str, size: float, location: Point, allow_wrap: bool = False) -> Graphics:
+    def draw_text(self, text: str, size: float, location: Point, shadow: bool = False) -> Graphics:
         if text is None:
             raise ValueError("Argument 'text' is required.")
 
@@ -161,6 +161,16 @@ class BlenderGraphics(Graphics[BlenderContext]):
             blf.size(font_id, int(size), BlenderFont.DPI)
             blf.position(font_id, x, y, 0)
             blf.color(font_id, r, g, b, a)
+
+            if shadow:
+                blf.enable(font_id, blf.SHADOW)
+
+                offset = max(int(size * 0.1), 1)
+
+                blf.shadow(font_id, 0, 0, 0, 0, 0.8)
+                blf.shadow_offset(font_id, offset, -offset)
+            else:
+                blf.disable(font_id, blf.SHADOW)
 
             blf.draw(font_id, text)
 

@@ -27,6 +27,8 @@ class Label(Component):
 
     text_size: RP[int] = rv.new_property()
 
+    shadow: RP[bool] = rv.new_property()
+
     # noinspection PyTypeChecker
     def __init__(
             self,
@@ -35,6 +37,7 @@ class Label(Component):
             text_align: TextAlign = TextAlign.Center,
             text_vertical_align: TextAlign = TextAlign.Center,
             text_size: int = 10,
+            shadow: bool = False,
             visible: bool = True) -> None:
         if text_size < 0:
             raise ValueError("Argument 'text_size' should be zero or a positive number.")
@@ -43,6 +46,7 @@ class Label(Component):
         self.text_align = text_align
         self.text_vertical_align = text_vertical_align
         self.text_size = text_size
+        self.shadow = shadow
 
         super().__init__(context, visible)
 

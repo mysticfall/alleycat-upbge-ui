@@ -164,7 +164,7 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
         tx = (w - extents.width - padding.left - padding.right) * rh + x + padding.left
         ty = (h - extents.height - padding.top - padding.bottom) * rv + extents.height + y + padding.top
 
-        g.draw_text(text, size, Point(tx, ty))
+        g.draw_text(text, size, Point(tx, ty), component.shadow)
 
     def text_color(self, component: Label) -> Maybe[RGBA]:
         return component.resolve_color(StyleKeys.Text)

@@ -118,7 +118,7 @@ class CairoGraphics(Graphics[CairoContext]):
 
         return self
 
-    def draw_text(self, text: str, size: float, location: Point, allow_wrap: bool = False) -> Graphics:
+    def draw_text(self, text: str, size: float, location: Point, shadow: bool = False) -> Graphics:
         if text is None:
             raise ValueError("Argument 'text' is required.")
 
