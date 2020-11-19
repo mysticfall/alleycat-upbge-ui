@@ -9,6 +9,7 @@ import rx
 from alleycat.reactive import ReactiveObject, RV, RP
 from alleycat.reactive import functions as rv
 from rx import Observable
+from rx import operators as ops
 
 from alleycat.ui import Component, Dimension, Bounds
 
@@ -18,12 +19,23 @@ class Layout(ReactiveObject, ABC):
 
     children: RV[Sequence[LayoutItem]] = _children.as_view()
 
+    visible_children: RV[Sequence[LayoutItem]] = rv.new_view()
+
     minimum_size: RV[Dimension]
 
     preferred_size: RV[Dimension]
 
     def __init__(self) -> None:
         super().__init__()
+
+        # noinspection PyTypeChecker
+        self.visible_children = self.observe("children").pipe(
+            ops.map(lambda children: map(lambda c: c.component.observe("visible"), children)),
+            ops.map(lambda b: rx.merge(*b)),
+            ops.switch_latest(),
+            ops.start_with(None),
+            ops.map(lambda _: tuple(filter(lambda c: c.component.visible, self.children))),
+            ops.distinct_until_changed())
 
     def add(self, child: Component, *args, **kwargs) -> None:
         if child is None:

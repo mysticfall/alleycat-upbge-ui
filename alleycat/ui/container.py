@@ -38,12 +38,19 @@ class Container(Component):
             ops.switch_latest(),
             ops.map(lambda _: None))
 
+        on_child_visibility_change = on_children_change.pipe(
+            ops.map(lambda children: map(lambda c: c.observe("visible"), children)),
+            ops.map(lambda b: rx.merge(*b)),
+            ops.switch_latest(),
+            ops.map(lambda _: None))
+
         should_invalidate = rx.merge(
             on_size_change,
             on_min_size_change,
             on_pre_size_change,
             on_children_change,
             on_child_bounds_change,
+            on_child_visibility_change,
             self.layout.on_constraints_change).pipe(
             ops.filter(lambda _: not self._layout_in_progress))
 

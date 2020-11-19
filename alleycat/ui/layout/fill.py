@@ -45,7 +45,7 @@ class FillLayout(Layout):
         def max_size(s1: Dimension, s2: Dimension):
             return Dimension(max(s1.width, s2.width), max(s1.height, s2.height))
 
-        return self.observe("children").pipe(
+        return self.observe("visible_children").pipe(
             ops.map(lambda v: map(lambda c: c.component.observe(size_attr), v)),
             ops.map(lambda b: rx.combine_latest(*b, rx.of(Dimension(0, 0)))),
             ops.switch_latest(),

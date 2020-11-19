@@ -107,7 +107,7 @@ class BoxLayout(Layout, ABC):
 
         for child in children:
             preferred = child.preferred_size
-            size = s(preferred) - reduced_size[child]
+            size = max(s(preferred) - reduced_size[child], 0)
 
             child.bounds = self._calculate_bounds(size, offset, preferred, area)
 
@@ -118,7 +118,7 @@ class BoxLayout(Layout, ABC):
         pass
 
     def _calculate_size(self, size_attr: str) -> Observable:
-        children = self.observe("children")
+        children = self.observe("visible_children")
 
         padding = self.observe("padding").pipe(ops.map(lambda p: Dimension(p.left + p.right, p.top + p.bottom)))
         spacing = rx.combine_latest(children, self.observe("spacing")).pipe(
