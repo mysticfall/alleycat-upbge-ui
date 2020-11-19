@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from functools import reduce
 from pathlib import Path
-from typing import cast, Optional, Sequence, Mapping, Final, Callable, Iterator
+from typing import cast, Optional, Sequence, Mapping, Final, Callable, Iterator, Set
 
 import bge
 import bgl
@@ -13,7 +13,7 @@ import gpu
 import rx
 from alleycat.reactive import ReactiveObject, RV
 from alleycat.reactive import functions as rv
-from bge.logic import mouse, KX_INPUT_ACTIVE, KX_INPUT_JUST_ACTIVATED
+from bge.logic import keyboard, mouse, KX_INPUT_ACTIVE, KX_INPUT_JUST_ACTIVATED
 from bge.types import SCA_InputEvent
 from bgl import GL_BLEND
 from bpy.types import Image as BLImage, BlendDataImages
@@ -25,7 +25,7 @@ from rx.disposable import Disposable
 from rx.subject import Subject, BehaviorSubject
 
 from alleycat.ui import Toolkit, Context, Graphics, Bounds, Input, MouseInput, Point, LookAndFeel, WindowManager, \
-    Dimension, MouseButton, Font, FontRegistry, Image, ImageRegistry
+    Dimension, MouseButton, Font, FontRegistry, Image, ImageRegistry, KeyInput
 from alleycat.ui.context import ContextBuilder, ErrorHandler
 from alleycat.ui.event import EventLoopAware
 
@@ -86,7 +86,7 @@ class BlenderToolkit(Toolkit[BlenderContext]):
         return BlenderGraphics(context)
 
     def create_inputs(self, context: BlenderContext) -> Sequence[Input]:
-        return BlenderMouseInput(context),
+        return BlenderMouseInput(context), BlenderKeyInput(context)
 
 
 class BlenderGraphics(Graphics[BlenderContext]):
@@ -302,6 +302,28 @@ class BlenderMouseInput(MouseInput, ReactiveObject, EventLoopAware):
         super().dispose()
 
         self.execute_safely(self._position.dispose)
+        self.execute_safely(self._activeInputs.dispose)
+
+
+class BlenderKeyInput(KeyInput, ReactiveObject, EventLoopAware):
+    pressed: RV[Set[int]] = rv.new_view()
+
+    def __init__(self, context: BlenderContext) -> None:
+        super().__init__(context)
+
+        self._activeInputs = Subject()
+
+        # noinspection PyTypeChecker
+        self.pressed = self._activeInputs.pipe(
+            ops.start_with({}),
+            ops.map(lambda s: set(s.keys())))
+
+    def process(self) -> None:
+        self._activeInputs.on_next(keyboard.activeInputs)
+
+    def dispose(self) -> None:
+        super().dispose()
+
         self.execute_safely(self._activeInputs.dispose)
 
 

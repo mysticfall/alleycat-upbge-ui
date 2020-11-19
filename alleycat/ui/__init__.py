@@ -10,6 +10,7 @@ from .context import Context
 from .bounded import Bounded
 from .graphics import Graphics
 from .drawable import Drawable
+from .keyboard import KeyInput
 from .mouse import MouseButton, MouseEvent, MouseDownEvent, MouseUpEvent, MouseMoveEvent, MouseOverEvent, \
     MouseOutEvent, DragStartEvent, DragEvent, DragOverEvent, DragLeaveEvent, DragEndEvent, \
     MouseEventHandler, MouseInput, FakeMouseInput
