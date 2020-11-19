@@ -223,7 +223,7 @@ class BlenderGraphics(Graphics[BlenderContext]):
 
             bc = cast(BlenderContext, self.context)
             vertices = tuple(map(lambda p: p.tuple, map(bc.translate, points)))
-            coords = ((cx, cy), (cx + cw, cy), (cx + cw, cy + ch), (cx, cy + ch))
+            coords = ((cx, cy), (cx + cw, cy), (cx + cw, cy - ch), (cx, cy - ch))
 
             bgl.glActiveTexture(int(bgl.GL_TEXTURE0))
             bgl.glBindTexture(int(bgl.GL_TEXTURE_2D), bl_image.source.bindcode)
