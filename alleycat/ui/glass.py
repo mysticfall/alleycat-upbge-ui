@@ -85,9 +85,10 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
             component: T,
             color: RGBA,
             thickness: float = GlassLookAndFeel.BorderThickness) -> None:
-        g.color = color
-        g.stroke = thickness
-        g.draw_rect(component.bounds)
+        if color.a > 0:  # FIXME: Make overlapping transparent/translucent components work properly.
+            g.color = color
+            g.stroke = thickness
+            g.draw_rect(component.bounds)
 
 
 C = TypeVar("C", bound=Container, contravariant=True)
