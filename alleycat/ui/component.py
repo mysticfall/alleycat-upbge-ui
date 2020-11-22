@@ -82,6 +82,20 @@ class Component(Drawable, StyleResolver, MouseEventHandler, EventDispatcher, Con
     def create_ui(self) -> ComponentUI:
         return self.context.look_and_feel.create_ui(self)
 
+    def show(self) -> None:
+        # noinspection PyTypeChecker
+        self.visible = True
+
+    def hide(self) -> None:
+        # noinspection PyTypeChecker
+        self.visible = False
+
+    def toggle_visibility(self) -> bool:
+        # noinspection PyTypeChecker
+        self.visible = not self.visible
+
+        return self.visible
+
     def draw(self, g: Graphics) -> None:
         if self.visible:
             offset = g.offset
