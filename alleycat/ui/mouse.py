@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import IntFlag
 from typing import Final, Any, cast, Sequence
@@ -10,6 +10,7 @@ from alleycat.reactive import RV, RP
 from alleycat.reactive import functions as rv
 from rx import Observable
 from rx import operators as ops
+from rx.subject import Subject
 
 from alleycat.ui import Point, Context, Input, PositionalEvent, Event, InputLookup, \
     PropagatingEvent, Bounded, EventHandler
@@ -277,6 +278,11 @@ class MouseInput(Input, ABC):
 
         return rx.merge(*[event_for(button) for button in MouseButton])
 
+    @property
+    @abstractmethod
+    def on_mouse_wheel(self) -> Observable:
+        pass
+
     def on_button_press(self, button: MouseButton) -> Observable:
         return self.observe("buttons").pipe(ops.filter(lambda b: b & button == button))
 
@@ -304,6 +310,12 @@ class FakeMouseInput(MouseInput):
 
     def __init__(self, context: Context):
         super().__init__(context)
+
+        self._scroll = Subject()
+
+    @property
+    def on_mouse_wheel(self) -> Observable:
+        return self._scroll
 
     def pressed(self, button: MouseButton) -> bool:
         if button is None:
@@ -333,3 +345,11 @@ class FakeMouseInput(MouseInput):
 
         # noinspection PyTypeChecker
         self._position = location
+
+    def scroll(self, lines: int) -> None:
+        self._scroll.on_next(lines)
+
+    def dispose(self) -> None:
+        self.execute_safely(self._scroll.dispose)
+
+        super().dispose()

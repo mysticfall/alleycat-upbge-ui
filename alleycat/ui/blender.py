@@ -294,6 +294,16 @@ class BlenderMouseInput(MouseInput, ReactiveObject, EventLoopAware):
             ops.distinct_until_changed(),
             ops.share())
 
+    @property
+    def on_mouse_wheel(self) -> Observable:
+        def on_wheel(code: int) -> Observable:
+            return self._activeInputs.pipe(
+                ops.filter(lambda i: code in i),
+                ops.map(lambda i: i[code].values[-1]),
+                ops.filter(lambda v: v != 0))
+
+        return rx.merge(on_wheel(bge.events.WHEELUPMOUSE), on_wheel(bge.events.WHEELDOWNMOUSE))
+
     def process(self) -> None:
         self._position.on_next(mouse.position)
         self._activeInputs.on_next(mouse.activeInputs)
