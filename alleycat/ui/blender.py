@@ -236,6 +236,8 @@ class BlenderGraphics(Graphics[BlenderContext]):
             batch = batch_for_shader(self.image_shader, "TRI_FAN", {"pos": vertices, "texCoord": coords})
             batch.draw(self.image_shader)
 
+            bl_image.source.gl_touch()
+
         bounds = Bounds(x, y, w, h)
 
         clip = Some(bounds) if self.clip == Nothing else self.clip.bind(lambda c: bounds & c)
