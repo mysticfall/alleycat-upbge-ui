@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import sys
-from functools import reduce
+from functools import reduce, lru_cache
 from pathlib import Path
-from typing import cast, Optional, Sequence, Mapping, Final, Callable, Iterator, Set
+from typing import cast, Optional, Sequence, Mapping, Final, Callable, Iterator, Set, Any, MutableMapping
+from weakref import WeakValueDictionary
 
 import bge
 import bgl
@@ -17,7 +18,7 @@ from bge.logic import keyboard, mouse, KX_INPUT_ACTIVE, KX_INPUT_JUST_ACTIVATED
 from bge.types import SCA_InputEvent
 from bgl import GL_BLEND
 from bpy.types import Image as BLImage, BlendDataImages
-from gpu.types import GPUShader
+from gpu.types import GPUShader, GPUBatch
 from gpu_extras.batch import batch_for_shader
 from returns.maybe import Maybe, Some, Nothing
 from rx import operators as ops, Observable
@@ -97,6 +98,8 @@ class BlenderGraphics(Graphics[BlenderContext]):
     def __init__(self, context: BlenderContext) -> None:
         super().__init__(context)
 
+        self._shader_cache: MutableMapping[Any, GPUBatch] = WeakValueDictionary()
+
     def draw_rect(self, bounds: Bounds) -> Graphics:
         if bounds is None:
             raise ValueError("Argument 'bounds' is required.")
@@ -132,7 +135,7 @@ class BlenderGraphics(Graphics[BlenderContext]):
             # noinspection PyTypeChecker
             self.color_shader.uniform_float("color", self.color.tuple)
 
-            batch = batch_for_shader(self.color_shader, "TRIS", {"pos": vertices}, indices=indices)
+            batch = self._create_color_shader_batch((vertices, indices))
             batch.draw(self.color_shader)
 
         clip = Some(bounds) if self.clip == Nothing else self.clip.bind(lambda c: bounds & c)
@@ -214,6 +217,9 @@ class BlenderGraphics(Graphics[BlenderContext]):
         bl_image = cast(BlenderImage, image)
 
         def draw(area: Bounds):
+            bgl.glActiveTexture(int(bgl.GL_TEXTURE0))
+            bgl.glBindTexture(int(bgl.GL_TEXTURE_2D), bl_image.source.bindcode)
+
             cx = (area.x - x) / w if w > 0. else 0.
             cy = (area.y - y) / h if h > 0. else 0.
             cw = area.width / w if w > 0. else 0.
@@ -225,15 +231,12 @@ class BlenderGraphics(Graphics[BlenderContext]):
             vertices = tuple(map(lambda p: p.tuple, map(bc.translate, points)))
             coords = ((cx, cy), (cx + cw, cy), (cx + cw, cy - ch), (cx, cy - ch))
 
-            bgl.glActiveTexture(int(bgl.GL_TEXTURE0))
-            bgl.glBindTexture(int(bgl.GL_TEXTURE_2D), bl_image.source.bindcode)
-
             self.image_shader.bind()
-
             # noinspection PyTypeChecker
             self.image_shader.uniform_int("image", 0)
 
-            batch = batch_for_shader(self.image_shader, "TRI_FAN", {"pos": vertices, "texCoord": coords})
+            batch = self._create_image_shader_batch((vertices, coords))
+
             batch.draw(self.image_shader)
 
             bl_image.source.gl_touch()
@@ -244,6 +247,19 @@ class BlenderGraphics(Graphics[BlenderContext]):
         clip.map(draw)
 
         return self
+
+    @lru_cache()
+    def _create_color_shader_batch(self, key: Sequence[Any]) -> GPUBatch:
+        content = {"pos": key[0]}
+        indices = key[1]
+
+        return batch_for_shader(self.color_shader, "TRIS", content, indices)
+
+    @lru_cache()
+    def _create_image_shader_batch(self, key: Sequence[Any]) -> GPUBatch:
+        indices = {"pos": key[0], "texCoord": key[1]}
+
+        return batch_for_shader(self.image_shader, "TRI_FAN", indices)
 
 
 class UI(ContextBuilder[BlenderContext]):
