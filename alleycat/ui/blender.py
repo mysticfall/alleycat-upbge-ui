@@ -91,8 +91,10 @@ class BlenderToolkit(Toolkit[BlenderContext]):
 
 
 class BlenderGraphics(Graphics[BlenderContext]):
+    # noinspection PyUnresolvedReferences
     color_shader: Final = cast(GPUShader, gpu.shader.from_builtin("2D_UNIFORM_COLOR"))
 
+    # noinspection PyUnresolvedReferences
     image_shader: Final = cast(GPUShader, gpu.shader.from_builtin("2D_IMAGE"))
 
     def __init__(self, context: BlenderContext) -> None:
@@ -163,6 +165,8 @@ class BlenderGraphics(Graphics[BlenderContext]):
 
             blf.size(font_id, int(size), BlenderFont.DPI)
             blf.position(font_id, x, y, 0)
+
+            # noinspection PyUnresolvedReferences
             blf.color(font_id, r, g, b, a)
 
             if shadow:
@@ -218,6 +222,8 @@ class BlenderGraphics(Graphics[BlenderContext]):
 
         def draw(area: Bounds):
             bgl.glActiveTexture(int(bgl.GL_TEXTURE0))
+
+            # noinspection PyTypeChecker
             bgl.glBindTexture(int(bgl.GL_TEXTURE_2D), bl_image.source.bindcode)
 
             cx = (area.x - x) / w if w > 0. else 0.
