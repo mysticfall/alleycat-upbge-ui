@@ -145,19 +145,32 @@ class CairoGraphics(Graphics[CairoContext]):
 
         return self
 
-    def draw_image(self, image: Image, location: Point) -> Graphics:
+    def draw_image(self, image: Image, bounds: Bounds) -> Graphics:
         if image is None:
             raise ValueError("Argument 'image' is required.")
 
-        if location is None:
-            raise ValueError("Argument 'location' is required.")
+        if bounds is None:
+            raise ValueError("Argument 'bounds' is required.")
 
         source = cast(CairoImage, image).source
 
         def draw():
-            (x, y) = (location + self.offset).tuple
+            (iw, ih) = image.size.tuple
+            (w, h) = bounds.size.tuple
 
-            self.g.set_source_surface(source, x, y)
+            if iw == 0 or ih == 0 or w == 0 or h == 0:
+                return
+
+            (x, y) = (bounds.location + self.offset).tuple
+
+            sw = w / iw
+            sh = h / ih
+
+            sx = x / sw
+            sy = y / sh
+
+            self.g.scale(sw, sh)
+            self.g.set_source_surface(source, sx, sy)
             self.g.paint()
 
         self._draw_with_clip(draw)
@@ -165,13 +178,14 @@ class CairoGraphics(Graphics[CairoContext]):
         return self
 
     def _draw_with_clip(self, draw: Callable[[], None]) -> None:
+        self.g.save()
+
         if self.clip == Nothing:
             draw()
         else:
             (cx, cy, cw, ch) = self.clip.unwrap().move_by(self.offset)
 
             if cw > 0 and ch > 0:
-                self.g.save()
                 self.g.clip_extents()
 
                 self.g.rectangle(cx, cy, cw, ch)
@@ -179,7 +193,7 @@ class CairoGraphics(Graphics[CairoContext]):
 
                 draw()
 
-                self.g.restore()
+        self.g.restore()
 
     def reset(self) -> Graphics:
         super().reset()

@@ -3,10 +3,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic
 
+from alleycat.ui import Bounds, RGBA, Context, Point, Font, Image
 from returns.maybe import Maybe, Nothing
 from rx.disposable import Disposable
-
-from alleycat.ui import Bounds, RGBA, Context, Point, Font, Image
 
 T = TypeVar("T", bound=Context, contravariant=True)
 
@@ -107,7 +106,7 @@ class Graphics(Disposable, ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def draw_image(self, image: Image, location: Point) -> Graphics:
+    def draw_image(self, image: Image, bounds: Bounds) -> Graphics:
         pass
 
     def reset(self) -> Graphics:

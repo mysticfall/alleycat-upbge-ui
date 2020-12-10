@@ -25,15 +25,15 @@ class CanvasTest(UITestCase):
         window = Window(self.context)
         window.bounds = Bounds(0, 0, 100, 100)
 
-        canvas1 = Canvas(self.context, image, Insets(5, 10, 0, 5))
-        canvas1.bounds = Bounds(0, 10, 40, 20)
+        canvas1 = Canvas(self.context)
+        canvas1.bounds = Bounds(30, 40, 80, 30)
         canvas1.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
 
         canvas2 = Canvas(self.context, image)
-        canvas2.bounds = Bounds(30, 40, 80, 30)
+        canvas2.bounds = Bounds(0, 10, 64, 64)
 
-        canvas3 = Canvas(self.context)
-        canvas3.bounds = Bounds(80, 10, 20, 20)
+        canvas3 = Canvas(self.context, image)
+        canvas3.bounds = Bounds(10, 70, 80, 20)
         canvas3.set_color(StyleKeys.Background, RGBA(0, 0, 1, 1))
 
         window.add(canvas1)

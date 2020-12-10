@@ -7,7 +7,7 @@ from rx import operators as ops
 
 from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window, Label, Point, Toolkit, \
     TextAlign, Font, Button, LabelButton, WindowUI, Container, ContainerUI, FontChangeEvent, LabelUI, Insets, \
-    InsetsChangeEvent, Dimension, Canvas, CanvasUI
+    InsetsChangeEvent, Dimension, Canvas, CanvasUI, Bounds
 
 T = TypeVar("T", bound=Component, contravariant=True)
 
@@ -257,13 +257,15 @@ class GlassCanvasUI(GlassComponentUI[Canvas], CanvasUI):
         image = component.image.unwrap()
         padding = component.resolve_insets(StyleKeys.Padding).value_or(Insets(0, 0, 0, 0)) + component.padding
 
-        (iw, ih) = image.size.tuple
         (x, y, w, h) = component.bounds.tuple
 
-        px = x + max((w - iw) / 2., padding.left)
-        py = y + max((h - ih) / 2., padding.top)
+        bounds = Bounds(
+            x + padding.left,
+            y + padding.top,
+            max(w - padding.left - padding.right, 0),
+            max(h - padding.top - padding.bottom, 0))
 
-        g.draw_image(image, Point(px, py))
+        g.draw_image(image, bounds)
 
     def on_padding_change(self, component: Canvas) -> Observable:
         keys = set(component.style_fallback_keys(StyleKeys.Padding))

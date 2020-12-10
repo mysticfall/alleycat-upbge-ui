@@ -206,30 +206,30 @@ class BlenderGraphics(Graphics[BlenderContext]):
 
         return self
 
-    def draw_image(self, image: Image, location: Point) -> Graphics:
+    def draw_image(self, image: Image, bounds: Bounds) -> Graphics:
         if image is None:
             raise ValueError("Argument 'image' is required.")
 
-        if location is None:
-            raise ValueError("Argument 'location' is required.")
+        if bounds is None:
+            raise ValueError("Argument 'bounds' is required.")
 
-        (x, y) = location.tuple
-        (w, h) = image.size.tuple
-
-        bounds = Bounds(x, y, w, h)
+        (x, y, w, h) = bounds.tuple
 
         bl_image = cast(BlenderImage, image)
 
         def draw(area: Bounds):
+            if w == 0 or h == 0:
+                return
+
             bgl.glActiveTexture(int(bgl.GL_TEXTURE0))
 
             # noinspection PyTypeChecker
             bgl.glBindTexture(int(bgl.GL_TEXTURE_2D), bl_image.source.bindcode)
 
-            cx = (area.x - x) / w if w > 0. else 0.
-            cy = (area.y - y) / h if h > 0. else 0.
-            cw = area.width / w if w > 0. else 0.
-            ch = area.height / h if h > 0. else 0.
+            cx = (area.x - x) / w
+            cy = (area.y - y) / h
+            cw = area.width / w
+            ch = area.height / h
 
             points = area.move_by(self.offset).points
 
@@ -246,8 +246,6 @@ class BlenderGraphics(Graphics[BlenderContext]):
             batch.draw(self.image_shader)
 
             bl_image.source.gl_touch()
-
-        bounds = Bounds(x, y, w, h)
 
         clip = Some(bounds) if self.clip == Nothing else self.clip.bind(lambda c: bounds & c)
         clip.map(draw)

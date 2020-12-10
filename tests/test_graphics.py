@@ -108,10 +108,13 @@ class GraphicsTest(UITestCase):
     def test_draw_image(self):
         image = self.context.toolkit.images.load(Path("fixtures/cat.png"))
 
+        size = image.size
+        half_size = size * 0.5
+
         self.assertEqual(Dimension(64, 64), image.size)
 
-        self.g.draw_image(image, Point(10, 10))
-        self.g.draw_image(image, Point(30, 40))
+        self.g.draw_image(image, Bounds(10, 5, size.width, size.height))
+        self.g.draw_image(image, Bounds(50, 50, half_size.width, half_size.height))
 
         self.assertImage("draw_image", self.context)
 
@@ -120,8 +123,8 @@ class GraphicsTest(UITestCase):
 
         self.g.clip = Some(Bounds(20, 30, 60, 60))
 
-        self.g.draw_image(image, Point(10, 10))
-        self.g.draw_image(image, Point(30, 40))
+        self.g.draw_image(image, Bounds(10, 10, 60, 60))
+        self.g.draw_image(image, Bounds(50, 40, 20, 20))
 
         self.assertImage("draw_image_with_clip", self.context)
 

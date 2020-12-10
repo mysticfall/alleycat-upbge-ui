@@ -52,7 +52,7 @@ class CanvasUI(ComponentUI[Canvas], ABC):
 
         return Dimension(w + left + right, h + top + bottom)
 
-    def minimum_size(self, component: Canvas) -> Observable:
+    def preferred_size(self, component: Canvas) -> Observable:
         image = self.on_image_change(component)
         padding = self.on_padding_change(component)
 
