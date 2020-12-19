@@ -44,13 +44,13 @@ class FillLayout(Layout):
         return rx.merge(super().on_constraints_change, self.observe("padding"))
 
     def perform(self, bounds: Bounds) -> None:
-        p = self.padding
+        (top, right, bottom, left) = self.padding.tuple
 
         child_bounds = Bounds(
-            p.top,
-            p.left,
-            max(bounds.width - p.left - p.right, 0),
-            max(bounds.height - p.top - p.bottom, 0))
+            left,
+            top,
+            max(bounds.width - left - right, 0),
+            max(bounds.height - top - bottom, 0))
 
         # noinspection PyTypeChecker
         for child in self.children:
