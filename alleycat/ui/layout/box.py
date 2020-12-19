@@ -69,7 +69,7 @@ class BoxLayout(Layout, ABC):
         s = self._from_size
 
         # noinspection PyTypeChecker
-        children: Sequence[Component] = tuple(map(lambda c: c.component, self.children))
+        children: Sequence[Component] = tuple(filter(lambda c: c.visible, map(lambda c: c.component, self.children)))
 
         area = bounds.copy(x=0, y=0) - self.padding
         spacing = self.spacing
@@ -124,7 +124,6 @@ class BoxLayout(Layout, ABC):
 
         # noinspection PyTypeChecker
         size = reduce(self._reduce_size, map(extractor, children), Dimension(0, 0))
-
         spacing = self._to_size(max(len(children) - 1, 0) * self.spacing)
 
         (top, right, bottom, left) = self.padding.tuple
