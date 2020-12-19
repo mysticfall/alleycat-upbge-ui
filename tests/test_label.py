@@ -1,12 +1,11 @@
 import unittest
 from typing import cast
 
-from returns.maybe import Nothing, Some
-from rx import operators as ops
-
-from alleycat.ui import Label, Bounds, Window, RGBA, TextAlign, LabelUI, Dimension, Insets
-from alleycat.ui.glass import StyleKeys
 from alleycat.reactive import functions as rv
+from returns.maybe import Nothing, Some
+
+from alleycat.ui import Bounds, Dimension, Insets, Label, LabelUI, RGBA, StyleLookup, TextAlign, Window
+from alleycat.ui.glass import StyleKeys
 from tests.ui import UITestCase
 
 
@@ -70,53 +69,51 @@ class LabelTest(UITestCase):
                 self.context.process()
                 self.assertImage(test_name, self.context)
 
-    def test_ui_on_font_change(self):
-        label = Label(self.context)
+    def test_validation(self):
         laf = self.context.look_and_feel
-        ui = cast(LabelUI, label.ui)
-        font_registry = self.context.toolkit.fonts
+        fonts = self.context.toolkit.fonts
 
-        font1 = font_registry.resolve("Font 1").unwrap()
-        font2 = font_registry.resolve("Font 2").unwrap()
-        default = font_registry.fallback_font
+        label = Label(self.context)
+        label.validate()
 
-        changes = []
+        self.assertEqual(True, label.valid)
 
-        ui.on_font_change(label).pipe(ops.map(lambda e: e.family)).subscribe(changes.append)
+        label.text = "Label"
 
-        self.assertEqual([default.family], changes)
+        self.assertEqual(False, label.valid)
 
-        label.set_font("text", font1)
-        label.set_font("tooltip", font1)
+        label.validate()
+        label.text_size = 20
 
-        self.assertEqual([font1.family], changes[1:])
+        self.assertEqual(False, label.valid)
 
-        label.set_font("text", font2)
-        label.set_font("text", font2)  # Should ignore duplicates.
+        label.validate()
+        label.text_align = TextAlign.End
+        label.text_vertical_align = TextAlign.End
 
-        self.assertEqual([font2.family], changes[2:])
+        self.assertEqual(True, label.valid)
 
-        label.clear_font("text")
+        def test_style(lookup: StyleLookup):
+            label.validate()
 
-        self.assertEqual([default.family], changes[3:])
+            lookup.set_font("NonExistentKey", fonts.resolve("Font1").unwrap())
+            lookup.set_insets("NonExistentKey", Insets(10, 10, 10, 10))
 
-        laf.set_font("text", font1)
+            self.assertEqual(True, label.valid)
 
-        self.assertEqual([font1.family], changes[4:])
+            lookup.set_font(StyleKeys.Text, fonts.resolve("Font1").unwrap())
 
-        laf.set_font("Label.text", font2)
+            self.assertEqual(False, label.valid)
 
-        self.assertEqual([font2.family], changes[5:])
+            label.validate()
+            lookup.set_insets(StyleKeys.Padding, Insets(10, 10, 10, 10))
 
-        laf.clear_font("text")
+            self.assertEqual(False, label.valid)
 
-        self.assertEqual([], changes[6:])
+        test_style(laf)
+        test_style(label)
 
-        label.set_font("text", font1)
-
-        self.assertEqual([font1.family], changes[6:])
-
-    def test_ui_on_extents_change(self):
+    def test_ui_extents(self):
         label = Label(self.context)
         laf = self.context.look_and_feel
         ui = cast(LabelUI, label.ui)
@@ -126,29 +123,23 @@ class LabelTest(UITestCase):
 
         mono = font_registry.resolve("Mono").unwrap()
 
-        changes = []
-
-        ui.on_extents_change(label).subscribe(changes.append)
-
-        self.assertEqual([Dimension(width=0.0, height=0.0)], changes)
+        self.assertEqual(Dimension(0, 0), ui.extents(label))
 
         label.text = "Test"
+        label.validate()
 
-        self.assertEqual(2, len(changes))
-
-        self.assertAlmostEqual(18.476, changes[1].width, delta=tolerance)
-        self.assertAlmostEqual(7.227, changes[1].height, delta=tolerance)
+        self.assertAlmostEqual(18.476, ui.extents(label).width, delta=tolerance)
+        self.assertAlmostEqual(7.227, ui.extents(label).height, delta=tolerance)
 
         label.text_size = 15
+        label.validate()
 
-        self.assertEqual(3, len(changes))
-
-        self.assertAlmostEqual(27.715, changes[2].width, delta=tolerance)
-        self.assertAlmostEqual(10.840, changes[2].height, delta=tolerance)
+        self.assertAlmostEqual(27.715, ui.extents(label).width, delta=tolerance)
+        self.assertAlmostEqual(10.840, ui.extents(label).height, delta=tolerance)
 
         laf.set_font("Label.text", mono)
 
-        self.assertEqual(4, len(changes))
+        self.assertEqual(False, label.valid)
 
     def test_minimum_size(self):
         tolerance = 0.1
@@ -158,6 +149,7 @@ class LabelTest(UITestCase):
                 calculated = []
 
                 label.set_insets(StyleKeys.Padding, padding)
+                label.validate()
 
                 pw = padding.left + padding.right
                 ph = padding.top + padding.bottom
@@ -169,6 +161,7 @@ class LabelTest(UITestCase):
                 self.assertEqual([Dimension(pw, ph)], calculated)
 
                 label.text = "Test"
+                label.validate()
 
                 self.assertEqual(2, len(calculated))
 
@@ -181,6 +174,7 @@ class LabelTest(UITestCase):
                 self.assertEqual(Bounds(0, 0, calculated[1].width, calculated[1].height), label.bounds)
 
                 label.text_size = 15
+                label.validate()
 
                 self.assertEqual(3, len(calculated))
 
@@ -195,6 +189,7 @@ class LabelTest(UITestCase):
                 self.assertEqual(Bounds(10, 20, 60, 40), label.bounds)
 
                 label.minimum_size_override = Some(Dimension(80, 50))
+                label.validate()
 
                 self.assertEqual(Some(Dimension(80, 50)), label.minimum_size_override)
                 self.assertEqual(Dimension(80, 50), label.minimum_size)
@@ -218,6 +213,7 @@ class LabelTest(UITestCase):
                 calculated = []
 
                 label.set_insets(StyleKeys.Padding, padding)
+                label.validate()
 
                 pw = padding.left + padding.right
                 ph = padding.top + padding.bottom
@@ -229,6 +225,7 @@ class LabelTest(UITestCase):
                 self.assertEqual([Dimension(pw, ph)], calculated)
 
                 label.text = "Test"
+                label.validate()
 
                 self.assertEqual(2, len(calculated))
 
@@ -240,6 +237,7 @@ class LabelTest(UITestCase):
                 self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=tolerance)
 
                 label.text_size = 15
+                label.validate()
 
                 self.assertEqual(3, len(calculated))
 
@@ -251,6 +249,7 @@ class LabelTest(UITestCase):
                 self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
                 label.preferred_size_override = Some(Dimension(80, 50))
+                label.validate()
 
                 self.assertEqual(Some(Dimension(80, 50)), label.preferred_size_override)
                 self.assertEqual(Dimension(80, 50), label.preferred_size)
@@ -258,12 +257,14 @@ class LabelTest(UITestCase):
                 self.assertEqual(Dimension(80, 50), calculated[3])
 
                 label.preferred_size_override = Some(Dimension(10, 10))
+                label.validate()
 
                 self.assertEqual(calculated[2], label.preferred_size)
                 self.assertEqual(5, len(calculated))
                 self.assertEqual(calculated[2], calculated[4])
 
                 label.minimum_size_override = Some(Dimension(400, 360))
+                label.validate()
 
                 self.assertEqual(Dimension(400, 360), label.preferred_size)
                 self.assertEqual(6, len(calculated))

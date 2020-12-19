@@ -1,15 +1,11 @@
 from abc import ABC
 from itertools import chain
-from typing import Optional, Iterable
+from typing import Iterable, Optional
 
-import rx
-from alleycat.reactive import RP
-from alleycat.reactive import functions as rv
+from alleycat.reactive import RP, functions as rv
 from returns.maybe import Maybe
-from rx import Observable
-from rx import operators as ops
 
-from alleycat.ui import Component, Context, Image, Insets, ComponentUI, Dimension
+from alleycat.ui import Component, ComponentUI, Context, Dimension, Image, Insets
 
 
 class Canvas(Component):
@@ -40,22 +36,11 @@ class CanvasUI(ComponentUI[Canvas], ABC):
     def __init__(self) -> None:
         super().__init__()
 
-    def on_image_change(self, component: Canvas) -> Observable:
-        return component.observe("image")
+    def padding(self, component: Canvas) -> Insets:
+        return component.padding
 
-    def on_padding_change(self, component: Canvas) -> Observable:
-        return component.observe("padding")
+    def preferred_size(self, component: Canvas) -> Dimension:
+        (width, height) = component.image.map(lambda i: i.size.tuple).value_or((0, 0))
+        (top, right, bottom, left) = self.padding(component).tuple
 
-    def calculate_size(self, image: Maybe[Image], padding: Insets) -> Dimension:
-        (w, h) = image.map(lambda i: i.size.tuple).value_or((0, 0))
-        (top, right, bottom, left) = padding.tuple
-
-        return Dimension(w + left + right, h + top + bottom)
-
-    def preferred_size(self, component: Canvas) -> Observable:
-        image = self.on_image_change(component)
-        padding = self.on_padding_change(component)
-
-        return rx.combine_latest(image, padding).pipe(
-            ops.map(lambda v: self.calculate_size(v[0], v[1])),
-            ops.distinct_until_changed())
+        return Dimension(width + left + right, height + top + bottom)

@@ -1,13 +1,12 @@
-from typing import TypeVar, Final, Generic
+from typing import Final, Generic, TypeVar
 
 import rx
 from returns.maybe import Maybe, Nothing
-from rx import Observable
-from rx import operators as ops
+from rx import Observable, operators as ops
 
-from alleycat.ui import Component, ComponentUI, Graphics, LookAndFeel, Panel, RGBA, Window, Label, Point, Toolkit, \
-    TextAlign, Font, Button, LabelButton, WindowUI, Container, ContainerUI, FontChangeEvent, LabelUI, Insets, \
-    InsetsChangeEvent, Dimension, Canvas, CanvasUI, Bounds
+from alleycat.ui import Bounds, Button, Canvas, CanvasUI, Component, ComponentUI, Container, ContainerUI, Dimension, \
+    Font, FontChangeEvent, Graphics, Insets, InsetsChangeEvent, Label, LabelButton, LabelUI, LookAndFeel, Panel, \
+    Point, RGBA, TextAlign, Toolkit, Window, WindowUI
 
 T = TypeVar("T", bound=Component, contravariant=True)
 
@@ -56,6 +55,9 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
 
     def __init__(self) -> None:
         super().__init__()
+
+    def on_style_change(self, component: T) -> Observable:
+        return rx.merge(component.on_style_change, component.context.look_and_feel.on_style_change)
 
     def draw(self, g: Graphics, component: T) -> None:
         assert g is not None
@@ -134,19 +136,51 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
     def __init__(self) -> None:
         super().__init__()
 
+    def minimum_size(self, component: Label) -> Dimension:
+        (width, height) = self.extents(component).tuple
+        (top, right, bottom, left) = self.padding(component)
+
+        return Dimension(width + left + right, height + top + bottom)
+
+    def text_color(self, component: Label) -> Maybe[RGBA]:
+        return component.resolve_color(StyleKeys.Text)
+
+    def font(self, component: Label) -> Font:
+        fonts = component.context.toolkit.fonts
+
+        return component.resolve_font(StyleKeys.Text).value_or(fonts.fallback_font)
+
+    def padding(self, component: Label) -> Insets:
+        return component.resolve_insets(StyleKeys.Padding).value_or(Insets(0, 0, 0, 0))
+
+    def on_invalidate(self, component: Label) -> Observable:
+        text_changes = component.observe("text")
+        size_changes = component.observe("text_size")
+
+        style_changes = self.on_style_change(component)
+
+        font_changes = style_changes.pipe(
+            ops.filter(lambda e: isinstance(e, FontChangeEvent)),
+            ops.filter(lambda e: e.key in component.style_fallback_keys(StyleKeys.Text)))
+
+        padding_changes = style_changes.pipe(
+            ops.filter(lambda e: isinstance(e, InsetsChangeEvent)),
+            ops.filter(lambda e: e.key in component.style_fallback_keys(StyleKeys.Padding)))
+
+        return rx.merge(
+            super().on_invalidate(component),
+            text_changes,
+            size_changes,
+            font_changes,
+            padding_changes)
+
     def draw_component(self, g: Graphics, component: Label) -> None:
         super().draw_component(g, component)
 
-        font = self.text_font(component)
+        font = self.font(component)
         color = self.text_color(component)
 
         color.map(lambda c: self.draw_text(g, component, font, c))
-
-    def minimum_size(self, component: Label) -> Observable:
-        text_extents = super().minimum_size(component)
-
-        return rx.combine_latest(text_extents, self.on_padding_change(component)).pipe(
-            ops.map(lambda v: Dimension(v[0].width + v[1].left + v[1].right, v[0].height + v[1].top + v[1].bottom)))
 
     def draw_text(self, g: Graphics, component: Label, font: Font, color: RGBA) -> None:
         g.font = font
@@ -167,47 +201,6 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
         ty = (h - extents.height - padding.top - padding.bottom) * rv + extents.height + y + padding.top
 
         g.draw_text(text, size, Point(tx, ty), component.shadow)
-
-    def text_color(self, component: Label) -> Maybe[RGBA]:
-        return component.resolve_color(StyleKeys.Text)
-
-    def text_font(self, component: Label) -> Font:
-        font_registry = component.context.toolkit.fonts
-
-        return component.resolve_font(StyleKeys.Text).value_or(font_registry.fallback_font)
-
-    def on_font_change(self, component: Label) -> Observable:
-        keys = set(component.style_fallback_keys(StyleKeys.Text))
-        fallback = component.context.toolkit.fonts.fallback_font
-
-        def effective_font() -> Font:
-            return component.resolve_font(StyleKeys.Text).value_or(fallback)
-
-        style_changes = rx.merge(component.on_style_change, component.context.look_and_feel.on_style_change)
-        font_changes = style_changes.pipe(
-            ops.filter(lambda e: isinstance(e, FontChangeEvent)),
-            ops.filter(lambda e: e.key in keys),
-            ops.map(lambda _: effective_font()),
-            ops.start_with(effective_font()),
-            ops.distinct_until_changed())
-
-        return font_changes
-
-    def on_padding_change(self, component: Label) -> Observable:
-        keys = set(component.style_fallback_keys(StyleKeys.Padding))
-
-        def effective_padding() -> Insets:
-            return component.resolve_insets(StyleKeys.Padding).value_or(Insets(0, 0, 0, 0))
-
-        style_changes = rx.merge(component.on_style_change, component.context.look_and_feel.on_style_change)
-        padding_changes = style_changes.pipe(
-            ops.filter(lambda e: isinstance(e, InsetsChangeEvent)),
-            ops.filter(lambda e: e.key in keys),
-            ops.map(lambda _: effective_padding()),
-            ops.start_with(effective_padding()),
-            ops.distinct_until_changed())
-
-        return padding_changes
 
 
 # noinspection PyMethodMayBeStatic
@@ -248,6 +241,21 @@ class GlassCanvasUI(GlassComponentUI[Canvas], CanvasUI):
     def __init__(self) -> None:
         super().__init__()
 
+    def padding(self, component: Canvas) -> Insets:
+        return component.resolve_insets(StyleKeys.Padding).value_or(Insets(0, 0, 0, 0))
+
+    def on_invalidate(self, component: Canvas) -> Observable:
+        image_changes = component.observe("image")
+
+        padding_changes = self.on_style_change(component).pipe(
+            ops.filter(lambda e: isinstance(e, InsetsChangeEvent)),
+            ops.filter(lambda e: e.key in component.style_fallback_keys(StyleKeys.Padding)))
+
+        return rx.merge(
+            super().on_invalidate(component),
+            image_changes,
+            padding_changes)
+
     def draw_component(self, g: Graphics, component: Canvas) -> None:
         super().draw_component(g, component)
 
@@ -266,24 +274,6 @@ class GlassCanvasUI(GlassComponentUI[Canvas], CanvasUI):
             max(h - padding.top - padding.bottom, 0))
 
         g.draw_image(image, bounds)
-
-    def on_padding_change(self, component: Canvas) -> Observable:
-        keys = set(component.style_fallback_keys(StyleKeys.Padding))
-
-        def effective_padding() -> Insets:
-            return component.resolve_insets(StyleKeys.Padding).value_or(Insets(0, 0, 0, 0))
-
-        style_changes = rx.merge(component.on_style_change, component.context.look_and_feel.on_style_change)
-        padding_changes = style_changes.pipe(
-            ops.filter(lambda e: isinstance(e, InsetsChangeEvent)),
-            ops.filter(lambda e: e.key in keys),
-            ops.map(lambda _: effective_padding()),
-            ops.start_with(effective_padding()),
-            ops.combine_latest(super().on_padding_change(component)),
-            ops.map(lambda p: p[0] + p[1]),
-            ops.distinct_until_changed())
-
-        return padding_changes
 
 
 class StyleKeys:

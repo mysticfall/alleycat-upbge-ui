@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Mapping, TypeVar, Generic
+from typing import Any, Generic, Mapping, TYPE_CHECKING, TypeVar
 
 import rx
-from alleycat.reactive import ReactiveObject, RP, RV
-from alleycat.reactive import functions as rv
-from returns.maybe import Maybe, Some, Nothing
-from rx import operators as ops, Observable
+from alleycat.reactive import RP, RV, ReactiveObject, functions as rv
+from returns.maybe import Maybe, Nothing, Some
+from rx import Observable, operators as ops
 
-from alleycat.ui import Context, ContextAware, Drawable, EventDispatcher, Graphics, StyleResolver, Point, \
-    PositionalEvent, MouseEventHandler, Input, Bounds, Dimension, Bounded
+from alleycat.ui import Bounded, Bounds, Context, ContextAware, Dimension, Drawable, EventDispatcher, Graphics, Input, \
+    MouseEventHandler, Point, PositionalEvent, StyleResolver
 
 if TYPE_CHECKING:
     from alleycat.ui import Container, LookAndFeel
@@ -28,25 +27,26 @@ class Component(Drawable, StyleResolver, MouseEventHandler, EventDispatcher, Con
         ).or_else_call(lambda: rx.of(Point(0, 0)))
     ).pipe(lambda _: (ops.exclusive(),))
 
+    _minimum_size: RP[Dimension] = rv.from_value(Dimension(0, 0))
+
+    _preferred_size: RP[Dimension] = rv.from_value(Dimension(0, 0))
+
+    minimum_size_override: RP[Maybe[Dimension]] = rv.from_value(Nothing)
+
+    minimum_size: RV[Dimension] = rv.combine_latest(_minimum_size, minimum_size_override)(
+        ops.pipe(ops.map(lambda v: v[1].value_or(v[0])), ops.distinct_until_changed()))
+
     preferred_size_override: RP[Maybe[Dimension]] = rv.from_value(Nothing).pipe(lambda o: (
         ops.combine_latest(o.observe("minimum_size")),
         ops.map(lambda t: t[0].map(
             lambda v: t[1].copy(width=max(v.width, t[1].width), height=max(v.height, t[1].height)))),
         ops.distinct_until_changed()))
 
-    minimum_size_override: RP[Maybe[Dimension]] = rv.from_value(Nothing)
-
-    preferred_size: RV[Dimension] = preferred_size_override.as_view().pipe(lambda c: (
-        ops.combine_latest(c.ui.preferred_size(c)),
-        ops.map(lambda v: v[0].value_or(v[1])),
-        ops.combine_latest(c.observe("minimum_size")),
-        ops.map(lambda v: v[0].copy(width=max(v[0].width, v[1].width), height=max(v[0].height, v[1].height))),
-        ops.distinct_until_changed()))
-
-    minimum_size: RV[Dimension] = minimum_size_override.as_view().pipe(lambda c: (
-        ops.combine_latest(c.ui.minimum_size(c)),
-        ops.map(lambda v: v[0].value_or(v[1])),
-        ops.distinct_until_changed()))
+    preferred_size: RV[Dimension] = rv.combine_latest(_preferred_size, preferred_size_override, minimum_size)(
+        ops.pipe(
+            ops.map(lambda v: (v[1].value_or(v[0]), v[2])),
+            ops.map(lambda v: v[0].copy(width=max(v[0].width, v[1].width), height=max(v[0].height, v[1].height))),
+            ops.distinct_until_changed()))
 
     bounds: RP[Bounds] = Bounded.bounds.pipe(lambda o: (
         ops.combine_latest(o.observe("minimum_size")),
@@ -61,11 +61,19 @@ class Component(Drawable, StyleResolver, MouseEventHandler, EventDispatcher, Con
         self.visible = visible
 
         self._context = context
+        self._valid = False
         self._ui = self.create_ui()
 
         assert self._ui is not None
 
         super().__init__()
+
+        self.validate()
+
+        self.ui \
+            .on_invalidate(self) \
+            .pipe(ops.take_until(self.on_dispose)) \
+            .subscribe(lambda _: self.invalidate(), on_error=self.error_handler)
 
     @property
     def context(self) -> Context:
@@ -89,6 +97,21 @@ class Component(Drawable, StyleResolver, MouseEventHandler, EventDispatcher, Con
     def hide(self) -> None:
         # noinspection PyTypeChecker
         self.visible = False
+
+    @property
+    def valid(self) -> bool:
+        return self._valid
+
+    # noinspection PyTypeChecker
+    def validate(self, force: bool = False) -> None:
+        if self.visible and (not self.valid or force):
+            self._minimum_size = self.ui.minimum_size(self)
+            self._preferred_size = self.ui.preferred_size(self)
+
+            self._valid = True
+
+    def invalidate(self) -> None:
+        self._valid = False
 
     def draw(self, g: Graphics) -> None:
         if self.visible:
@@ -138,12 +161,15 @@ class ComponentUI(Generic[T], ABC):
     def __init__(self) -> None:
         super().__init__()
 
-    # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def minimum_size(self, component: T) -> Observable:
-        return rx.of(Dimension(0, 0))
+    def minimum_size(self, component: T) -> Dimension:
+        return Dimension(0, 0)
 
-    def preferred_size(self, component: T) -> Observable:
+    def preferred_size(self, component: T) -> Dimension:
         return self.minimum_size(component)
+
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
+    def on_invalidate(self, component: T) -> Observable:
+        return rx.empty()
 
     @abstractmethod
     def draw(self, g: Graphics, component: T) -> None:

@@ -3,13 +3,9 @@ from enum import Enum
 from itertools import chain
 from typing import Iterable
 
-import rx
-from alleycat.reactive import RP
-from alleycat.reactive import functions as rv
-from rx import Observable
-from rx import operators as ops
+from alleycat.reactive import RP, functions as rv
 
-from alleycat.ui import Component, Context, ComponentUI
+from alleycat.ui import Component, ComponentUI, Context, Dimension, Font
 
 
 class TextAlign(Enum):
@@ -61,18 +57,14 @@ class LabelUI(ComponentUI[Label], ABC):
         super().__init__()
 
     @abstractmethod
-    def on_font_change(self, component: Label) -> Observable:
+    def font(self, component: Label) -> Font:
         pass
 
-    def on_extents_change(self, component: Label) -> Observable:
-        text = component.observe("text")
-        size = component.observe("text_size")
-        font = self.on_font_change(component)
+    def extents(self, component: Label) -> Dimension:
+        text = component.text
+        size = component.text_size
+        font = self.font(component)
 
         registry = component.context.toolkit.fonts
 
-        return rx.combine_latest(text, font, size).pipe(
-            ops.map(lambda v: registry.text_extent(v[0], v[1], v[2])))
-
-    def minimum_size(self, component: Label) -> Observable:
-        return self.on_extents_change(component)
+        return registry.text_extent(text, font, size)

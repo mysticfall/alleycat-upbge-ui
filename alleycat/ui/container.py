@@ -1,14 +1,12 @@
 from abc import ABC
-from typing import Optional, Iterator, TypeVar, Sequence, cast
+from typing import Iterator, Optional, Sequence, TypeVar, cast
 
 import rx
-from alleycat.reactive import RV
-from alleycat.reactive import functions as rv
+from alleycat.reactive import RV, functions as rv
 from returns.maybe import Maybe, Nothing, Some
-from rx import Observable
-from rx import operators as ops
+from rx import Observable, operators as ops
 
-from alleycat.ui import Component, Point, Graphics, Context, ComponentUI, Layout
+from alleycat.ui import Component, ComponentUI, Context, Dimension, Graphics, Layout, Point
 
 
 class Container(Component):
@@ -18,8 +16,8 @@ class Container(Component):
         from .layout import AbsoluteLayout
 
         self._layout = Maybe.from_optional(layout).or_else_call(AbsoluteLayout)
-        self._layout_valid = True
-        self._layout_in_progress = False
+        self._layout_pending = True
+        self._layout_running = False
 
         # noinspection PyTypeChecker
         self.children = self.layout.observe("children").pipe(
@@ -27,54 +25,45 @@ class Container(Component):
 
         super().__init__(context, visible)
 
-        on_size_change = self.observe("size")
-        on_min_size_change = self.observe("minimum_size_override")
-        on_pre_size_change = self.observe("preferred_size_override")
-        on_children_change = self.observe("children")
-
-        on_child_bounds_change = on_children_change.pipe(
-            ops.map(lambda children: map(lambda c: c.observe("bounds"), children)),
-            ops.map(lambda b: rx.merge(*b)),
-            ops.switch_latest(),
-            ops.map(lambda _: None))
-
-        on_child_visibility_change = on_children_change.pipe(
-            ops.map(lambda children: map(lambda c: c.observe("visible"), children)),
-            ops.map(lambda b: rx.merge(*b)),
-            ops.switch_latest(),
-            ops.map(lambda _: None))
-
-        should_invalidate = rx.merge(
-            on_size_change,
-            on_min_size_change,
-            on_pre_size_change,
-            on_children_change,
-            on_child_bounds_change,
-            on_child_visibility_change,
-            self.layout.on_constraints_change).pipe(
-            ops.filter(lambda _: not self._layout_in_progress))
-
-        self._layout_listener = should_invalidate.subscribe(
-            lambda _: self.invalidate_layout(), self.context.error_handler)
+        self.observe("size") \
+            .pipe(ops.filter(lambda _: self.visible)) \
+            .subscribe(lambda _: self.request_layout(), on_error=self.error_handler)
 
     @property
     def layout(self) -> Layout:
         return self._layout
 
-    def invalidate_layout(self) -> None:
-        self._layout_valid = False
+    def validate(self, force: bool = False) -> None:
+        if self.visible and (not self.valid or force):
+            self.request_layout()
+
+            # noinspection PyTypeChecker
+            for child in self.children:
+                child.validate(force)
+
+        super().validate(force)
+
+    def invalidate(self) -> None:
+        if not self._layout_running:
+            super().invalidate()
+
+    @property
+    def layout_pending(self) -> bool:
+        return self._layout_pending or not self.valid
+
+    def request_layout(self) -> None:
+        self._layout_pending = True
 
     def perform_layout(self) -> None:
-        if not self._layout_valid and not self._layout_in_progress:
-            self._layout_in_progress = True
+        self._layout_running = True
 
-            try:
-                self.layout.perform(self.bounds.copy(x=0, y=0))
-            except BaseException as e:
-                self.context.error_handler(e)
+        try:
+            self.layout.perform(self.bounds.copy(x=0, y=0))
+        except BaseException as e:
+            self.context.error_handler(e)
 
-            self._layout_in_progress = False
-            self._layout_valid = True
+        self._layout_pending = False
+        self._layout_running = False
 
     def component_at(self, location: Point) -> Maybe[Component]:
         if location is None:
@@ -109,7 +98,8 @@ class Container(Component):
         child.parent = Nothing
 
     def draw(self, g: Graphics) -> None:
-        self.perform_layout()
+        if self.layout_pending:
+            self.perform_layout()
 
         super().draw(g)
 
@@ -130,7 +120,6 @@ class Container(Component):
         for child in self.children:
             self.execute_safely(child.dispose)
 
-        self.execute_safely(self._layout_listener.dispose)
         self.execute_safely(self.layout.dispose)
 
         super().dispose()
@@ -144,11 +133,34 @@ class ContainerUI(ComponentUI[T], ABC):
     def __init__(self) -> None:
         super().__init__()
 
-    def minimum_size(self, component: T) -> Observable:
-        return component.layout.observe("minimum_size")
+    def minimum_size(self, component: T) -> Dimension:
+        return component.layout.minimum_size
 
-    def preferred_size(self, component: T) -> Observable:
-        return component.layout.observe("preferred_size")
+    def preferred_size(self, component: T) -> Dimension:
+        return component.layout.preferred_size
+
+    def on_invalidate(self, component: T) -> Observable:
+        other_changes = super().on_invalidate(component)
+        children_changes = component.observe("children")
+
+        def child_bounds_changes(child: Component):
+            return rx.merge(
+                child.observe("visible"),
+                child.observe("bounds"),
+                child.observe("preferred_size"),
+                child.observe("minimum_size"))
+
+        children_bounds_changes = children_changes.pipe(
+            ops.map(lambda children: map(child_bounds_changes, children)),
+            ops.map(lambda b: rx.merge(*b)),
+            ops.switch_latest(),
+            ops.map(lambda _: None))
+
+        return rx.merge(
+            other_changes,
+            children_changes,
+            children_bounds_changes,
+            component.layout.on_constraints_change)
 
     def post_draw(self, g: Graphics, component: T) -> None:
         pass

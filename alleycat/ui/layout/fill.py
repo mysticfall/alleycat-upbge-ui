@@ -1,28 +1,43 @@
+from collections import Callable
 from functools import reduce
 
 import rx
-from alleycat.reactive import RP, RV
-from alleycat.reactive import functions as rv
+from alleycat.reactive import RP, functions as rv
 from rx import Observable
-from rx import operators as ops
 
 from alleycat.ui import Bounds, Dimension, Insets
-from .layout import Layout
+from .layout import Layout, LayoutItem
 
 
 # noinspection PyProtectedMember
 class FillLayout(Layout):
     padding: RP[Insets] = rv.new_property()
 
-    minimum_size: RV[Dimension] = rv.from_instance(lambda i: i._calculate_size("minimum_size"))
-
-    preferred_size: RV[Dimension] = rv.from_instance(lambda i: i._calculate_size("preferred_size"))
-
     def __init__(self, padding: Insets = Insets(0, 0, 0, 0)) -> None:
         super().__init__()
 
         # noinspection PyTypeChecker
         self.padding = padding
+
+    @property
+    def minimum_size(self) -> Dimension:
+        return self._calculate_size(lambda i: i.component.minimum_size)
+
+    @property
+    def preferred_size(self) -> Dimension:
+        return self._calculate_size(lambda i: i.component.preferred_size)
+
+    def _calculate_size(self, extractor: Callable[[LayoutItem], Dimension]) -> Dimension:
+        children = filter(lambda c: c.component.visible, self.children)
+
+        def merge(s1: Dimension, s2: Dimension):
+            return Dimension(max(s1.width, s2.width), max(s1.height, s2.height))
+
+        # noinspection PyTypeChecker
+        (width, height) = reduce(merge, map(extractor, children), Dimension(0, 0)).tuple
+        (top, right, bottom, left) = self.padding.tuple
+
+        return Dimension(width + left + right, height + top + bottom)
 
     @property
     def on_constraints_change(self) -> Observable:
@@ -40,15 +55,3 @@ class FillLayout(Layout):
         # noinspection PyTypeChecker
         for child in self.children:
             child.component.bounds = child_bounds
-
-    def _calculate_size(self, size_attr: str) -> Observable:
-        def max_size(s1: Dimension, s2: Dimension):
-            return Dimension(max(s1.width, s2.width), max(s1.height, s2.height))
-
-        return self.observe("visible_children").pipe(
-            ops.map(lambda v: map(lambda c: c.component.observe(size_attr), v)),
-            ops.map(lambda b: rx.combine_latest(*b, rx.of(Dimension(0, 0)))),
-            ops.switch_latest(),
-            ops.map(lambda b: reduce(max_size, b)),
-            ops.combine_latest(self.observe("padding")),
-            ops.map(lambda v: Dimension(v[0].width + v[1].left + v[1].right, v[0].height + v[1].top + v[1].bottom)))

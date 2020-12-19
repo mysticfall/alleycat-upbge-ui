@@ -169,6 +169,7 @@ class WindowManager(Drawable, ErrorHandlerSupport, ReactiveObject):
     def draw(self, g: Graphics) -> None:
         # noinspection PyTypeChecker
         for window in self.windows:
+            window.validate()
             window.draw(g)
 
     @property

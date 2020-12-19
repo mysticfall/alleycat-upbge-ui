@@ -1,16 +1,14 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import reduce
-from typing import Sequence
+from typing import Callable, Sequence
 
 import rx
-from alleycat.reactive import RP, RV
-from alleycat.reactive import functions as rv
+from alleycat.reactive import RP, functions as rv
 from rx import Observable
-from rx import operators as ops
 
-from alleycat.ui import Dimension, Insets, Bounds, Component
-from .layout import Layout
+from alleycat.ui import Bounds, Component, Dimension, Insets
+from .layout import Layout, LayoutItem
 
 
 class BoxAlign(Enum):
@@ -28,10 +26,6 @@ class BoxLayout(Layout, ABC):
 
     align: RP[BoxAlign] = rv.new_property()
 
-    minimum_size: RV[Dimension] = rv.from_instance(lambda i: i._calculate_size("minimum_size"))
-
-    preferred_size: RV[Dimension] = rv.from_instance(lambda i: i._calculate_size("preferred_size"))
-
     # noinspection PyTypeChecker
     def __init__(
             self,
@@ -46,6 +40,14 @@ class BoxLayout(Layout, ABC):
         self.spacing = spacing
         self.padding = padding
         self.align = align
+
+    @property
+    def minimum_size(self) -> Dimension:
+        return self._calculate_size(lambda i: i.component.minimum_size)
+
+    @property
+    def preferred_size(self) -> Dimension:
+        return self._calculate_size(lambda i: i.component.preferred_size)
 
     @property
     def on_constraints_change(self) -> Observable:
@@ -117,20 +119,17 @@ class BoxLayout(Layout, ABC):
     def _reduce_size(self, s1: Dimension, s2: Dimension) -> Dimension:
         pass
 
-    def _calculate_size(self, size_attr: str) -> Observable:
-        children = self.observe("visible_children")
+    def _calculate_size(self, extractor: Callable[[LayoutItem], Dimension]) -> Dimension:
+        children = tuple(filter(lambda c: c.component.visible, self.children))
 
-        padding = self.observe("padding").pipe(ops.map(lambda p: Dimension(p.left + p.right, p.top + p.bottom)))
-        spacing = rx.combine_latest(children, self.observe("spacing")).pipe(
-            ops.map(lambda v: self._to_size(max(len(v[0]) - 1, 0) * v[1])))
+        # noinspection PyTypeChecker
+        size = reduce(self._reduce_size, map(extractor, children), Dimension(0, 0))
 
-        return children.pipe(
-            ops.map(lambda v: map(lambda c: c.component.observe(size_attr), v)),
-            ops.map(lambda b: rx.combine_latest(*b, rx.of(Dimension(0, 0)))),
-            ops.switch_latest(),
-            ops.map(lambda b: reduce(self._reduce_size, b)),
-            ops.combine_latest(padding, spacing),
-            ops.map(lambda v: v[0] + v[1] + v[2]))
+        spacing = self._to_size(max(len(children) - 1, 0) * self.spacing)
+
+        (top, right, bottom, left) = self.padding.tuple
+
+        return size + Dimension(left + right, top + bottom) + spacing
 
 
 class HBoxLayout(BoxLayout):

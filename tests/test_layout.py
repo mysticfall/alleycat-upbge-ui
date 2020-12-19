@@ -2,9 +2,9 @@ import unittest
 
 from returns.maybe import Some
 
-from alleycat.ui import Bounds, Dimension, Panel, Window, Insets, RGBA
+from alleycat.ui import Bounds, Dimension, Insets, Panel, RGBA, Window
 from alleycat.ui.glass import StyleKeys
-from alleycat.ui.layout import AbsoluteLayout, FillLayout, HBoxLayout, BoxAlign, VBoxLayout
+from alleycat.ui.layout import AbsoluteLayout, BoxAlign, FillLayout, HBoxLayout, VBoxLayout
 from tests.ui import UITestCase
 
 
@@ -55,13 +55,18 @@ class LayoutTest(UITestCase):
 
         self.context.process()
 
+        self.assertEqual(True, container.valid)
+        self.assertEqual(False, container.layout_pending)
+
         self.assertEqual(Bounds(0, 0, 200, 200), child1.bounds)
         self.assertEqual(Bounds(0, 0, 200, 200), child2.bounds)
         self.assertEqual(Dimension(0, 0), container.minimum_size)
 
         container.bounds = Bounds(20, 20, 100, 100)
 
+        self.assertEqual(True, container.layout_pending)
         self.context.process()
+        self.assertEqual(False, container.layout_pending)
 
         self.assertEqual(Bounds(0, 0, 100, 100), child1.bounds)
         self.assertEqual(Bounds(0, 0, 100, 100), child2.bounds)
@@ -70,7 +75,9 @@ class LayoutTest(UITestCase):
         child1.bounds = Bounds(10, 60, 300, 300)
         child2.bounds = Bounds(-30, -40, 50, 50)
 
+        self.assertEqual(True, container.layout_pending)
         self.context.process()
+        self.assertEqual(False, container.layout_pending)
 
         self.assertEqual(Bounds(0, 0, 100, 100), child1.bounds)
         self.assertEqual(Bounds(0, 0, 100, 100), child2.bounds)
@@ -82,13 +89,25 @@ class LayoutTest(UITestCase):
         child1.preferred_size_override = Some(Dimension(300, 450))
         child2.preferred_size_override = Some(Dimension(640, 400))
 
+        self.assertEqual(True, container.layout_pending)
         self.context.process()
+        self.assertEqual(False, container.layout_pending)
 
         self.assertEqual(Bounds(0, 0, 500, 300), child1.bounds)
         self.assertEqual(Bounds(0, 0, 500, 300), child2.bounds)
         self.assertEqual(Bounds(20, 20, 500, 300), container.bounds)
         self.assertEqual(Dimension(500, 300), container.minimum_size)
         self.assertEqual(Dimension(640, 450), container.preferred_size)
+
+        child1.visible = False
+
+        self.assertEqual(True, container.layout_pending)
+        self.context.process()
+        self.assertEqual(False, container.layout_pending)
+
+        self.assertEqual(Bounds(20, 20, 500, 150), container.bounds)
+        self.assertEqual(Dimension(500, 150), container.minimum_size)
+        self.assertEqual(Dimension(640, 400), container.preferred_size)
 
     def test_fill_layout_insets(self):
         layout = FillLayout(Insets(10, 5, 3, 6))
@@ -99,7 +118,9 @@ class LayoutTest(UITestCase):
 
         container.add(child)
 
+        self.assertEqual(True, container.layout_pending)
         self.context.process()
+        self.assertEqual(False, container.layout_pending)
 
         self.assertEqual(Bounds(10, 6, 189, 187), child.bounds)
         self.assertEqual(Dimension(11, 13), container.minimum_size)
@@ -107,7 +128,9 @@ class LayoutTest(UITestCase):
 
         child.minimum_size_override = Some(Dimension(10, 10))
 
+        self.assertEqual(True, container.layout_pending)
         self.context.process()
+        self.assertEqual(False, container.layout_pending)
 
         self.assertEqual(Bounds(10, 6, 189, 187), child.bounds)
         self.assertEqual(Dimension(21, 23), container.minimum_size)
@@ -115,7 +138,9 @@ class LayoutTest(UITestCase):
 
         layout.padding = Insets(5, 5, 5, 5)
 
+        self.assertEqual(True, container.layout_pending)
         self.context.process()
+        self.assertEqual(False, container.layout_pending)
 
         self.assertEqual(Bounds(5, 5, 190, 190), child.bounds)
         self.assertEqual(Dimension(20, 20), container.minimum_size)
@@ -154,7 +179,9 @@ class LayoutTest(UITestCase):
             layout.padding = padding
             layout.align = align
 
+            self.assertEqual(True, container.layout_pending)
             self.context.process()
+            self.assertEqual(False, container.layout_pending)
 
             prefix = f"hbox-{spacing}-{padding.top},{padding.right},{padding.bottom},{padding.left}-{align.name}-"
 
@@ -162,7 +189,9 @@ class LayoutTest(UITestCase):
 
             container.bounds = Bounds(5, 5, 45, 45)
 
+            self.assertEqual(True, container.layout_pending)
             self.context.process()
+            self.assertEqual(False, container.layout_pending)
 
             self.assertImage(prefix + "half-size", self.context)
 
@@ -204,7 +233,9 @@ class LayoutTest(UITestCase):
             layout.padding = padding
             layout.align = align
 
+            self.assertEqual(True, container.layout_pending)
             self.context.process()
+            self.assertEqual(False, container.layout_pending)
 
             prefix = f"vbox-{spacing}-{padding.top},{padding.right},{padding.bottom},{padding.left}-{align.name}-"
 
@@ -212,7 +243,9 @@ class LayoutTest(UITestCase):
 
             container.bounds = Bounds(5, 5, 45, 45)
 
+            self.assertEqual(True, container.layout_pending)
             self.context.process()
+            self.assertEqual(False, container.layout_pending)
 
             self.assertImage(prefix + "half-size", self.context)
 

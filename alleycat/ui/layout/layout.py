@@ -3,15 +3,13 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from itertools import chain
-from typing import Sequence, Tuple, Any, Mapping
+from typing import Any, Mapping, Sequence, Tuple
 
 import rx
-from alleycat.reactive import ReactiveObject, RV, RP
-from alleycat.reactive import functions as rv
+from alleycat.reactive import RP, RV, ReactiveObject, functions as rv
 from rx import Observable
-from rx import operators as ops
 
-from alleycat.ui import Component, Dimension, Bounds
+from alleycat.ui import Bounds, Component, Dimension
 
 
 class Layout(ReactiveObject, ABC):
@@ -19,23 +17,18 @@ class Layout(ReactiveObject, ABC):
 
     children: RV[Sequence[LayoutItem]] = _children.as_view()
 
-    visible_children: RV[Sequence[LayoutItem]] = rv.new_view()
-
-    minimum_size: RV[Dimension]
-
-    preferred_size: RV[Dimension]
-
     def __init__(self) -> None:
         super().__init__()
 
-        # noinspection PyTypeChecker
-        self.visible_children = self.observe("children").pipe(
-            ops.map(lambda children: map(lambda c: c.component.observe("visible"), children)),
-            ops.map(lambda b: rx.merge(*b)),
-            ops.switch_latest(),
-            ops.start_with(None),
-            ops.map(lambda _: tuple(filter(lambda c: c.component.visible, self.children))),
-            ops.distinct_until_changed())
+    @property
+    @abstractmethod
+    def minimum_size(self) -> Dimension:
+        pass
+
+    @property
+    @abstractmethod
+    def preferred_size(self) -> Dimension:
+        pass
 
     def add(self, child: Component, *args, **kwargs) -> None:
         if child is None:

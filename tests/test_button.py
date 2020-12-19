@@ -3,9 +3,9 @@ from typing import cast
 
 from alleycat.reactive import functions as rv
 from returns.maybe import Nothing, Some
-from rx import operators as ops
 
-from alleycat.ui import Bounds, Window, RGBA, TextAlign, LabelButton, Point, MouseButton, Dimension, LabelUI, Insets
+from alleycat.ui import Bounds, Dimension, Insets, LabelButton, LabelUI, MouseButton, Point, RGBA, StyleLookup, \
+    TextAlign, Window
 from alleycat.ui.glass import StyleKeys
 from tests.ui import UITestCase
 
@@ -169,53 +169,51 @@ class ButtonTest(UITestCase):
         self.assertEqual([False, True, False, True, False], values)
         self.assertImage("active_right_button", self.context, tolerance=50)
 
-    def test_ui_on_font_change(self):
-        button = LabelButton(self.context)
+    def test_validation(self):
         laf = self.context.look_and_feel
-        ui = cast(LabelUI, button.ui)
-        font_registry = self.context.toolkit.fonts
+        fonts = self.context.toolkit.fonts
 
-        font1 = font_registry.resolve("Font 1").unwrap()
-        font2 = font_registry.resolve("Font 2").unwrap()
-        default = font_registry.fallback_font
+        button = LabelButton(self.context)
+        button.validate()
 
-        changes = []
+        self.assertEqual(True, button.valid)
 
-        ui.on_font_change(button).pipe(ops.map(lambda e: e.family)).subscribe(changes.append)
+        button.text = "Button"
 
-        self.assertEqual([default.family], changes)
+        self.assertEqual(False, button.valid)
 
-        button.set_font("text", font1)
-        button.set_font("tooltip", font1)
+        button.validate()
+        button.text_size = 20
 
-        self.assertEqual([font1.family], changes[1:])
+        self.assertEqual(False, button.valid)
 
-        button.set_font("text", font2)
-        button.set_font("text", font2)  # Should ignore duplicates.
+        button.validate()
+        button.text_align = TextAlign.End
+        button.text_vertical_align = TextAlign.End
 
-        self.assertEqual([font2.family], changes[2:])
+        self.assertEqual(True, button.valid)
 
-        button.clear_font("text")
+        def test_style(lookup: StyleLookup):
+            button.validate()
 
-        self.assertEqual([default.family], changes[3:])
+            lookup.set_font("NonExistentKey", fonts.resolve("Font1").unwrap())
+            lookup.set_insets("NonExistentKey", Insets(10, 10, 10, 10))
 
-        laf.set_font("text", font1)
+            self.assertEqual(True, button.valid)
 
-        self.assertEqual([font1.family], changes[4:])
+            lookup.set_font(StyleKeys.Text, fonts.resolve("Font1").unwrap())
 
-        laf.set_font("Button.text", font2)
+            self.assertEqual(False, button.valid)
 
-        self.assertEqual([font2.family], changes[5:])
+            button.validate()
+            lookup.set_insets(StyleKeys.Padding, Insets(10, 10, 10, 10))
 
-        laf.clear_font("text")
+            self.assertEqual(False, button.valid)
 
-        self.assertEqual([], changes[6:])
+        test_style(laf)
+        test_style(button)
 
-        button.set_font("text", font1)
-
-        self.assertEqual([font1.family], changes[6:])
-
-    def test_ui_on_extents_change(self):
+    def test_ui_extents(self):
         button = LabelButton(self.context)
         laf = self.context.look_and_feel
         ui = cast(LabelUI, button.ui)
@@ -225,29 +223,23 @@ class ButtonTest(UITestCase):
 
         mono = font_registry.resolve("Mono").unwrap()
 
-        changes = []
-
-        ui.on_extents_change(button).subscribe(changes.append)
-
-        self.assertEqual([Dimension(width=0.0, height=0.0)], changes)
+        self.assertEqual(Dimension(0, 0), ui.extents(button))
 
         button.text = "Test"
+        button.validate()
 
-        self.assertEqual(2, len(changes))
-
-        self.assertAlmostEqual(18.476, changes[1].width, delta=tolerance)
-        self.assertAlmostEqual(7.227, changes[1].height, delta=tolerance)
+        self.assertAlmostEqual(18.476, ui.extents(button).width, delta=tolerance)
+        self.assertAlmostEqual(7.227, ui.extents(button).height, delta=tolerance)
 
         button.text_size = 15
+        button.validate()
 
-        self.assertEqual(3, len(changes))
-
-        self.assertAlmostEqual(27.715, changes[2].width, delta=tolerance)
-        self.assertAlmostEqual(10.840, changes[2].height, delta=tolerance)
+        self.assertAlmostEqual(27.715, ui.extents(button).width, delta=tolerance)
+        self.assertAlmostEqual(10.840, ui.extents(button).height, delta=tolerance)
 
         laf.set_font("Button.text", mono)
 
-        self.assertEqual(4, len(changes))
+        self.assertEqual(False, button.valid)
 
     def test_minimum_size(self):
         tolerance = 0.1
@@ -257,6 +249,7 @@ class ButtonTest(UITestCase):
                 calculated = []
 
                 button.set_insets(StyleKeys.Padding, padding)
+                button.validate()
 
                 pw = padding.left + padding.right
                 ph = padding.top + padding.bottom
@@ -268,6 +261,7 @@ class ButtonTest(UITestCase):
                 self.assertEqual([Dimension(pw, ph)], calculated)
 
                 button.text = "Test"
+                button.validate()
 
                 self.assertEqual(2, len(calculated))
 
@@ -280,6 +274,7 @@ class ButtonTest(UITestCase):
                 self.assertEqual(Bounds(0, 0, calculated[1].width, calculated[1].height), button.bounds)
 
                 button.text_size = 15
+                button.validate()
 
                 self.assertEqual(3, len(calculated))
 
@@ -294,6 +289,7 @@ class ButtonTest(UITestCase):
                 self.assertEqual(Bounds(10, 20, 60, 40), button.bounds)
 
                 button.minimum_size_override = Some(Dimension(80, 50))
+                button.validate()
 
                 self.assertEqual(Some(Dimension(80, 50)), button.minimum_size_override)
                 self.assertEqual(Dimension(80, 50), button.minimum_size)
@@ -317,6 +313,7 @@ class ButtonTest(UITestCase):
                 calculated = []
 
                 button.set_insets(StyleKeys.Padding, padding)
+                button.validate()
 
                 pw = padding.left + padding.right
                 ph = padding.top + padding.bottom
@@ -328,6 +325,7 @@ class ButtonTest(UITestCase):
                 self.assertEqual([Dimension(pw, ph)], calculated)
 
                 button.text = "Test"
+                button.validate()
 
                 self.assertEqual(2, len(calculated))
 
@@ -339,6 +337,7 @@ class ButtonTest(UITestCase):
                 self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=tolerance)
 
                 button.text_size = 15
+                button.validate()
 
                 self.assertEqual(3, len(calculated))
 
@@ -350,6 +349,7 @@ class ButtonTest(UITestCase):
                 self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
                 button.preferred_size_override = Some(Dimension(80, 50))
+                button.validate()
 
                 self.assertEqual(Some(Dimension(80, 50)), button.preferred_size_override)
                 self.assertEqual(Dimension(80, 50), button.preferred_size)
@@ -357,12 +357,14 @@ class ButtonTest(UITestCase):
                 self.assertEqual(Dimension(80, 50), calculated[3])
 
                 button.preferred_size_override = Some(Dimension(10, 10))
+                button.validate()
 
                 self.assertEqual(calculated[2], button.preferred_size)
                 self.assertEqual(5, len(calculated))
                 self.assertEqual(calculated[2], calculated[4])
 
                 button.minimum_size_override = Some(Dimension(400, 360))
+                button.validate()
 
                 self.assertEqual(Dimension(400, 360), button.preferred_size)
                 self.assertEqual(6, len(calculated))

@@ -1,8 +1,9 @@
 import unittest
 from pathlib import Path
 
-from alleycat.ui import Bounds, Window, RGBA, Insets, \
-    Canvas, Dimension
+from returns.maybe import Some
+
+from alleycat.ui import Bounds, StyleLookup, Window, RGBA, Insets, Canvas, Dimension
 from alleycat.ui.glass import StyleKeys
 from tests.ui import UITestCase
 
@@ -18,6 +19,37 @@ class CanvasTest(UITestCase):
 
         self.assertEqual(["Canvas"], prefixes)
         self.assertEqual(["Canvas.background", "background"], keys)
+
+    def test_validation(self):
+        canvas = Canvas(self.context)
+        canvas.validate()
+
+        self.assertEqual(True, canvas.valid)
+
+        image = self.context.toolkit.images.load(Path("fixtures/cat.png"))
+
+        canvas.image = Some(image)
+
+        self.assertEqual(False, canvas.valid)
+
+        canvas.validate()
+
+        self.assertEqual(True, canvas.valid)
+
+        def test_style(lookup: StyleLookup):
+            canvas.validate()
+
+            lookup.set_insets("NonExistentKey", Insets(10, 10, 10, 10))
+
+            self.assertEqual(True, canvas.valid)
+
+            canvas.validate()
+            lookup.set_insets(StyleKeys.Padding, Insets(10, 10, 10, 10))
+
+            self.assertEqual(False, canvas.valid)
+
+        test_style(self.context.look_and_feel)
+        test_style(canvas)
 
     def test_draw(self):
         image = self.context.toolkit.images.load(Path("fixtures/cat.png"))

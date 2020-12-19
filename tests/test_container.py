@@ -1,9 +1,9 @@
 import unittest
 
 from alleycat.reactive import functions as rv
-from returns.maybe import Some, Nothing
+from returns.maybe import Nothing, Some
 
-from alleycat.ui import Bounds, Point, Container, Component, Dimension, Panel, Window
+from alleycat.ui import Bounds, Component, Container, Dimension, Panel, Point, Window
 from alleycat.ui.layout import AbsoluteLayout
 from tests.ui import UITestCase
 
@@ -169,6 +169,45 @@ class ContainerTest(UITestCase):
         self.assertEqual(Bounds(10, 10, 400, 400), child1.bounds)
         self.assertEqual(Bounds(-30, -40, 50, 50), child2.bounds)
         self.assertEqual(Dimension(0, 0), container.minimum_size)
+
+    def test_validation(self):
+        container = Window(self.context)
+        container.bounds = Bounds(30, 30, 200, 200)
+
+        child = Panel(self.context)
+        child.bounds = Bounds(10, 10, 20, 20)
+
+        container.validate()
+        self.assertEqual(True, container.valid)
+
+        container.add(child)
+
+        self.assertEqual(False, container.valid)
+
+        container.validate()
+        child.bounds = Bounds(10, 10, 30, 30)
+
+        self.assertEqual(False, container.valid)
+
+        container.validate()
+        child.preferred_size_override = Some(Dimension(60, 60))
+
+        self.assertEqual(False, container.valid)
+
+        container.validate()
+        child.minimum_size_override = Some(Dimension(10, 10))
+
+        self.assertEqual(False, container.valid)
+
+        container.validate()
+        child.visible = False
+
+        self.assertEqual(False, container.valid)
+
+        container.validate()
+        container.remove(child)
+
+        self.assertEqual(False, container.valid)
 
 
 if __name__ == '__main__':
