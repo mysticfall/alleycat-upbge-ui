@@ -2,7 +2,7 @@ import unittest
 
 from returns.maybe import Some
 
-from alleycat.ui import Bounds, Dimension, Insets, Panel, RGBA, Window
+from alleycat.ui import Bounds, Dimension, Frame, Insets, Panel, RGBA
 from alleycat.ui.glass import StyleKeys
 from alleycat.ui.layout import FillLayout
 from tests.ui import UITestCase
@@ -12,7 +12,7 @@ from tests.ui import UITestCase
 class FillLayoutTest(UITestCase):
 
     def test_layout(self):
-        container = Window(self.context, FillLayout())
+        container = Frame(self.context, FillLayout())
         container.bounds = Bounds(30, 30, 200, 200)
 
         child1 = Panel(self.context)
@@ -82,7 +82,7 @@ class FillLayoutTest(UITestCase):
 
     def test_layout_with_insets(self):
         layout = FillLayout(Insets(30, 15, 20, 40))
-        container = Window(self.context, layout)
+        container = Frame(self.context, layout)
         container.bounds = Bounds(0, 0, 100, 100)
 
         child = Panel(self.context)

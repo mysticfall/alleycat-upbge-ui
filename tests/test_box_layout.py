@@ -3,7 +3,7 @@ from typing import Sequence
 
 from returns.maybe import Some
 
-from alleycat.ui import Bounds, Dimension, Insets, Panel, RGBA, Window
+from alleycat.ui import Bounds, Dimension, Frame, Insets, Panel, RGBA
 from alleycat.ui.glass import StyleKeys
 from alleycat.ui.layout import BoxAlign, HBoxLayout, \
     VBoxLayout
@@ -16,7 +16,7 @@ class BoxLayoutTest(UITestCase):
     def test_hbox_layout(self):
         layout = HBoxLayout()
 
-        container = Window(self.context, layout)
+        container = Frame(self.context, layout)
         container.bounds = Bounds(5, 5, 90, 90)
 
         child1 = Panel(self.context)
@@ -68,7 +68,7 @@ class BoxLayoutTest(UITestCase):
                     test(s, p, a)
 
     def test_hbox_hide_child(self):
-        container = Window(self.context, HBoxLayout())
+        container = Frame(self.context, HBoxLayout())
         container.bounds = Bounds(0, 0, 100, 100)
 
         child1 = Panel(self.context)
@@ -112,7 +112,7 @@ class BoxLayoutTest(UITestCase):
     def test_vbox_layout(self):
         layout = VBoxLayout()
 
-        container = Window(self.context, layout)
+        container = Frame(self.context, layout)
         container.bounds = Bounds(5, 5, 90, 90)
 
         child1 = Panel(self.context)
@@ -164,7 +164,7 @@ class BoxLayoutTest(UITestCase):
                     test(s, p, a)
 
     def test_vbox_hide_child(self):
-        container = Window(self.context, VBoxLayout())
+        container = Frame(self.context, VBoxLayout())
         container.bounds = Bounds(0, 0, 100, 100)
 
         child1 = Panel(self.context)

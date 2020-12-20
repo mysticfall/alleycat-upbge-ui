@@ -5,8 +5,8 @@ from returns.maybe import Maybe, Nothing
 from rx import Observable, operators as ops
 
 from alleycat.ui import Bounds, Button, Canvas, CanvasUI, Component, ComponentUI, Container, ContainerUI, Dimension, \
-    Font, FontChangeEvent, Graphics, Insets, InsetsChangeEvent, Label, LabelButton, LabelUI, LookAndFeel, Panel, \
-    Point, RGBA, TextAlign, Toolkit, Window, WindowUI
+    Font, FontChangeEvent, Frame, FrameUI, Graphics, Insets, InsetsChangeEvent, Label, LabelButton, LabelUI, \
+    LookAndFeel, Panel, Point, RGBA, TextAlign, Toolkit, Window, WindowUI
 
 T = TypeVar("T", bound=Component, contravariant=True)
 
@@ -27,6 +27,8 @@ class GlassLookAndFeel(LookAndFeel):
 
         self.set_color(with_prefix(StyleKeys.Background, "Window"), RGBA(0, 0, 0, 0.8))
         self.set_color(with_prefix(StyleKeys.Border, "Window"), active_color)
+        self.set_color(with_prefix(StyleKeys.Background, "Overlay"), RGBA(0, 0, 0, 0))
+        self.set_color(with_prefix(StyleKeys.Border, "Overlay"), RGBA(0, 0, 0, 0))
         self.set_color(with_prefix(StyleKeys.Border, "Button"), active_color)
         self.set_color(with_prefix(StyleKeys.BorderHover, "Button"), highlight_color)
         self.set_color(with_prefix(StyleKeys.BackgroundActive, "Button"), active_color)
@@ -37,8 +39,10 @@ class GlassLookAndFeel(LookAndFeel):
         self.set_color(with_prefix(StyleKeys.TextActive, "Button"), RGBA(0, 0, 0, 1))
 
         self.set_insets(StyleKeys.Padding, Insets(5, 10, 5, 10))
+        self.set_insets(with_prefix(StyleKeys.Padding, "Overlay"), Insets(0, 0, 0, 0))
 
         self.register_ui(Window, GlassWindowUI)
+        self.register_ui(Frame, GlassFrameUI)
         self.register_ui(Panel, GlassPanelUI)
         self.register_ui(LabelButton, GlassLabelButtonUI)
         self.register_ui(Button, GlassButtonUI)
@@ -94,6 +98,7 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
 
 
 C = TypeVar("C", bound=Container, contravariant=True)
+W = TypeVar("W", bound=Window, contravariant=True)
 
 
 class GlassContainerUI(GlassComponentUI[C], ContainerUI[C]):
@@ -123,7 +128,13 @@ class GlassPanelUI(GlassContainerUI[Panel]):
         super().__init__()
 
 
-class GlassWindowUI(GlassContainerUI[Window], WindowUI[Window]):
+class GlassWindowUI(GlassContainerUI[W], WindowUI[W]):
+
+    def __init__(self) -> None:
+        super().__init__()
+
+
+class GlassFrameUI(GlassWindowUI[Frame], FrameUI):
 
     def __init__(self) -> None:
         super().__init__()

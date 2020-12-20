@@ -4,7 +4,7 @@ from typing import Set, cast
 from returns.iterables import Fold
 from returns.maybe import Nothing, Some
 
-from alleycat.ui import Bounds, Component, Container, Dimension, Insets, Panel, RGBA, Window
+from alleycat.ui import Bounds, Component, Container, Dimension, Frame, Insets, Panel, RGBA
 from alleycat.ui.glass import StyleKeys
 from alleycat.ui.layout import Border, BorderItem, BorderLayout
 from tests.ui import UITestCase
@@ -14,7 +14,7 @@ from tests.ui import UITestCase
 class BorderLayoutTest(UITestCase):
 
     def create_container(self, areas: Set[Border]) -> Container:
-        container = Window(self.context, BorderLayout())
+        container = Frame(self.context, BorderLayout())
         container.bounds = Bounds(5, 5, 90, 90)
 
         if Border.Top in areas:
@@ -111,7 +111,7 @@ class BorderLayoutTest(UITestCase):
     def test_items(self):
         layout = BorderLayout()
 
-        container = Window(self.context, layout)
+        container = Frame(self.context, layout)
 
         child1 = Panel(self.context)
         child2 = Panel(self.context)

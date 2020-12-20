@@ -2,7 +2,7 @@ import unittest
 
 from returns.maybe import Some
 
-from alleycat.ui import Bounds, Dimension, Panel, Window
+from alleycat.ui import Bounds, Dimension, Frame, Panel
 from alleycat.ui.layout import AbsoluteLayout
 from tests.ui import UITestCase
 
@@ -11,7 +11,7 @@ from tests.ui import UITestCase
 class AbsoluteLayoutTest(UITestCase):
 
     def test_layout(self):
-        container = Window(self.context, AbsoluteLayout())
+        container = Frame(self.context, AbsoluteLayout())
         container.bounds = Bounds(30, 30, 200, 200)
 
         child1 = Panel(self.context)

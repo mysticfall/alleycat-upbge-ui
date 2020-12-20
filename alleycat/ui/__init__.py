@@ -24,4 +24,6 @@ from .panel import Panel
 from .label import Label, LabelUI, TextAlign
 from .button import Button, LabelButton
 from .canvas import Canvas, CanvasUI
-from .window import Window, WindowUI, WindowManager
+from .window import Window, WindowManager, WindowUI
+from .frame import Frame, FrameUI
+from .overlay import Overlay

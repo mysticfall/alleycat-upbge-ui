@@ -2,7 +2,7 @@ import unittest
 
 from returns.maybe import Some
 
-from alleycat.ui import Bounds, Dimension, Panel, RGBA, Window
+from alleycat.ui import Bounds, Dimension, Frame, Panel, RGBA
 from alleycat.ui.glass import StyleKeys
 from alleycat.ui.layout import Border, BorderLayout, VBoxLayout
 from tests.ui import UITestCase
@@ -12,7 +12,7 @@ from tests.ui import UITestCase
 class LayoutTest(UITestCase):
 
     def test_nested_layout(self):
-        box = Window(self.context, VBoxLayout())
+        box = Frame(self.context, VBoxLayout())
         box.bounds = Bounds(0, 0, 100, 100)
 
         child1 = Panel(self.context)

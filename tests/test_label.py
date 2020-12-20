@@ -4,7 +4,7 @@ from typing import cast
 from alleycat.reactive import functions as rv
 from returns.maybe import Nothing, Some
 
-from alleycat.ui import Bounds, Dimension, Insets, Label, LabelUI, RGBA, StyleLookup, TextAlign, Window
+from alleycat.ui import Bounds, Dimension, Frame, Insets, Label, LabelUI, RGBA, StyleLookup, TextAlign
 from alleycat.ui.glass import StyleKeys
 from tests.ui import UITestCase
 
@@ -22,7 +22,7 @@ class LabelTest(UITestCase):
         self.assertEqual(["Label.background", "background"], keys)
 
     def test_draw(self):
-        window = Window(self.context)
+        window = Frame(self.context)
         window.bounds = Bounds(0, 0, 100, 60)
 
         label = Label(self.context)
@@ -45,7 +45,7 @@ class LabelTest(UITestCase):
         self.assertImage("draw", self.context, tolerance=50)
 
     def test_align(self):
-        window = Window(self.context)
+        window = Frame(self.context)
         window.bounds = Bounds(0, 0, 100, 100)
 
         label = Label(self.context)

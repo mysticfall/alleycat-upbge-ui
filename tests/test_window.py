@@ -2,7 +2,7 @@ import unittest
 
 from returns.maybe import Some
 
-from alleycat.ui import Window, Bounds, Point, RGBA, Panel, MouseButton, Dimension
+from alleycat.ui import Bounds, Dimension, Frame, MouseButton, Panel, Point, RGBA
 from alleycat.ui.glass import StyleKeys
 from tests.ui import UITestCase
 
@@ -11,20 +11,20 @@ from tests.ui import UITestCase
 class WindowTest(UITestCase):
 
     def test_style_fallback(self):
-        window = Window(self.context)
+        window = Frame(self.context)
 
         prefixes = list(window.style_fallback_prefixes)
         keys = list(window.style_fallback_keys(StyleKeys.Background))
 
-        self.assertEqual(["Window"], prefixes)
-        self.assertEqual(["Window.background", "background"], keys)
+        self.assertEqual(["Frame", "Window"], prefixes)
+        self.assertEqual(["Frame.background", "Window.background", "background"], keys)
 
     def test_draw(self):
-        window1 = Window(self.context)
+        window1 = Frame(self.context)
 
         window1.bounds = Bounds(10, 20, 80, 60)
 
-        window2 = Window(self.context)
+        window2 = Frame(self.context)
 
         window2.bounds = Bounds(50, 40, 50, 50)
         window2.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
@@ -34,7 +34,7 @@ class WindowTest(UITestCase):
         self.assertImage("draw", self.context)
 
     def test_draw_children(self):
-        window = Window(self.context)
+        window = Frame(self.context)
 
         window.bounds = Bounds(10, 20, 80, 60)
         window.set_color(StyleKeys.Background, RGBA(0.5, 0.5, 0.5, 1))
@@ -59,13 +59,13 @@ class WindowTest(UITestCase):
     def test_window_at(self):
         manager = self.context.window_manager
 
-        bottom = Window(self.context)
+        bottom = Frame(self.context)
         bottom.bounds = Bounds(0, 0, 100, 100)
 
-        middle = Window(self.context)
+        middle = Frame(self.context)
         middle.bounds = Bounds(100, 100, 100, 100)
 
-        top = Window(self.context)
+        top = Frame(self.context)
         top.bounds = Bounds(50, 50, 100, 100)
 
         self.assertEqual(Some(bottom), manager.window_at(Point(0, 0)))
@@ -82,7 +82,7 @@ class WindowTest(UITestCase):
         self.assertEqual(Some(top), manager.window_at(Point(50, 150)))
 
     def test_drag(self):
-        window = Window(self.context)
+        window = Frame(self.context)
         window.draggable = True
         window.resizable = True
         window.bounds = Bounds(10, 10, 50, 50)
@@ -133,12 +133,12 @@ class WindowTest(UITestCase):
         self.assertImage("drag_non_draggable", self.context)
 
     def test_drag_overlapping(self):
-        bottom = Window(self.context)
+        bottom = Frame(self.context)
         bottom.draggable = True
         bottom.bounds = Bounds(10, 10, 50, 50)
         bottom.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
 
-        top = Window(self.context)
+        top = Frame(self.context)
         top.draggable = True
         top.bounds = Bounds(20, 20, 50, 50)
         top.set_color(StyleKeys.Background, RGBA(0, 0, 1, 1))
@@ -162,7 +162,7 @@ class WindowTest(UITestCase):
         self.assertImage("drag_overlapping_bottom", self.context)
 
     def test_resize(self):
-        window = Window(self.context)
+        window = Frame(self.context)
         window.draggable = True
         window.resizable = True
 
@@ -201,7 +201,7 @@ class WindowTest(UITestCase):
         resize("resize_non_resizable", Point(40, 25), Point(40, 10))
 
     def test_resize_to_collapse(self):
-        window = Window(self.context)
+        window = Frame(self.context)
         window.draggable = True
         window.resizable = True
 
@@ -227,7 +227,7 @@ class WindowTest(UITestCase):
         resize(Point(25, 25), Point(95, 95), Bounds(80, 80, 0, 0))
 
     def test_resize_with_min_size(self):
-        window = Window(self.context)
+        window = Frame(self.context)
         window.draggable = True
         window.resizable = True
 
@@ -259,7 +259,7 @@ class WindowTest(UITestCase):
 
         self.assertEqual(0, len(manager.windows))
 
-        window = Window(self.context)
+        window = Frame(self.context)
 
         self.assertEqual(1, len(manager.windows))
 

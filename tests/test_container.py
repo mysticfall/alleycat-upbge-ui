@@ -3,7 +3,7 @@ import unittest
 from alleycat.reactive import functions as rv
 from returns.maybe import Nothing, Some
 
-from alleycat.ui import Bounds, Component, Container, Dimension, Panel, Point, Window
+from alleycat.ui import Bounds, Component, Container, Dimension, Frame, Panel, Point
 from alleycat.ui.layout import AbsoluteLayout
 from tests.ui import UITestCase
 
@@ -142,7 +142,7 @@ class ContainerTest(UITestCase):
         self.assertEqual([Nothing, Some(parent1), Nothing, Some(parent2), Nothing], parents)
 
     def test_absolute_layout(self):
-        container = Window(self.context, AbsoluteLayout())
+        container = Frame(self.context, AbsoluteLayout())
         container.bounds = Bounds(30, 30, 200, 200)
 
         child1 = Panel(self.context)
@@ -171,7 +171,7 @@ class ContainerTest(UITestCase):
         self.assertEqual(Dimension(0, 0), container.minimum_size)
 
     def test_validation(self):
-        container = Window(self.context)
+        container = Frame(self.context)
         container.bounds = Bounds(30, 30, 200, 200)
 
         child = Panel(self.context)

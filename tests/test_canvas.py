@@ -3,7 +3,7 @@ from pathlib import Path
 
 from returns.maybe import Some
 
-from alleycat.ui import Bounds, StyleLookup, Window, RGBA, Insets, Canvas, Dimension
+from alleycat.ui import Bounds, Canvas, Dimension, Frame, Insets, RGBA, StyleLookup
 from alleycat.ui.glass import StyleKeys
 from tests.ui import UITestCase
 
@@ -54,7 +54,7 @@ class CanvasTest(UITestCase):
     def test_draw(self):
         image = self.context.toolkit.images.load(Path("fixtures/cat.png"))
 
-        window = Window(self.context)
+        window = Frame(self.context)
         window.bounds = Bounds(0, 0, 100, 100)
 
         canvas1 = Canvas(self.context)
@@ -79,7 +79,7 @@ class CanvasTest(UITestCase):
     def test_draw_with_padding(self):
         image = self.context.toolkit.images.load(Path("fixtures/cat.png"))
 
-        window = Window(self.context)
+        window = Frame(self.context)
         window.bounds = Bounds(0, 0, 100, 100)
 
         canvas = Canvas(self.context, image)
