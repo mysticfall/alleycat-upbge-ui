@@ -75,6 +75,8 @@ class Window(Container):
         super().dispatch_event(event)
 
     def dispose(self) -> None:
+        self.context.window_manager.remove(self)
+
         self.execute_safely(self._drag_listener.dispose)
         self.execute_safely(self._resize_listener.dispose)
 

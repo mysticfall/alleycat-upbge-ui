@@ -254,6 +254,19 @@ class WindowTest(UITestCase):
         resize(Point(25, 40), Point(95, 40), Bounds(50, 20, 30, 60))
         resize(Point(25, 25), Point(95, 95), Bounds(50, 50, 30, 30))
 
+    def test_dispose(self):
+        manager = self.context.window_manager
+
+        self.assertEqual(0, len(manager.windows))
+
+        window = Window(self.context)
+
+        self.assertEqual(1, len(manager.windows))
+
+        window.dispose()
+
+        self.assertEqual(0, len(manager.windows))
+
 
 if __name__ == '__main__':
     unittest.main()
