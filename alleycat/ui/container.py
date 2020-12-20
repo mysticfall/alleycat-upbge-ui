@@ -145,7 +145,6 @@ class ContainerUI(ComponentUI[T], ABC):
 
         def child_bounds_changes(child: Component):
             return rx.merge(
-                child.observe("visible"),
                 child.observe("bounds"),
                 child.observe("preferred_size"),
                 child.observe("minimum_size"))

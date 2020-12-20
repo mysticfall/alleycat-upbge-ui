@@ -110,14 +110,13 @@ class ComponentTest(UITestCase):
 
         fixture = FixtureComponent(self.context)
 
+        fixture.validate()
         self.assertEqual(True, fixture.valid)
 
         fixture.invalidate()
-
         self.assertEqual(False, fixture.valid)
 
         fixture.validate()
-
         self.assertEqual(True, fixture.valid)
 
         minimum_size = Dimension(30, 30)

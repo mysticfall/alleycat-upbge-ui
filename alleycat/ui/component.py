@@ -110,8 +110,12 @@ class Component(Drawable, StyleResolver, MouseEventHandler, EventDispatcher, Con
 
             self._valid = True
 
+            self.parent.map(lambda p: p.request_layout())
+
     def invalidate(self) -> None:
         self._valid = False
+
+        self.parent.map(lambda p: p.invalidate())
 
     def draw(self, g: Graphics) -> None:
         if self.visible:
@@ -169,7 +173,7 @@ class ComponentUI(Generic[T], ABC):
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def on_invalidate(self, component: T) -> Observable:
-        return rx.empty()
+        return component.observe("visible")
 
     @abstractmethod
     def draw(self, g: Graphics, component: T) -> None:
