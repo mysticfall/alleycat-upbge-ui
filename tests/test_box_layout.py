@@ -205,5 +205,6 @@ class BoxLayoutTest(UITestCase):
                 for v3 in [True, False]:
                     test((v1, v2, v3))
 
+
 if __name__ == '__main__':
     unittest.main()
