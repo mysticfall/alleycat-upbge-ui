@@ -1,7 +1,8 @@
 import unittest
 
-from alleycat.ui import Bounded, Bounds, Point, Dimension
 from alleycat.reactive import functions as rv
+
+from alleycat.ui import Bounded, Bounds, Dimension, Point
 
 
 class BoundedTest(unittest.TestCase):
@@ -49,58 +50,6 @@ class BoundedTest(unittest.TestCase):
 
         self.assertEqual(Dimension(50, 150), self.fixture.size)
         self.assertEqual([Dimension(0, 0), Dimension(50, 150)], sizes)
-
-    def test_x(self):
-        points = []
-
-        rv.observe(self.fixture.x).subscribe(points.append)
-
-        self.assertEqual(0, self.fixture.x)
-        self.assertEqual([0], points)
-
-        self.fixture.bounds = Bounds(50, 10, 100, 100)
-
-        self.assertEqual(50, self.fixture.x)
-        self.assertEqual([0, 50], points)
-
-    def test_y(self):
-        points = []
-
-        rv.observe(self.fixture.y).subscribe(points.append)
-
-        self.assertEqual(0, self.fixture.y)
-        self.assertEqual([0], points)
-
-        self.fixture.bounds = Bounds(50, 10, 100, 100)
-
-        self.assertEqual(10, self.fixture.y)
-        self.assertEqual([0, 10], points)
-
-    def test_width(self):
-        widths = []
-
-        rv.observe(self.fixture.width).subscribe(widths.append)
-
-        self.assertEqual(0, self.fixture.width)
-        self.assertEqual([0], widths)
-
-        self.fixture.bounds = Bounds(50, 10, 100, 100)
-
-        self.assertEqual(100, self.fixture.width)
-        self.assertEqual([0, 100], widths)
-
-    def test_height(self):
-        heights = []
-
-        rv.observe(self.fixture.height).subscribe(heights.append)
-
-        self.assertEqual(0, self.fixture.height)
-        self.assertEqual([0], heights)
-
-        self.fixture.bounds = Bounds(50, 10, 100, 200)
-
-        self.assertEqual(200, self.fixture.height)
-        self.assertEqual([0, 200], heights)
 
 
 if __name__ == '__main__':
