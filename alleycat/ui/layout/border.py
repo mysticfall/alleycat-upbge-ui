@@ -187,6 +187,7 @@ class BorderStrip(BorderArea, ABC):
         # noinspection PyTypeChecker
         return reduce(lambda b1, b2: b1 + b2, map(lambda i: i.bounds, self.areas)) if self.areas else Bounds(0, 0, 0, 0)
 
+    # noinspection PyUnresolvedReferences
     @bounds.setter
     def bounds(self, bounds: Bounds) -> None:
         s = self._from_size
@@ -356,13 +357,18 @@ class BorderItem(BorderArea):
 
     @property
     def bounds(self) -> Bounds:
-        return self.component \
-            .map(lambda b: (b.bounds + self.padding).copy(x=b.x, y=b.y)) \
-            .value_or(Bounds(0, 0, 0, 0))
+        if self.component == Nothing:
+            return Bounds(0, 0, 0, 0)
+
+        component = self.component.unwrap()
+        bounds = component.bounds
+
+        return (bounds + self.padding).copy(x=bounds.x, y=bounds.y)
 
     @bounds.setter
     def bounds(self, bounds: Bounds) -> None:
-        self.component.map(lambda c: setattr(c, "bounds", bounds - self.padding))
+        if self.bounds != bounds:
+            self.component.map(lambda c: setattr(c, "bounds", bounds - self.padding))
 
     def _calculate_size(self, extractor: Callable[[Component], Dimension]) -> Dimension:
         (top, right, bottom, left) = self.padding.tuple
