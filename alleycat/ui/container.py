@@ -26,7 +26,7 @@ class Container(Component):
         super().__init__(context, visible)
 
         self.observe("size") \
-            .pipe(ops.filter(lambda _: self.visible)) \
+            .pipe(ops.filter(lambda _: self.visible), ops.distinct_until_changed()) \
             .subscribe(lambda _: self.request_layout(), on_error=self.error_handler)
 
     @property
