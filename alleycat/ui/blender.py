@@ -48,6 +48,9 @@ class BlenderContext(Context):
 
         self._shader = cast(GPUShader, gpu.shader.from_builtin("2D_IMAGE"))
 
+        if not hasattr(bge.logic, "canary"):
+            bge.logic.canary = {}
+
     @property
     def shader(self) -> GPUShader:
         return self._shader
@@ -70,6 +73,14 @@ class BlenderContext(Context):
             raise ValueError("Argument 'point' is required.")
 
         return point.copy(y=self.window_size.height - point.y)
+
+    def process(self) -> None:
+        # noinspection PyUnresolvedReferences
+        if not hasattr(bge.logic, "canary"):
+            self.dispose()
+            return
+
+        super().process()
 
     # noinspection PyTypeChecker
     def process_draw(self) -> None:
