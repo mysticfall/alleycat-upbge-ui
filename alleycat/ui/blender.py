@@ -12,6 +12,7 @@ import rx
 from alleycat.reactive import RV, ReactiveObject, functions as rv
 from bge.logic import KX_INPUT_ACTIVE, KX_INPUT_JUST_ACTIVATED, keyboard, mouse
 from bge.types import SCA_InputEvent
+from bgl import Buffer
 from bpy.types import BlendDataImages, Image as BLImage, SpaceView3D
 from cairocffi import Context as Graphics, FORMAT_ARGB32, FontOptions, ImageSurface, Matrix, Surface
 from gpu.types import GPUBatch, GPUShader
@@ -33,6 +34,8 @@ class BlenderContext(Context):
     window_size: RV[Dimension] = rv.new_view()
 
     batch: RV[GPUBatch] = window_size.map(lambda c, s: c.create_batch(s))
+
+    buffer: RV[GPUBatch] = window_size.map(lambda c, s: c.create_batch(s))
 
     def __init__(self,
                  toolkit: BlenderToolkit,
@@ -62,9 +65,18 @@ class BlenderContext(Context):
 
             bge.logic.getCurrentScene().post_draw.append(self.process)
 
+        # noinspection PyTypeChecker
+        self._texture = Buffer(bgl.GL_INT, 1)
+
+        bgl.glGenTextures(1, self.texture)
+
     @property
     def shader(self) -> GPUShader:
         return self._shader
+
+    @property
+    def texture(self) -> Buffer:
+        return self._texture
 
     def create_batch(self, size: Dimension) -> GPUBatch:
         if size is None:
@@ -105,15 +117,12 @@ class BlenderContext(Context):
         data = self.surface.get_data()
 
         source = bgl.Buffer(bgl.GL_BYTE, width * height * 4, data)
-        texture = bgl.Buffer(bgl.GL_INT, 1)
 
         bgl.glEnable(bgl.GL_BLEND)
-
-        bgl.glGenTextures(1, texture)
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
 
         # noinspection PyUnresolvedReferences
-        bgl.glBindTexture(bgl.GL_TEXTURE_2D, texture[0])
+        bgl.glBindTexture(bgl.GL_TEXTURE_2D, self.texture[0])
 
         bgl.glTexImage2D(
             bgl.GL_TEXTURE_2D, 0, bgl.GL_SRGB_ALPHA, width, height, 0, bgl.GL_BGRA, bgl.GL_UNSIGNED_BYTE, source)
@@ -126,12 +135,19 @@ class BlenderContext(Context):
 
         self.batch.draw(self.shader)
 
+        bgl.glDeleteBuffers(1, source)
+
     def dispose(self) -> None:
         if self._draw_handler:
             # noinspection PyArgumentList
             SpaceView3D.draw_handler_remove(self._draw_handler, "WINDOW")
         else:
             bge.logic.getCurrentScene().post_draw.remove(self.process)
+
+        bgl.glDeleteTextures(1, self.texture)
+
+        # noinspection PyTypeChecker
+        bgl.glDeleteBuffers(1, self.texture)
 
         super().dispose()
 
