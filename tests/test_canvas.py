@@ -1,11 +1,10 @@
 import unittest
-from pathlib import Path
 
 from returns.maybe import Some
 
 from alleycat.ui import Bounds, Canvas, Dimension, Frame, Insets, RGBA, StyleLookup
 from alleycat.ui.glass import StyleKeys
-from tests.ui import UITestCase
+from ui import UITestCase
 
 
 # noinspection DuplicatedCode
@@ -26,7 +25,7 @@ class CanvasTest(UITestCase):
 
         self.assertEqual(True, canvas.valid)
 
-        image = self.context.toolkit.images.load(Path("fixtures/cat.png"))
+        image = self.context.toolkit.images["fixtures/cat.png"]
 
         canvas.image = Some(image)
 
@@ -52,7 +51,7 @@ class CanvasTest(UITestCase):
         test_style(canvas)
 
     def test_draw(self):
-        image = self.context.toolkit.images.load(Path("fixtures/cat.png"))
+        image = self.context.toolkit.images["fixtures/cat.png"]
 
         window = Frame(self.context)
         window.bounds = Bounds(0, 0, 100, 100)
@@ -77,7 +76,7 @@ class CanvasTest(UITestCase):
         self.assertImage("draw", self.context, tolerance=50)
 
     def test_draw_with_padding(self):
-        image = self.context.toolkit.images.load(Path("fixtures/cat.png"))
+        image = self.context.toolkit.images["fixtures/cat.png"]
 
         window = Frame(self.context)
         window.bounds = Bounds(0, 0, 100, 100)

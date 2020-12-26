@@ -2,24 +2,31 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Mapping, Optional, Any, Dict, TYPE_CHECKING, TypeVar, Generic
+from typing import Any, Dict, Generic, Mapping, Optional, TYPE_CHECKING, TypeVar
 
-from alleycat.reactive import ReactiveObject, RV
-from returns.maybe import Maybe, Some
+from alleycat.reactive import RV, ReactiveObject, functions as rv
+from cairocffi import ANTIALIAS_SUBPIXEL, Context as Graphics, FontOptions, HINT_STYLE_FULL, OPERATOR_CLEAR, Surface
+from returns.maybe import Maybe
+from rx import operators as ops
 
-from alleycat.ui import EventDispatcher, EventLoopAware, ErrorHandler, ErrorHandlerSupport, InputLookup, Input, \
-    Dimension, Point, Bounds
+from alleycat.ui import Dimension, ErrorHandler, ErrorHandlerSupport, EventDispatcher, EventLoopAware, Input, \
+    InputLookup, Point
 
 if TYPE_CHECKING:
-    from alleycat.ui import Graphics, LookAndFeel, Toolkit, WindowManager
+    from alleycat.ui import LookAndFeel, Toolkit, WindowManager
 
 
 class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, ABC):
     window_size: RV[Dimension]
 
+    surface: RV[Surface] = rv.new_view()
+
+    graphics: RV[Graphics] = surface.map(lambda c, s: c.create_graphics(s))
+
     def __init__(self,
                  toolkit: Toolkit,
                  look_and_feel: Optional[LookAndFeel] = None,
+                 font_options: Optional[FontOptions] = None,
                  window_manager: Optional[WindowManager] = None,
                  error_handler: Optional[ErrorHandler] = None) -> None:
         if toolkit is None:
@@ -33,6 +40,9 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
         self._toolkit = toolkit
 
         self._look_and_feel = Maybe.from_optional(look_and_feel).or_else_call(lambda: GlassLookAndFeel(toolkit))
+        self._font_options = Maybe.from_optional(font_options).or_else_call(
+            lambda: FontOptions(antialias=ANTIALIAS_SUBPIXEL, hint_style=HINT_STYLE_FULL))
+
         self._error_handler = Maybe.from_optional(error_handler).value_or(toolkit.error_handler)
 
         self._window_manager = Maybe.from_optional(window_manager) \
@@ -42,9 +52,18 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
 
         assert inputs is not None
 
-        self._graphics: Optional[Graphics] = None
         self._inputs = {i.id: i for i in inputs}
         self._pollers = [i for i in inputs if isinstance(i, EventLoopAware)]
+
+        # noinspection PyTypeChecker
+        self.surface = self.observe("window_size").pipe(ops.map(self.toolkit.create_surface))
+
+        old_surface = self.observe("surface").pipe(
+            ops.pairwise(),
+            ops.map(lambda s: s[0]),
+            ops.take_until(self.on_dispose))
+
+        old_surface.subscribe(Surface.finish, on_error=self.error_handler)
 
     @property
     def toolkit(self) -> Toolkit:
@@ -59,12 +78,26 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
         return self._look_and_feel
 
     @property
+    def font_options(self) -> FontOptions:
+        return self._font_options
+
+    @property
     def window_manager(self) -> WindowManager:
         return self._window_manager
 
     @property
     def error_handler(self) -> ErrorHandler:
         return self._error_handler
+
+    # noinspection PyMethodMayBeStatic
+    def create_graphics(self, surface: Surface):
+        if surface is None:
+            raise ValueError("Argument 'surface' is required.")
+
+        g = Graphics(surface)
+        g.set_font_options(self.font_options)
+
+        return g
 
     def process(self) -> None:
         self.execute_safely(self.process_inputs)
@@ -75,17 +108,22 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
             self.execute_safely(poller.process)
 
     def process_draw(self) -> None:
-        if self._graphics is None:
-            self._graphics = self.toolkit.create_graphics(self)
-
-        assert self._graphics is not None
-
         (width, height) = self.window_size.tuple
 
-        self._graphics.reset()
-        self._graphics.clip = Some(Bounds(0, 0, width, height))
+        g: Graphics = self.graphics
 
-        self._window_manager.draw(self._graphics)
+        op = g.get_operator()
+
+        g.rectangle(0, 0, width, height)
+        g.set_source_rgba(0, 0, 0, 0)
+        g.set_operator(OPERATOR_CLEAR)
+        g.fill()
+
+        g.set_operator(op)
+
+        self.window_manager.draw(g)
+
+        self.surface.flush()
 
     def dispatcher_at(self, location: Point) -> Maybe[EventDispatcher]:
         if location is None:
@@ -95,9 +133,6 @@ class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, 
 
     def dispose(self) -> None:
         super().dispose()
-
-        if self._graphics is not None:
-            self.execute_safely(self._graphics.dispose)
 
         self.execute_safely(self._window_manager.dispose)
 
@@ -114,8 +149,7 @@ class ContextBuilder(ABC, Generic[T]):
         if toolkit is None:
             raise ValueError("Argument 'toolkit' is required.")
 
-        self.toolkit = toolkit
-        self._args: Dict[str, Any] = dict()
+        self._args: Dict[str, Any] = dict({"toolkit": toolkit})
 
     @property
     def args(self) -> Dict[str, Any]:
@@ -150,6 +184,14 @@ class ContextBuilder(ABC, Generic[T]):
             raise ValueError("Argument 'laf' is required.")
 
         self._args["look_and_feel"] = laf
+
+        return self
+
+    def with_font_options(self, options: FontOptions) -> ContextBuilder:
+        if options is None:
+            raise ValueError("Argument 'options' is required.")
+
+        self._args["font_options"] = options
 
         return self
 

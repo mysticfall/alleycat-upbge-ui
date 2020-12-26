@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from alleycat.ui import Graphics
+from cairocffi import Context as Graphics
 
 
 class Drawable(ABC):

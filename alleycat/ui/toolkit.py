@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TypeVar, Generic, Sequence, Optional
+from typing import Generic, Optional, Sequence, TypeVar
 
+from cairocffi import FORMAT_ARGB32, ImageSurface, Surface
 from rx.disposable import Disposable
 
-from alleycat.ui import Graphics, Context, Input, FontRegistry, ErrorHandler
+from alleycat.ui import Context, Dimension, ErrorHandler, FontRegistry, Input
 from alleycat.ui.error import default_error_handler
 from alleycat.ui.image import ImageRegistry
 
@@ -40,9 +41,12 @@ class Toolkit(Disposable, Generic[T], ABC):
     def error_handler(self) -> ErrorHandler:
         return self._error_handler
 
-    @abstractmethod
-    def create_graphics(self, context: T) -> Graphics:
-        pass
+    # noinspection PyMethodMayBeStatic
+    def create_surface(self, size: Dimension) -> Surface:
+        if size is None:
+            raise ValueError("Argument 'size' is required.")
+
+        return ImageSurface(FORMAT_ARGB32, int(size.width), int(size.height))
 
     @abstractmethod
     def create_inputs(self, context: T) -> Sequence[Input]:

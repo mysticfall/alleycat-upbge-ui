@@ -1,7 +1,7 @@
 import unittest
 
 from alleycat.ui import MouseMoveEvent, Point, Component
-from tests.ui import UITestCase
+from ui import UITestCase
 
 
 class EventTest(UITestCase):

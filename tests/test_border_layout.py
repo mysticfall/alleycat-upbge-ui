@@ -7,7 +7,7 @@ from returns.maybe import Nothing, Some
 from alleycat.ui import Bounds, Component, Container, Dimension, Frame, Insets, Panel, RGBA
 from alleycat.ui.glass import StyleKeys
 from alleycat.ui.layout import Border, BorderItem, BorderLayout
-from tests.ui import UITestCase
+from ui import UITestCase
 
 
 # noinspection DuplicatedCode

@@ -7,7 +7,7 @@ from returns.maybe import Nothing, Some
 from alleycat.ui import Bounds, Dimension, Insets, LabelButton, LabelUI, MouseButton, Point, RGBA, StyleLookup, \
     TextAlign, Window
 from alleycat.ui.glass import StyleKeys
-from tests.ui import UITestCase
+from ui import UITestCase
 
 
 # noinspection DuplicatedCode
@@ -196,12 +196,12 @@ class ButtonTest(UITestCase):
         def test_style(lookup: StyleLookup):
             button.validate()
 
-            lookup.set_font("NonExistentKey", fonts.resolve("Font1").unwrap())
+            lookup.set_font("NonExistentKey", fonts["Font1"])
             lookup.set_insets("NonExistentKey", Insets(10, 10, 10, 10))
 
             self.assertEqual(True, button.valid)
 
-            lookup.set_font(StyleKeys.Text, fonts.resolve("Font1").unwrap())
+            lookup.set_font(StyleKeys.Text, fonts["Font1"])
 
             self.assertEqual(False, button.valid)
 
@@ -221,7 +221,7 @@ class ButtonTest(UITestCase):
 
         tolerance = 0.1
 
-        mono = font_registry.resolve("Mono").unwrap()
+        mono = font_registry["Mono"]
 
         self.assertEqual(Dimension(0, 0), ui.extents(button))
 

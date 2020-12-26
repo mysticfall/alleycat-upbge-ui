@@ -1,10 +1,9 @@
 import unittest
 
-from cairo import ToyFontFace
+from cairocffi import ToyFontFace
 from returns.maybe import Nothing, Some
 
-from alleycat.ui import StyleLookup, RGBA, ColorChangeEvent, FontChangeEvent, Insets, InsetsChangeEvent
-from alleycat.ui.cairo import CairoFont
+from alleycat.ui import ColorChangeEvent, FontChangeEvent, Insets, InsetsChangeEvent, RGBA, StyleLookup
 
 
 class StyleLookupTest(unittest.TestCase):
@@ -31,8 +30,8 @@ class StyleLookupTest(unittest.TestCase):
     def test_lookup_font(self):
         lookup = StyleLookup()
 
-        sans = CairoFont("Sans", ToyFontFace("Sans"))
-        serif = CairoFont("Serif", ToyFontFace("Serif"))
+        sans = ToyFontFace("Sans")
+        serif = ToyFontFace("Serif")
 
         label_key = "label"
         button_key = "button"
@@ -90,7 +89,7 @@ class StyleLookupTest(unittest.TestCase):
 
         self.assertEqual([ColorChangeEvent(lookup, "color2", Some(RGBA(0, 1, 1, 1)))], changes[2:])
 
-        font = CairoFont("Sans", ToyFontFace("Sans"))
+        font = ToyFontFace("Sans")
 
         lookup.set_font("font1", font)
 

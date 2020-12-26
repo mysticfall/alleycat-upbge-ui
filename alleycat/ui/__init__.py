@@ -1,14 +1,14 @@
 # Import order should not be changed to avoid a circular dependency.
 from .common import Point, Dimension, Bounds, Insets, RGBA, Direction
 from .error import ErrorHandler, ErrorHandlerSupport
-from .font import Font, FontRegistry
+from .registry import Registry
+from .font import FontRegistry, ToyFontRegistry
 from .image import Image, ImageRegistry
 from .context_aware import ContextAware
 from .input import Input, InputLookup
 from .event import Event, EventDispatcher, EventHandler, EventLoopAware, PositionalEvent, PropagatingEvent
 from .context import Context
 from .bounded import Bounded
-from .graphics import Graphics
 from .drawable import Drawable
 from .keyboard import KeyInput
 from .mouse import MouseButton, MouseEvent, MouseDownEvent, MouseUpEvent, MouseMoveEvent, MouseOverEvent, \

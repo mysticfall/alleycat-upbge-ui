@@ -3,10 +3,11 @@ from typing import Iterator, Optional, Sequence, TypeVar, cast
 
 import rx
 from alleycat.reactive import RV, functions as rv
+from cairocffi import Context as Graphics
 from returns.maybe import Maybe, Nothing, Some
 from rx import Observable, operators as ops
 
-from alleycat.ui import Component, ComponentUI, Context, Dimension, Graphics, Layout, Point
+from alleycat.ui import Bounds, Component, ComponentUI, Context, Dimension, Layout, Point
 
 
 class Container(Component):
@@ -111,9 +112,23 @@ class Container(Component):
         cast(ContainerUI, self.ui).post_draw(g, self)
 
     def draw_children(self, g: Graphics) -> None:
-        # noinspection PyTypeChecker
-        for child in self.children:
-            child.draw(g)
+        ui = cast(ContainerUI, self.ui)
+
+        (cx, cy, cw, ch) = ui.content_bounds(self).tuple
+
+        g.save()
+
+        g.rectangle(cx, cy, cw, ch)
+        g.clip()
+
+        try:
+            # noinspection PyTypeChecker
+            for child in self.children:
+                child.draw(g)
+        except BaseException as e:
+            self.error_handler(e)
+
+        g.restore()
 
     def dispose(self) -> None:
         # noinspection PyTypeChecker
@@ -138,6 +153,10 @@ class ContainerUI(ComponentUI[T], ABC):
 
     def preferred_size(self, component: T) -> Dimension:
         return component.layout.preferred_size
+
+    # noinspection PyMethodMayBeStatic
+    def content_bounds(self, component: T) -> Bounds:
+        return component.bounds
 
     def on_invalidate(self, component: T) -> Observable:
         other_changes = super().on_invalidate(component)

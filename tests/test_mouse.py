@@ -4,7 +4,7 @@ from alleycat.ui import Bounds, Component, Point, Window, MouseMoveEvent, MouseO
     MouseOutEvent, DragStartEvent, DragEvent, DragOverEvent, DragLeaveEvent, DragEndEvent
 from alleycat.ui import MouseButton, MouseDownEvent, MouseUpEvent
 # noinspection DuplicatedCode
-from tests.ui import UITestCase
+from ui import UITestCase
 
 
 # noinspection DuplicatedCode

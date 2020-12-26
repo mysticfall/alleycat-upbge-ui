@@ -1,12 +1,13 @@
 from typing import Final, Generic, TypeVar
 
 import rx
+from cairocffi import Context as Graphics, FontFace
 from returns.maybe import Maybe, Nothing
 from rx import Observable, operators as ops
 
 from alleycat.ui import Bounds, Button, Canvas, CanvasUI, Component, ComponentUI, Container, ContainerUI, Dimension, \
-    Font, FontChangeEvent, Frame, FrameUI, Graphics, Insets, InsetsChangeEvent, Label, LabelButton, LabelUI, \
-    LookAndFeel, Panel, Point, RGBA, TextAlign, Toolkit, Window, WindowUI
+    FontChangeEvent, Frame, FrameUI, Insets, InsetsChangeEvent, Label, LabelButton, LabelUI, \
+    LookAndFeel, Panel, RGBA, TextAlign, Toolkit, Window, WindowUI
 
 T = TypeVar("T", bound=Component, contravariant=True)
 
@@ -38,7 +39,7 @@ class GlassLookAndFeel(LookAndFeel):
         self.set_color(with_prefix(StyleKeys.TextHover, "Button"), highlight_color)
         self.set_color(with_prefix(StyleKeys.TextActive, "Button"), RGBA(0, 0, 0, 1))
 
-        self.set_insets(StyleKeys.Padding, Insets(5, 10, 5, 10))
+        self.set_insets(StyleKeys.Padding, Insets(10, 10, 10, 10))
         self.set_insets(with_prefix(StyleKeys.Padding, "Overlay"), Insets(0, 0, 0, 0))
 
         self.register_ui(Window, GlassWindowUI)
@@ -59,6 +60,11 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
 
     def __init__(self) -> None:
         super().__init__()
+
+    def clip_bounds(self, component: T) -> Bounds:
+        border = GlassLookAndFeel.BorderThickness
+
+        return super().clip_bounds(component) + Insets(border, border, border, border)
 
     def on_style_change(self, component: T) -> Observable:
         return rx.merge(component.on_style_change, component.context.look_and_feel.on_style_change)
@@ -81,9 +87,12 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
         return component.resolve_color(StyleKeys.Border)
 
     def draw_background(self, g: Graphics, component: T, color: RGBA) -> None:
-        if color.a > 0:  # FIXME: Make overlapping transparent/translucent components work properly.
-            g.color = color
-            g.fill_rect(component.bounds)
+        area = component.bounds
+
+        g.set_source_rgba(color.r, color.g, color.b, color.a)
+        g.rectangle(area.x, area.y, area.width, area.height)
+
+        g.fill()
 
     def draw_border(
             self,
@@ -91,10 +100,13 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
             component: T,
             color: RGBA,
             thickness: float = GlassLookAndFeel.BorderThickness) -> None:
-        if color.a > 0:  # FIXME: Make overlapping transparent/translucent components work properly.
-            g.color = color
-            g.stroke = thickness
-            g.draw_rect(component.bounds)
+        area = component.bounds
+
+        g.set_source_rgba(color.r, color.g, color.b, color.a)
+        g.rectangle(area.x, area.y, area.width, area.height)
+
+        g.set_line_width(thickness)
+        g.stroke()
 
 
 C = TypeVar("C", bound=Container, contravariant=True)
@@ -156,7 +168,7 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
     def text_color(self, component: Label) -> Maybe[RGBA]:
         return component.resolve_color(StyleKeys.Text)
 
-    def font(self, component: Label) -> Font:
+    def font(self, component: Label) -> FontFace:
         fonts = component.context.toolkit.fonts
 
         return component.resolve_font(StyleKeys.Text).value_or(fonts.fallback_font)
@@ -193,10 +205,7 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
 
         color.map(lambda c: self.draw_text(g, component, font, c))
 
-    def draw_text(self, g: Graphics, component: Label, font: Font, color: RGBA) -> None:
-        g.font = font
-        g.color = color
-
+    def draw_text(self, g: Graphics, component: Label, font: FontFace, color: RGBA) -> None:
         text = component.text
         size = component.text_size
 
@@ -211,7 +220,20 @@ class GlassLabelUI(GlassComponentUI[Label], LabelUI):
         tx = (w - extents.width - padding.left - padding.right) * rh + x + padding.left
         ty = (h - extents.height - padding.top - padding.bottom) * rv + extents.height + y + padding.top
 
-        g.draw_text(text, size, Point(tx, ty), component.shadow)
+        g.set_font_face(font)
+        g.set_font_size(size)
+
+        # FIXME: Temporary workaround until we get a better way of handling text shadows.
+        if component.shadow:
+            g.move_to(tx + 1, ty + 1)
+
+            g.set_source_rgba(0, 0, 0, 0.8)
+            g.show_text(text)
+
+        g.move_to(tx, ty)
+
+        g.set_source_rgba(color.r, color.g, color.b, color.a)
+        g.show_text(text)
 
 
 # noinspection PyMethodMayBeStatic
@@ -284,7 +306,23 @@ class GlassCanvasUI(GlassComponentUI[Canvas], CanvasUI):
             max(w - padding.left - padding.right, 0),
             max(h - padding.top - padding.bottom, 0))
 
-        g.draw_image(image, bounds)
+        (iw, ih) = image.size.tuple
+        (w, h) = bounds.size.tuple
+
+        if iw == 0 or ih == 0 or w == 0 or h == 0:
+            return
+
+        (x, y) = bounds.location.tuple
+
+        sw = w / iw
+        sh = h / ih
+
+        sx = x / sw
+        sy = y / sh
+
+        g.scale(sw, sh)
+        g.set_source_surface(image.surface, sx, sy)
+        g.paint()
 
 
 class StyleKeys:

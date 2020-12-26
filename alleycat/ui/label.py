@@ -4,8 +4,9 @@ from itertools import chain
 from typing import Iterable
 
 from alleycat.reactive import RP, functions as rv
+from cairocffi import FontFace
 
-from alleycat.ui import Component, ComponentUI, Context, Dimension, Font
+from alleycat.ui import Component, ComponentUI, Context, Dimension
 
 
 class TextAlign(Enum):
@@ -57,7 +58,7 @@ class LabelUI(ComponentUI[Label], ABC):
         super().__init__()
 
     @abstractmethod
-    def font(self, component: Label) -> Font:
+    def font(self, component: Label) -> FontFace:
         pass
 
     def extents(self, component: Label) -> Dimension:

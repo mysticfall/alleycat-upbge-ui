@@ -1,10 +1,8 @@
 import unittest
 from typing import Sequence
 
-from cairo import ImageSurface, Format
-
-from alleycat.ui import Context, Input, FakeMouseInput, MouseInput
-from alleycat.ui.cairo import CairoToolkit, CairoContext
+from alleycat.ui import Context, Dimension, FakeMouseInput, Input, MouseInput
+from ui import TestContext, TestToolkit
 
 
 class ContextTest(unittest.TestCase):
@@ -12,13 +10,13 @@ class ContextTest(unittest.TestCase):
         class TestMouseInput(FakeMouseInput):
             pass
 
-        class TestToolkit(CairoToolkit):
+        class ToolkitFixture(TestToolkit):
 
             def create_inputs(self, ctx: Context) -> Sequence[Input]:
                 return TestMouseInput(ctx),
 
-        toolkit = TestToolkit()
-        context = CairoContext(toolkit, ImageSurface(Format.ARGB32, 10, 10))
+        toolkit = ToolkitFixture()
+        context = TestContext(Dimension(10, 10), toolkit)
 
         mouse_input = MouseInput.input(context)
 

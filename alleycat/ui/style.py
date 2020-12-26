@@ -4,13 +4,14 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, TypeVar, Generic, Any, Iterable, TYPE_CHECKING, Callable
 
+from cairocffi import FontFace
 from returns.maybe import Maybe, Some, Nothing
 from rx import Observable
 from rx import operators as ops
 from rx.disposable import Disposable
 from rx.subject import Subject
 
-from alleycat.ui import RGBA, Font, Event, Insets
+from alleycat.ui import RGBA, Event, Insets
 
 if TYPE_CHECKING:
     from alleycat.ui import LookAndFeel
@@ -20,7 +21,7 @@ class StyleLookup(Disposable):
 
     def __init__(self) -> None:
         self._colors: Dict[str, RGBA] = dict()
-        self._fonts: Dict[str, Font] = dict()
+        self._fonts: Dict[str, FontFace] = dict()
         self._insets: Dict[str, Insets] = dict()
         self._on_style_change = Subject()
 
@@ -57,13 +58,13 @@ class StyleLookup(Disposable):
         except KeyError:
             pass
 
-    def get_font(self, key: str) -> Maybe[Font]:
+    def get_font(self, key: str) -> Maybe[FontFace]:
         if key is None:
             raise ValueError("Argument 'key' is required.")
 
         return Some(self._fonts[key]) if key in self._fonts else Nothing
 
-    def set_font(self, key: str, font: Font) -> None:
+    def set_font(self, key: str, font: FontFace) -> None:
         if key is None:
             raise ValueError("Argument 'key' is required.")
 
@@ -146,7 +147,7 @@ class StyleResolver(StyleLookup, ABC):
     def resolve_color(self, key: str) -> Maybe[RGBA]:
         return self._resolve_style(key, lambda l, k: l.get_color(k))
 
-    def resolve_font(self, key: str) -> Maybe[Font]:
+    def resolve_font(self, key: str) -> Maybe[FontFace]:
         return self._resolve_style(key, lambda l, k: l.get_font(k))
 
     def resolve_insets(self, key: str) -> Maybe[Insets]:
@@ -183,8 +184,8 @@ class ColorChangeEvent(StyleChangeEvent[RGBA]):
 
 
 @dataclass(frozen=True)
-class FontChangeEvent(StyleChangeEvent[Font]):
-    value: Maybe[Font]
+class FontChangeEvent(StyleChangeEvent[FontFace]):
+    value: Maybe[FontFace]
 
     def with_source(self, source: Any) -> Event:
         return FontChangeEvent(source, self.key, self.value)

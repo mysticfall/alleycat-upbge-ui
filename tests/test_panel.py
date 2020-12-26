@@ -1,8 +1,8 @@
 import unittest
 
-from alleycat.ui import Label, Bounds, Window, Panel, RGBA
+from alleycat.ui import Bounds, Label, Panel, RGBA, Window
 from alleycat.ui.glass import StyleKeys
-from tests.ui import UITestCase
+from ui import UITestCase
 
 
 class PanelTest(UITestCase):

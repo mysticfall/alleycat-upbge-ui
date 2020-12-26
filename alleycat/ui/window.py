@@ -6,12 +6,13 @@ from typing import Iterable, Iterator, Optional, Sequence, Tuple, TypeVar
 
 import rx
 from alleycat.reactive import RV, ReactiveObject, functions as rv
+from cairocffi import Context as Graphics
 from returns.maybe import Maybe, Nothing, Some
 from rx import operators as ops
 from rx.subject import Subject
 
 from alleycat.ui import Container, ContainerUI, Context, Drawable, ErrorHandler, ErrorHandlerSupport, Event, \
-    Graphics, Layout, Point, PropagatingEvent
+    Layout, Point, PropagatingEvent
 
 
 class Window(Container, ABC):

@@ -1,9 +1,11 @@
 import unittest
 
-from alleycat.ui import Panel, ComponentUI, Graphics, Container, LookAndFeel, LabelButton, Button, Label
-from alleycat.ui.component import T, Component
-from alleycat.ui.glass import GlassPanelUI, GlassComponentUI, GlassLabelUI, GlassButtonUI, GlassLabelButtonUI
-from tests.ui import UITestCase
+from cairocffi import Context as Graphics
+
+from alleycat.ui import Button, ComponentUI, Container, Label, LabelButton, LookAndFeel, Panel
+from alleycat.ui.component import Component, T
+from alleycat.ui.glass import GlassButtonUI, GlassComponentUI, GlassLabelButtonUI, GlassLabelUI, GlassPanelUI
+from ui import UITestCase
 
 
 # noinspection DuplicatedCode

@@ -2,12 +2,13 @@ import unittest
 from typing import Iterable
 
 from alleycat.reactive import functions as rv
+from cairocffi import Context as Graphics
 from returns.maybe import Nothing, Some
 
-from alleycat.ui import Bounds, Component, ComponentUI, Container, Dimension, Graphics, MouseMoveEvent, Panel, Point, \
+from alleycat.ui import Bounds, Component, ComponentUI, Container, Dimension, MouseMoveEvent, Panel, Point, \
     RGBA
 from alleycat.ui.component import T
-from tests.ui import UITestCase
+from ui import UITestCase
 
 
 # noinspection DuplicatedCode

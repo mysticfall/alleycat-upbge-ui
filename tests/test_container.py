@@ -5,7 +5,7 @@ from returns.maybe import Nothing, Some
 
 from alleycat.ui import Bounds, Component, Container, Dimension, Frame, Panel, Point
 from alleycat.ui.layout import AbsoluteLayout
-from tests.ui import UITestCase
+from ui import UITestCase
 
 
 # noinspection DuplicatedCode

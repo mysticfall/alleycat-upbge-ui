@@ -5,10 +5,11 @@ from typing import Any, Generic, Mapping, TYPE_CHECKING, TypeVar
 
 import rx
 from alleycat.reactive import RP, RV, ReactiveObject, functions as rv
-from returns.maybe import Maybe, Nothing, Some
+from cairocffi import Context as Graphics
+from returns.maybe import Maybe, Nothing
 from rx import Observable, operators as ops
 
-from alleycat.ui import Bounded, Bounds, Context, ContextAware, Dimension, Drawable, EventDispatcher, Graphics, Input, \
+from alleycat.ui import Bounded, Bounds, Context, ContextAware, Dimension, Drawable, EventDispatcher, Input, \
     MouseEventHandler, Point, PositionalEvent, StyleResolver
 
 if TYPE_CHECKING:
@@ -119,21 +120,22 @@ class Component(Drawable, StyleResolver, MouseEventHandler, EventDispatcher, Con
 
     def draw(self, g: Graphics) -> None:
         if self.visible:
-            offset = g.offset
-            clip = g.clip
+            g.save()
 
-            g.offset = self.offset
+            (dx, dy) = self.parent.map(lambda p: p.location).value_or(Point(0, 0))
+            (cx, cy, cw, ch) = self.ui.clip_bounds(self).tuple
 
-            def draw_clipped_area(bounds: Bounds) -> None:
-                g.clip = Some(bounds)
+            g.translate(dx, dy)
+            g.rectangle(cx, cy, cw, ch)
 
+            g.clip()
+
+            try:
                 self.draw_component(g)
+            except BaseException as e:
+                self.error_handler(e)
 
-            new_clip = Some(self.bounds) if g.clip == Nothing else g.clip.bind(lambda c: self.bounds & c)
-            new_clip.map(draw_clipped_area)
-
-            g.offset = offset
-            g.clip = clip
+            g.restore()
 
     def draw_component(self, g: Graphics) -> None:
         self.ui.draw(g, self)
@@ -170,6 +172,10 @@ class ComponentUI(Generic[T], ABC):
 
     def preferred_size(self, component: T) -> Dimension:
         return self.minimum_size(component)
+
+    # noinspection PyMethodMayBeStatic
+    def clip_bounds(self, component: T) -> Bounds:
+        return component.bounds
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def on_invalidate(self, component: T) -> Observable:
