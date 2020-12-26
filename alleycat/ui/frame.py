@@ -110,7 +110,7 @@ class FrameUI(WindowUI[Frame], ABC):
 
     @property
     def resize_handle_size(self) -> int:
-        return 5
+        return 10
 
     def resize_handle_at(self, component: Frame, location: Point) -> Maybe[Direction]:
         (px, py) = (location - component.offset).tuple
