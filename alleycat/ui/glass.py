@@ -90,6 +90,9 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
     def draw_rect(self, g: Graphics, area: Bounds, radius: float) -> None:
         (x, y, w, h) = area.tuple
 
+        if w == 0 or h == 0:
+            return
+
         degrees = pi / 180.0
 
         g.new_sub_path()
@@ -104,6 +107,9 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
     def draw_background(self, g: Graphics, component: T, color: RGBA) -> None:
         area = component.bounds
 
+        if area.width == 0 or area.height == 0:
+            return
+
         g.set_source_rgba(color.r, color.g, color.b, color.a)
 
         self.draw_rect(g, area, 8)
@@ -117,6 +123,9 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
             color: RGBA,
             thickness: float = GlassLookAndFeel.BorderThickness) -> None:
         area = component.bounds
+
+        if area.width == 0 or area.height == 0:
+            return
 
         g.set_source_rgba(color.r, color.g, color.b, color.a)
         g.set_line_width(thickness)
