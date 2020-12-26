@@ -18,6 +18,11 @@ class BoxAlign(Enum):
     Stretch = 3
 
 
+class BoxDirection(Enum):
+    Forward = 0
+    Reverse = 1
+
+
 # noinspection PyProtectedMember
 class BoxLayout(Layout, ABC):
     spacing: RP[float] = rv.new_property()
@@ -26,12 +31,15 @@ class BoxLayout(Layout, ABC):
 
     align: RP[BoxAlign] = rv.new_property()
 
+    direction: RP[BoxDirection] = rv.new_property()
+
     # noinspection PyTypeChecker
     def __init__(
             self,
             spacing: float = 0,
             padding: Insets = Insets(0, 0, 0, 0),
-            align: BoxAlign = BoxAlign.Center) -> None:
+            align: BoxAlign = BoxAlign.Center,
+            direction: BoxDirection = BoxDirection.Forward) -> None:
         if spacing < 0:
             raise ValueError("Argument 'spacing' should be zero or a positive number.")
 
@@ -40,6 +48,7 @@ class BoxLayout(Layout, ABC):
         self.spacing = spacing
         self.padding = padding
         self.align = align
+        self.direction = direction
 
     @property
     def minimum_size(self) -> Dimension:
@@ -105,15 +114,18 @@ class BoxLayout(Layout, ABC):
 
         calculate_sizes_to_reduce(children)
 
-        offset = 0
+        offset = 0 if self.direction == BoxDirection.Forward else s(area.size)
 
         for child in children:
             preferred = child.preferred_size
             size = max(s(preferred) - reduced_size[child], 0)
 
+            if self.direction != BoxDirection.Forward:
+                offset -= size
+
             child.bounds = self._calculate_bounds(size, offset, preferred, area)
 
-            offset += size + spacing
+            offset += size + spacing if self.direction == BoxDirection.Forward else -spacing
 
     @abstractmethod
     def _reduce_size(self, s1: Dimension, s2: Dimension) -> Dimension:
@@ -137,8 +149,9 @@ class HBoxLayout(BoxLayout):
             self,
             spacing: float = 0,
             padding: Insets = Insets(0, 0, 0, 0),
-            align: BoxAlign = BoxAlign.Center) -> None:
-        super().__init__(spacing, padding, align)
+            align: BoxAlign = BoxAlign.Center,
+            direction: BoxDirection = BoxDirection.Forward) -> None:
+        super().__init__(spacing, padding, align, direction)
 
     def _from_size(self, size: Dimension) -> float:
         return size.width
@@ -168,8 +181,9 @@ class VBoxLayout(BoxLayout):
             self,
             spacing: float = 0,
             padding: Insets = Insets(0, 0, 0, 0),
-            align: BoxAlign = BoxAlign.Center) -> None:
-        super().__init__(spacing, padding, align)
+            align: BoxAlign = BoxAlign.Center,
+            direction: BoxDirection = BoxDirection.Forward) -> None:
+        super().__init__(spacing, padding, align, direction)
 
     def _from_size(self, size: Dimension) -> float:
         return size.height

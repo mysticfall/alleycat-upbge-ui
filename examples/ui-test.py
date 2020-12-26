@@ -6,9 +6,10 @@ sys.path += [expandPath("//.."), expandPath("//../.venv/lib/python3.9/site-packa
 
 import rx
 from rx import operators as ops
-from alleycat.ui import Bounds, Canvas, Insets, Panel, Label, LabelButton, RGBA, Frame
+from returns.maybe import Some
+from alleycat.ui import Bounds, Canvas, Dimension, Insets, Panel, Label, LabelButton, RGBA, Frame
 from alleycat.ui.blender import UI
-from alleycat.ui.layout import Border, BorderLayout, HBoxLayout
+from alleycat.ui.layout import Border, BorderLayout, BoxDirection, HBoxLayout
 from alleycat.ui.glass import StyleKeys
 
 
@@ -20,12 +21,12 @@ def create_ui() -> None:
     window.bounds = Bounds(160, 70, 280, 200)
 
     panel = Panel(context, HBoxLayout())
-    panel.set_color(StyleKeys.Background, RGBA(0.3, 0.3, 0.3, 1))
+    panel.set_color(StyleKeys.Background, RGBA(0.3, 0.3, 0.3, 0.8))
 
     window.add(panel, padding=Insets(10, 10, 10, 10))
 
     icon = Canvas(context, toolkit.images["cat.png"])
-    icon.bounds = Bounds(0, 0, 64, 64)
+    icon.minimum_size_override = Some(Dimension(64, 64))
 
     panel.add(icon)
 
@@ -37,10 +38,10 @@ def create_ui() -> None:
     button1 = LabelButton(context, text_size=16, text="Button 1")
     button2 = LabelButton(context, text_size=16, text="Button 2")
 
-    buttons = Panel(context, HBoxLayout(spacing=10))
+    buttons = Panel(context, HBoxLayout(spacing=10, direction=BoxDirection.Reverse))
 
-    buttons.add(button1)
     buttons.add(button2)
+    buttons.add(button1)
 
     window.add(buttons, Border.Bottom, Insets(0, 10, 10, 10))
 
@@ -50,7 +51,7 @@ def create_ui() -> None:
             panel.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
         else:
             label.text = ""
-            panel.set_color(StyleKeys.Background, RGBA(0.1, 0.1, 0.1, 1))
+            panel.set_color(StyleKeys.Background, RGBA(0.1, 0.1, 0.1, 0.8))
 
     button1_active = button1.observe("active").pipe(ops.map(lambda v: "Button 1" if v else ""))
     button2_active = button2.observe("active").pipe(ops.map(lambda v: "Button 2" if v else ""))

@@ -5,7 +5,7 @@ from returns.maybe import Some
 
 from alleycat.ui import Bounds, Dimension, Frame, Insets, Panel, RGBA
 from alleycat.ui.glass import StyleKeys
-from alleycat.ui.layout import BoxAlign, HBoxLayout, \
+from alleycat.ui.layout import BoxAlign, BoxDirection, HBoxLayout, \
     VBoxLayout
 from ui import UITestCase
 
@@ -39,7 +39,7 @@ class BoxLayoutTest(UITestCase):
 
         container.add(child3)
 
-        def test(spacing: float, padding: Insets, align: BoxAlign):
+        def test(direction: BoxDirection, spacing: float, padding: Insets, align: BoxAlign):
             container.bounds = Bounds(5, 5, 90, 90)
 
             layout.spacing = spacing
@@ -50,7 +50,9 @@ class BoxLayoutTest(UITestCase):
             self.context.process()
             self.assertEqual(False, container.layout_pending)
 
-            prefix = f"hbox-{spacing}-{padding.top},{padding.right},{padding.bottom},{padding.left}-{align.name}-"
+            (top, right, bottom, left) = padding.tuple
+
+            prefix = f"hbox-{direction.name}-{spacing}-{top},{right},{bottom},{left}-{align.name}-"
 
             self.assertImage(prefix + "full-size", self.context)
 
@@ -62,10 +64,11 @@ class BoxLayoutTest(UITestCase):
 
             self.assertImage(prefix + "half-size", self.context)
 
-        for s in [0, 10]:
-            for p in [Insets(0, 0, 0, 0), Insets(15, 20, 10, 5)]:
-                for a in BoxAlign:
-                    test(s, p, a)
+        for d in BoxDirection:
+            for s in [0, 10]:
+                for p in [Insets(0, 0, 0, 0), Insets(15, 20, 10, 5)]:
+                    for a in BoxAlign:
+                        test(d, s, p, a)
 
     def test_hbox_hide_child(self):
         container = Frame(self.context, HBoxLayout())
@@ -135,7 +138,7 @@ class BoxLayoutTest(UITestCase):
 
         container.add(child3)
 
-        def test(spacing: float, padding: Insets, align: BoxAlign):
+        def test(direction: BoxDirection, spacing: float, padding: Insets, align: BoxAlign):
             container.bounds = Bounds(5, 5, 90, 90)
 
             layout.spacing = spacing
@@ -146,7 +149,9 @@ class BoxLayoutTest(UITestCase):
             self.context.process()
             self.assertEqual(False, container.layout_pending)
 
-            prefix = f"vbox-{spacing}-{padding.top},{padding.right},{padding.bottom},{padding.left}-{align.name}-"
+            (top, right, bottom, left) = padding.tuple
+
+            prefix = f"vbox-{direction.name}-{spacing}-{top},{right},{bottom},{left}-{align.name}-"
 
             self.assertImage(prefix + "full-size", self.context)
 
@@ -158,10 +163,11 @@ class BoxLayoutTest(UITestCase):
 
             self.assertImage(prefix + "half-size", self.context)
 
-        for s in [0, 10]:
-            for p in [Insets(0, 0, 0, 0), Insets(15, 20, 10, 5)]:
-                for a in BoxAlign:
-                    test(s, p, a)
+        for d in BoxDirection:
+            for s in [0, 10]:
+                for p in [Insets(0, 0, 0, 0), Insets(15, 20, 10, 5)]:
+                    for a in BoxAlign:
+                        test(d, s, p, a)
 
     def test_vbox_hide_child(self):
         container = Frame(self.context, VBoxLayout())
