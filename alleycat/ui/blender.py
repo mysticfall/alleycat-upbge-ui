@@ -12,7 +12,7 @@ import rx
 from alleycat.reactive import RV, ReactiveObject, functions as rv
 from bge.logic import KX_INPUT_ACTIVE, KX_INPUT_JUST_ACTIVATED, keyboard, mouse
 from bge.types import SCA_InputEvent
-from bpy.types import BlendDataImages, Image as BLImage
+from bpy.types import BlendDataImages, Image as BLImage, SpaceView3D
 from cairocffi import Context as Graphics, FORMAT_ARGB32, FontOptions, ImageSurface, Matrix, Surface
 from gpu.types import GPUBatch, GPUShader
 from gpu_extras.batch import batch_for_shader
@@ -24,6 +24,9 @@ from alleycat.ui import Bounds, Context, Dimension, FontRegistry, Image, ImageRe
     LookAndFeel, MouseButton, MouseInput, Point, Toolkit, ToyFontRegistry, WindowManager
 from alleycat.ui.context import ContextBuilder, ErrorHandler
 from alleycat.ui.event import EventLoopAware
+
+# noinspection PyUnresolvedReferences
+use_viewport_render = bpy.context.scene.game_settings.use_viewport_render
 
 
 class BlenderContext(Context):
@@ -51,6 +54,14 @@ class BlenderContext(Context):
         if not hasattr(bge.logic, "canary"):
             bge.logic.canary = {}
 
+        if use_viewport_render:
+            # noinspection PyArgumentList
+            self._draw_handler = SpaceView3D.draw_handler_add(self.process, (), "WINDOW", "POST_PIXEL")
+        else:
+            self._draw_handler = None
+
+            bge.logic.getCurrentScene().post_draw.append(self.process)
+
     @property
     def shader(self) -> GPUShader:
         return self._shader
@@ -76,7 +87,7 @@ class BlenderContext(Context):
 
     def process(self) -> None:
         # noinspection PyUnresolvedReferences
-        if not hasattr(bge.logic, "canary"):
+        if not hasattr(bge.logic, "canary") and not self.disposed:
             self.dispose()
             return
 
@@ -114,6 +125,15 @@ class BlenderContext(Context):
         self.shader.uniform_int("image", 0)
 
         self.batch.draw(self.shader)
+
+    def dispose(self) -> None:
+        if self._draw_handler:
+            # noinspection PyArgumentList
+            SpaceView3D.draw_handler_remove(self._draw_handler, "WINDOW")
+        else:
+            bge.logic.getCurrentScene().post_draw.remove(self.process)
+
+        super().dispose()
 
 
 class BlenderToolkit(Toolkit[BlenderContext]):
