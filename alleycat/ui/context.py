@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import Any, Dict, Generic, Mapping, Optional, TYPE_CHECKING, TypeVar
 
 from alleycat.reactive import RV, ReactiveObject, functions as rv
-from cairocffi import ANTIALIAS_SUBPIXEL, Context as Graphics, FontOptions, HINT_STYLE_FULL, OPERATOR_CLEAR, Surface
+from cairocffi import ANTIALIAS_BEST, ANTIALIAS_SUBPIXEL, Context as Graphics, FontOptions, HINT_STYLE_FULL, \
+    OPERATOR_CLEAR, Surface
 from returns.maybe import Maybe
 from rx import operators as ops
 
@@ -95,6 +96,8 @@ class Context(EventLoopAware, ReactiveObject, InputLookup, ErrorHandlerSupport, 
             raise ValueError("Argument 'surface' is required.")
 
         g = Graphics(surface)
+
+        g.set_antialias(ANTIALIAS_BEST)
         g.set_font_options(self.font_options)
 
         return g

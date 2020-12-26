@@ -1,3 +1,4 @@
+from math import pi
 from typing import Final, Generic, TypeVar
 
 import rx
@@ -62,7 +63,7 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
         super().__init__()
 
     def clip_bounds(self, component: T) -> Bounds:
-        border = GlassLookAndFeel.BorderThickness
+        border = GlassLookAndFeel.BorderThickness * 0.5
 
         return super().clip_bounds(component) + Insets(border, border, border, border)
 
@@ -86,11 +87,26 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
     def border_color(self, component: T) -> Maybe[RGBA]:
         return component.resolve_color(StyleKeys.Border)
 
+    def draw_rect(self, g: Graphics, area: Bounds, radius: float) -> None:
+        (x, y, w, h) = area.tuple
+
+        degrees = pi / 180.0
+
+        g.new_sub_path()
+
+        g.arc(x + w - radius, y + radius, radius, -90 * degrees, 0)
+        g.arc(x + w - radius, y + h - radius, radius, 0, 90 * degrees)
+        g.arc(x + radius, y + h - radius, radius, 90 * degrees, 180 * degrees)
+        g.arc(x + radius, y + radius, radius, 180 * degrees, 270 * degrees)
+
+        g.close_path()
+
     def draw_background(self, g: Graphics, component: T, color: RGBA) -> None:
         area = component.bounds
 
         g.set_source_rgba(color.r, color.g, color.b, color.a)
-        g.rectangle(area.x, area.y, area.width, area.height)
+
+        self.draw_rect(g, area, 8)
 
         g.fill()
 
@@ -103,9 +119,10 @@ class GlassComponentUI(ComponentUI[T], Generic[T]):
         area = component.bounds
 
         g.set_source_rgba(color.r, color.g, color.b, color.a)
-        g.rectangle(area.x, area.y, area.width, area.height)
-
         g.set_line_width(thickness)
+
+        self.draw_rect(g, area, 8)
+
         g.stroke()
 
 

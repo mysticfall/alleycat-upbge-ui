@@ -156,7 +156,7 @@ class ContainerUI(ComponentUI[T], ABC):
 
     # noinspection PyMethodMayBeStatic
     def content_bounds(self, component: T) -> Bounds:
-        return component.bounds
+        return self.clip_bounds(component)
 
     def on_invalidate(self, component: T) -> Observable:
         other_changes = super().on_invalidate(component)

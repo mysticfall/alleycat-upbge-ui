@@ -127,8 +127,8 @@ class BlenderContext(Context):
         bgl.glTexImage2D(
             bgl.GL_TEXTURE_2D, 0, bgl.GL_SRGB_ALPHA, width, height, 0, bgl.GL_BGRA, bgl.GL_UNSIGNED_BYTE, source)
 
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_NEAREST)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_NEAREST)
 
         self.shader.bind()
         self.shader.uniform_int("image", 0)
