@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from alleycat.ui import LookAndFeel, Toolkit, WindowManager
 
 
-class Context(EventLoopAware, InputLookup, ErrorHandlerSupport, ReactiveObject, ABC):
+class Context(EventLoopAware, ReactiveObject, InputLookup, ErrorHandlerSupport, ABC):
     window_size: RV[Dimension]
 
     surface: RV[Surface] = rv.new_view()
