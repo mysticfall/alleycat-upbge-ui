@@ -97,20 +97,26 @@ class WindowTest(UITestCase):
 
         self.assertImage("drag_with_right_button", self.context)
 
+        window.bounds = Bounds(10, 10, 50, 50)
+
         self.mouse.move_to(Point(20, 20))
         self.mouse.press(MouseButton.LEFT)
 
-        self.mouse.move_to(Point(50, 50))
+        self.mouse.move_to(Point(30, 40))
         self.mouse.release(MouseButton.LEFT)
 
         self.context.process()
 
         self.assertImage("drag_with_left_button", self.context)
 
+        window.bounds = Bounds(10, 10, 50, 50)
+
+        self.mouse.move_to(Point(10, 10))
+
         self.mouse.press(MouseButton.LEFT)
         self.mouse.press(MouseButton.MIDDLE)
 
-        self.mouse.move_to(Point(30, 50))
+        self.mouse.move_to(Point(40, 30))
 
         self.mouse.release(MouseButton.MIDDLE)
 
@@ -120,12 +126,14 @@ class WindowTest(UITestCase):
 
         self.assertImage("drag_with_2_buttons", self.context)
 
-        self.mouse.release(MouseButton.MIDDLE)
+        self.mouse.release(MouseButton.LEFT)
 
+        window.bounds = Bounds(10, 10, 50, 50)
         window.draggable = False
 
+        self.mouse.move_to(Point(30, 30))
         self.mouse.press(MouseButton.LEFT)
-        self.mouse.move_to(Point(0, 0))
+        self.mouse.move_to(Point(50, 30))
         self.mouse.release(MouseButton.LEFT)
 
         self.context.process()
