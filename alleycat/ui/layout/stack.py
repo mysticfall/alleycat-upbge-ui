@@ -10,7 +10,7 @@ from .layout import Layout, LayoutItem
 
 
 # noinspection PyProtectedMember
-class FillLayout(Layout):
+class StackLayout(Layout):
     padding: RP[Insets] = rv.new_property()
 
     def __init__(self, padding: Insets = Insets(0, 0, 0, 0)) -> None:
@@ -46,12 +46,22 @@ class FillLayout(Layout):
     def perform(self, bounds: Bounds) -> None:
         (top, right, bottom, left) = self.padding.tuple
 
-        child_bounds = Bounds(
-            left,
-            top,
-            max(bounds.width - left - right, 0),
-            max(bounds.height - top - bottom, 0))
+        available = Dimension(max(bounds.width - left - right, 0), max(bounds.height - top - bottom, 0))
 
         # noinspection PyTypeChecker
         for child in self.children:
-            child.component.bounds = child_bounds
+            fill = not ((len(child.args) > 0 and not child.args[0]) or
+                        ("fill" in child.kwargs and not child.kwargs["fill"]))
+
+            if fill:
+                child.component.bounds = Bounds(left, top, available.width, available.height)
+            else:
+                preferred = child.component.preferred_size
+
+                width = min(available.width, preferred.width)
+                height = min(available.height, preferred.height)
+
+                x = (bounds.width - width) / 2 + left - right
+                y = (bounds.height - height) / 2 + top - bottom
+
+                child.component.bounds = Bounds(x, y, width, height)
