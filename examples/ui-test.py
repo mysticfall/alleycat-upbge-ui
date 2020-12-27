@@ -1,64 +1,74 @@
 import sys
 
-from bge.logic import expandPath
+from bpy.path import abspath
+from bge.types import KX_PythonComponent
 
-sys.path += [expandPath("//.."), expandPath("//../.venv/lib/python3.9/site-packages")]
+sys.path += [abspath("//.."), abspath("//../.venv/lib/python3.9/site-packages")]
 
 import rx
 from rx import operators as ops
 from returns.maybe import Some
-from alleycat.ui import Bounds, Canvas, Dimension, Insets, Panel, Label, LabelButton, RGBA, Frame
-from alleycat.ui.blender import UI
+from alleycat.ui import Bounds, Canvas, Context, Dimension, Insets, Panel, Label, LabelButton, RGBA, Frame
 from alleycat.ui.layout import Border, BorderLayout, BoxDirection, HBoxLayout
 from alleycat.ui.glass import StyleKeys
 
 
-def create_ui() -> None:
-    context = UI().create_context()
-    toolkit = context.toolkit
+class UITest(KX_PythonComponent):
+    context: Context
 
-    window = Frame(context, BorderLayout())
-    window.bounds = Bounds(160, 70, 280, 200)
+    def start(self, args: dict):
+        from alleycat.ui.blender import UI
 
-    panel = Panel(context, HBoxLayout())
-    panel.set_color(StyleKeys.Background, RGBA(0.3, 0.3, 0.3, 0.8))
+        self.context = UI().create_context()
 
-    window.add(panel, padding=Insets(10, 10, 10, 10))
+        window = Frame(self.context, BorderLayout())
+        window.bounds = Bounds(160, 70, 280, 200)
 
-    icon = Canvas(context, toolkit.images["cat.png"])
-    icon.minimum_size_override = Some(Dimension(64, 64))
+        panel = Panel(self.context, HBoxLayout())
+        panel.set_color(StyleKeys.Background, RGBA(0.3, 0.3, 0.3, 0.8))
 
-    panel.add(icon)
+        window.add(panel, padding=Insets(10, 10, 10, 10))
 
-    label = Label(context, text_size=18)
-    label.set_color(StyleKeys.Text, RGBA(1, 1, 1, 1))
+        icon = Canvas(self.context, self.context.toolkit.images["cat.png"])
+        icon.minimum_size_override = Some(Dimension(64, 64))
 
-    panel.add(label)
+        panel.add(icon)
 
-    button1 = LabelButton(context, text_size=16, text="Button 1")
-    button2 = LabelButton(context, text_size=16, text="Button 2")
+        label = Label(self.context, text_size=18)
+        label.set_color(StyleKeys.Text, RGBA(1, 1, 1, 1))
 
-    buttons = Panel(context, HBoxLayout(spacing=10, direction=BoxDirection.Reverse))
+        panel.add(label)
 
-    buttons.add(button2)
-    buttons.add(button1)
+        button1 = LabelButton(self.context, text_size=16, text="Button 1")
+        button2 = LabelButton(self.context, text_size=16, text="Button 2")
 
-    window.add(buttons, Border.Bottom, Insets(0, 10, 10, 10))
+        buttons = Panel(self.context, HBoxLayout(spacing=10, direction=BoxDirection.Reverse))
 
-    def handle_button(button: str):
-        if len(button) > 0:
-            label.text = f"{button} is pressed"
-            panel.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
-        else:
-            label.text = ""
-            panel.set_color(StyleKeys.Background, RGBA(0.1, 0.1, 0.1, 0.8))
+        buttons.add(button2)
+        buttons.add(button1)
 
-    button1_active = button1.observe("active").pipe(ops.map(lambda v: "Button 1" if v else ""))
-    button2_active = button2.observe("active").pipe(ops.map(lambda v: "Button 2" if v else ""))
+        window.add(buttons, Border.Bottom, Insets(0, 10, 10, 10))
 
-    button_active = rx.combine_latest(button1_active, button2_active).pipe(ops.map(lambda v: v[0] + v[1]))
+        def handle_button(button: str):
+            if len(button) > 0:
+                label.text = f"{button} is pressed"
+                panel.set_color(StyleKeys.Background, RGBA(1, 0, 0, 1))
+            else:
+                label.text = ""
+                panel.set_color(StyleKeys.Background, RGBA(0.1, 0.1, 0.1, 0.8))
 
-    button_active.subscribe(handle_button, on_error=context.error_handler)
+        button1_active = button1.observe("active").pipe(ops.map(lambda v: "Button 1" if v else ""))
+        button2_active = button2.observe("active").pipe(ops.map(lambda v: "Button 2" if v else ""))
 
-    window.draggable = True
-    window.resizable = True
+        button_active = rx.combine_latest(button1_active, button2_active).pipe(ops.map(lambda v: v[0] + v[1]))
+
+        button_active.subscribe(handle_button, on_error=self.context.error_handler)
+
+        window.draggable = True
+        window.resizable = True
+
+    def update(self) -> None:
+        pass
+
+    def dispose(self) -> None:
+        self.context.dispose()

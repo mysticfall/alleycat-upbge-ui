@@ -54,9 +54,6 @@ class BlenderContext(Context):
 
         self._shader = cast(GPUShader, gpu.shader.from_builtin("2D_IMAGE"))
 
-        if not hasattr(bge.logic, "canary"):
-            bge.logic.canary = {}
-
         if use_viewport_render:
             # noinspection PyArgumentList
             self._draw_handler = SpaceView3D.draw_handler_add(self.process, (), "WINDOW", "POST_PIXEL")
@@ -96,14 +93,6 @@ class BlenderContext(Context):
             raise ValueError("Argument 'point' is required.")
 
         return point.copy(y=self.window_size.height - point.y)
-
-    def process(self) -> None:
-        # noinspection PyUnresolvedReferences
-        if not hasattr(bge.logic, "canary") and not self.disposed:
-            self.dispose()
-            return
-
-        super().process()
 
     # noinspection PyTypeChecker
     def process_draw(self) -> None:
