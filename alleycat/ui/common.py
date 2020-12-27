@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
 from functools import reduce
-from typing import Any, Tuple, Union, Optional, Iterable, Iterator
+from typing import Any, Iterable, Iterator, Optional, Tuple, Union
 
 from returns.maybe import Maybe, Nothing, Some
 
@@ -351,17 +350,6 @@ class RGBA(Iterable):
         _ensure_range(self, "g")
         _ensure_range(self, "b")
         _ensure_range(self, "a")
-
-
-class Direction(Enum):
-    North = 0
-    Northeast = 1
-    East = 2
-    Southeast = 3
-    South = 4
-    Southwest = 5
-    West = 6
-    Northwest = 7
 
 
 def _ensure_non_negative(obj: Any, attr: str) -> None:

@@ -1,5 +1,5 @@
 # Import order should not be changed to avoid a circular dependency.
-from .common import Point, Dimension, Bounds, Insets, RGBA, Direction
+from .common import Point, Dimension, Bounds, Insets, RGBA
 from .error import ErrorHandler, ErrorHandlerSupport
 from .registry import Registry
 from .font import FontRegistry, ToyFontRegistry

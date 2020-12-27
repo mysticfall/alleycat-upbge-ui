@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
+from enum import Enum
 from itertools import chain
 from typing import Iterable, NamedTuple, Optional, cast
 
@@ -9,8 +10,19 @@ from alleycat.reactive import RP, functions as rv
 from returns.maybe import Maybe, Nothing
 from rx import operators as ops
 
-from alleycat.ui import Bounds, Context, Dimension, Direction, Layout, MouseButton, MouseInput, Point, \
+from alleycat.ui import Bounds, Context, Dimension, Layout, MouseButton, MouseInput, Point, \
     Window, WindowUI
+
+
+class Direction(Enum):
+    North = 0
+    Northeast = 1
+    East = 2
+    Southeast = 3
+    South = 4
+    Southwest = 5
+    West = 6
+    Northwest = 7
 
 
 class Frame(Window):
