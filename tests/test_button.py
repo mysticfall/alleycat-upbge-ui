@@ -1,5 +1,5 @@
 import unittest
-from typing import cast
+from typing import Final, cast
 
 from alleycat.reactive import functions as rv
 from returns.maybe import Nothing, Some
@@ -8,6 +8,10 @@ from alleycat.ui import Bounds, Dimension, Insets, LabelButton, LabelUI, MouseBu
     TextAlign, Window
 from alleycat.ui.glass import StyleKeys
 from ui import UITestCase
+
+Tolerance: Final = 8
+
+TextTolerance: Final = 2.5
 
 
 # noinspection DuplicatedCode
@@ -43,7 +47,7 @@ class ButtonTest(UITestCase):
 
         self.context.process()
 
-        self.assertImage("draw", self.context, tolerance=50)
+        self.assertImage("draw", self.context, tolerance=Tolerance)
 
     def test_align(self):
         window = Window(self.context)
@@ -58,7 +62,7 @@ class ButtonTest(UITestCase):
         window.add(button)
 
         self.context.process()
-        self.assertImage("align_default", self.context)
+        self.assertImage("align_default", self.context, tolerance=Tolerance)
 
         for align in TextAlign:
             for vertical_align in TextAlign:
@@ -68,7 +72,7 @@ class ButtonTest(UITestCase):
                 test_name = f"align_{align}_{vertical_align}".replace("TextAlign.", "")
 
                 self.context.process()
-                self.assertImage(test_name, self.context, tolerance=50)
+                self.assertImage(test_name, self.context, tolerance=Tolerance)
 
     def test_hover(self):
         window = Window(self.context)
@@ -94,21 +98,21 @@ class ButtonTest(UITestCase):
 
         self.assertTrue(button.hover)
         self.assertEqual([False, True], values)
-        self.assertImage("hover_mouse_over", self.context, tolerance=50)
+        self.assertImage("hover_mouse_over", self.context, tolerance=Tolerance)
 
         self.mouse.move_to(Point(0, 0))
         self.context.process()
 
         self.assertFalse(button.hover)
         self.assertEqual([False, True, False], values)
-        self.assertImage("hover_mouse_out", self.context, tolerance=50)
+        self.assertImage("hover_mouse_out", self.context, tolerance=Tolerance)
 
         self.mouse.move_to(Point(10, 10))
         self.context.process()
 
         self.assertTrue(button.hover)
         self.assertEqual([False, True, False, True], values)
-        self.assertImage("hover_mouse_over2", self.context, tolerance=50)
+        self.assertImage("hover_mouse_over2", self.context, tolerance=Tolerance)
 
     def test_active(self):
         window = Window(self.context)
@@ -135,14 +139,14 @@ class ButtonTest(UITestCase):
 
         self.assertTrue(button.active)
         self.assertEqual([False, True], values)
-        self.assertImage("active_mouse_down", self.context, tolerance=50)
+        self.assertImage("active_mouse_down", self.context, tolerance=Tolerance)
 
         self.mouse.release(MouseButton.LEFT)
         self.context.process()
 
         self.assertFalse(button.active)
         self.assertEqual([False, True, False], values)
-        self.assertImage("active_mouse_up", self.context, tolerance=50)
+        self.assertImage("active_mouse_up", self.context, tolerance=Tolerance)
 
         self.mouse.press(MouseButton.LEFT)
         self.mouse.move_to(Point(0, 0))
@@ -150,7 +154,7 @@ class ButtonTest(UITestCase):
 
         self.assertTrue(button.active)
         self.assertEqual([False, True, False, True], values)
-        self.assertImage("active_mouse_drag_out", self.context, tolerance=50)
+        self.assertImage("active_mouse_drag_out", self.context, tolerance=Tolerance)
 
         self.mouse.release(MouseButton.LEFT)
         self.mouse.press(MouseButton.LEFT)
@@ -159,7 +163,7 @@ class ButtonTest(UITestCase):
 
         self.assertFalse(button.active)
         self.assertEqual([False, True, False, True, False], values)
-        self.assertImage("active_mouse_drag_in", self.context, tolerance=50)
+        self.assertImage("active_mouse_drag_in", self.context, tolerance=Tolerance)
 
         self.mouse.release(MouseButton.LEFT)
         self.mouse.press(MouseButton.RIGHT)
@@ -167,7 +171,7 @@ class ButtonTest(UITestCase):
 
         self.assertFalse(button.active)
         self.assertEqual([False, True, False, True, False], values)
-        self.assertImage("active_right_button", self.context, tolerance=50)
+        self.assertImage("active_right_button", self.context, tolerance=Tolerance)
 
     def test_validation(self):
         laf = self.context.look_and_feel
@@ -215,35 +219,23 @@ class ButtonTest(UITestCase):
 
     def test_ui_extents(self):
         button = LabelButton(self.context)
-        laf = self.context.look_and_feel
         ui = cast(LabelUI, button.ui)
-        font_registry = self.context.toolkit.fonts
-
-        tolerance = 0.1
-
-        mono = font_registry["Mono"]
 
         self.assertEqual(Dimension(0, 0), ui.extents(button))
 
         button.text = "Test"
         button.validate()
 
-        self.assertAlmostEqual(20.02, ui.extents(button).width, delta=tolerance)
-        self.assertAlmostEqual(7.227, ui.extents(button).height, delta=tolerance)
+        self.assertAlmostEqual(20.02, ui.extents(button).width, delta=TextTolerance)
+        self.assertAlmostEqual(7.227, ui.extents(button).height, delta=TextTolerance)
 
         button.text_size = 15
         button.validate()
 
-        self.assertAlmostEqual(30.03, ui.extents(button).width, delta=tolerance)
-        self.assertAlmostEqual(10.840, ui.extents(button).height, delta=tolerance)
-
-        laf.set_font("Button.text", mono)
-
-        self.assertEqual(False, button.valid)
+        self.assertAlmostEqual(30.03, ui.extents(button).width, delta=TextTolerance)
+        self.assertAlmostEqual(10.840, ui.extents(button).height, delta=TextTolerance)
 
     def test_minimum_size(self):
-        tolerance = 0.1
-
         def test_with_padding(padding: Insets):
             with LabelButton(self.context) as button:
                 calculated = []
@@ -266,10 +258,10 @@ class ButtonTest(UITestCase):
                 self.assertEqual(2, len(calculated))
 
                 self.assertEqual(Nothing, button.minimum_size_override)
-                self.assertAlmostEqual(20.02 + pw, button.minimum_size.width, delta=tolerance)
-                self.assertAlmostEqual(7.227 + ph, button.minimum_size.height, delta=tolerance)
-                self.assertAlmostEqual(20.02 + pw, calculated[1].width, delta=tolerance)
-                self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=tolerance)
+                self.assertAlmostEqual(20.02 + pw, button.minimum_size.width, delta=TextTolerance)
+                self.assertAlmostEqual(7.227 + ph, button.minimum_size.height, delta=TextTolerance)
+                self.assertAlmostEqual(20.02 + pw, calculated[1].width, delta=TextTolerance)
+                self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=TextTolerance)
 
                 self.assertEqual(Bounds(0, 0, calculated[1].width, calculated[1].height), button.bounds)
 
@@ -279,10 +271,10 @@ class ButtonTest(UITestCase):
                 self.assertEqual(3, len(calculated))
 
                 self.assertEqual(Nothing, button.minimum_size_override)
-                self.assertAlmostEqual(30.03 + pw, button.minimum_size.width, delta=tolerance)
-                self.assertAlmostEqual(10.840 + ph, button.minimum_size.height, delta=tolerance)
-                self.assertAlmostEqual(30.03 + pw, calculated[2].width, delta=tolerance)
-                self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
+                self.assertAlmostEqual(30.03 + pw, button.minimum_size.width, delta=TextTolerance)
+                self.assertAlmostEqual(10.840 + ph, button.minimum_size.height, delta=TextTolerance)
+                self.assertAlmostEqual(30.03 + pw, calculated[2].width, delta=TextTolerance)
+                self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=TextTolerance)
 
                 button.bounds = Bounds(10, 20, 60, 40)
 
@@ -293,8 +285,8 @@ class ButtonTest(UITestCase):
 
                 self.assertEqual(Some(Dimension(80, 50)), button.minimum_size_override)
                 self.assertEqual(Dimension(80, 50), button.minimum_size)
-                self.assertAlmostEqual(30.03 + pw, calculated[2].width, delta=tolerance)
-                self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
+                self.assertAlmostEqual(30.03 + pw, calculated[2].width, delta=TextTolerance)
+                self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=TextTolerance)
 
                 self.assertEqual(Bounds(10, 20, 80, 50), button.bounds)
 
@@ -306,8 +298,6 @@ class ButtonTest(UITestCase):
             test_with_padding(p)
 
     def test_preferred_size(self):
-        tolerance = 0.1
-
         def test_with_padding(padding: Insets):
             with LabelButton(self.context) as button:
                 calculated = []
@@ -330,11 +320,11 @@ class ButtonTest(UITestCase):
                 self.assertEqual(2, len(calculated))
 
                 self.assertEqual(Nothing, button.preferred_size_override)
-                self.assertAlmostEqual(20.02 + pw, button.preferred_size.width, delta=tolerance)
-                self.assertAlmostEqual(7.227 + ph, button.preferred_size.height, delta=tolerance)
+                self.assertAlmostEqual(20.02 + pw, button.preferred_size.width, delta=TextTolerance)
+                self.assertAlmostEqual(7.227 + ph, button.preferred_size.height, delta=TextTolerance)
                 self.assertEqual(2, len(calculated))
-                self.assertAlmostEqual(20.02 + pw, calculated[1].width, delta=tolerance)
-                self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=tolerance)
+                self.assertAlmostEqual(20.02 + pw, calculated[1].width, delta=TextTolerance)
+                self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=TextTolerance)
 
                 button.text_size = 15
                 button.validate()
@@ -342,11 +332,11 @@ class ButtonTest(UITestCase):
                 self.assertEqual(3, len(calculated))
 
                 self.assertEqual(Nothing, button.preferred_size_override)
-                self.assertAlmostEqual(30.03 + pw, button.preferred_size.width, delta=tolerance)
-                self.assertAlmostEqual(10.840 + ph, button.preferred_size.height, delta=tolerance)
+                self.assertAlmostEqual(30.03 + pw, button.preferred_size.width, delta=TextTolerance)
+                self.assertAlmostEqual(10.840 + ph, button.preferred_size.height, delta=TextTolerance)
                 self.assertEqual(3, len(calculated))
-                self.assertAlmostEqual(30.03 + pw, calculated[2].width, delta=tolerance)
-                self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
+                self.assertAlmostEqual(30.03 + pw, calculated[2].width, delta=TextTolerance)
+                self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=TextTolerance)
 
                 button.preferred_size_override = Some(Dimension(80, 50))
                 button.validate()

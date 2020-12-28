@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import sys
 import unittest
 from abc import ABC
 from pathlib import Path
 from typing import Optional, Sequence, cast
 
+import numpy as np
 import rx
 from alleycat.reactive import RV, functions as rv
 from cairocffi import FontOptions, ImageSurface, Surface
@@ -158,17 +158,15 @@ class UITestCase(unittest.TestCase, ABC):
 
         fixture = ImageSurface.create_from_png(str(fixture_path))
 
-        expected = fixture.get_data()
-        actual = surface.get_data()
+        expected = np.array(fixture.get_data())
+        actual = np.array(surface.get_data())
 
         self.assertEqual(len(expected), len(actual))
 
-        try:
-            for f, t in iter(zip(expected, actual)):
-                v1 = int.from_bytes(f, sys.byteorder)
-                v2 = int.from_bytes(t, sys.byteorder)
+        mse = np.sum((expected - actual) ** 2) / len(expected)
 
-                self.assertAlmostEqual(v1, v2, delta=tolerance)
+        try:
+            self.assertLessEqual(mse, tolerance)
 
             fixture.finish()
         except AssertionError as e:
