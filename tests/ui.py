@@ -14,6 +14,7 @@ from returns.maybe import Maybe, Nothing, Some
 from alleycat.ui import Context, Dimension, FakeMouseInput, FontRegistry, Image, ImageRegistry, Input, \
     LookAndFeel, MouseInput, Toolkit, ToyFontRegistry, WindowManager
 from alleycat.ui.context import ContextBuilder, ErrorHandler
+from alleycat.ui.glass import StyleKeys
 
 
 class TestContext(Context):
@@ -124,6 +125,11 @@ class UITestCase(unittest.TestCase, ABC):
         super().setUp()
 
         self.context = UI().create_context()
+
+        font = self.context.toolkit.fonts["Noto Sans"]
+
+        self.context.look_and_feel.set_font(StyleKeys.Text, font)
+
         self.mouse = cast(FakeMouseInput, MouseInput.input(self.context))
 
     def tearDown(self) -> None:

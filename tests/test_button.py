@@ -228,13 +228,13 @@ class ButtonTest(UITestCase):
         button.text = "Test"
         button.validate()
 
-        self.assertAlmostEqual(18.476, ui.extents(button).width, delta=tolerance)
+        self.assertAlmostEqual(20.02, ui.extents(button).width, delta=tolerance)
         self.assertAlmostEqual(7.227, ui.extents(button).height, delta=tolerance)
 
         button.text_size = 15
         button.validate()
 
-        self.assertAlmostEqual(27.715, ui.extents(button).width, delta=tolerance)
+        self.assertAlmostEqual(30.03, ui.extents(button).width, delta=tolerance)
         self.assertAlmostEqual(10.840, ui.extents(button).height, delta=tolerance)
 
         laf.set_font("Button.text", mono)
@@ -266,9 +266,9 @@ class ButtonTest(UITestCase):
                 self.assertEqual(2, len(calculated))
 
                 self.assertEqual(Nothing, button.minimum_size_override)
-                self.assertAlmostEqual(18.476 + pw, button.minimum_size.width, delta=tolerance)
+                self.assertAlmostEqual(20.02 + pw, button.minimum_size.width, delta=tolerance)
                 self.assertAlmostEqual(7.227 + ph, button.minimum_size.height, delta=tolerance)
-                self.assertAlmostEqual(18.476 + pw, calculated[1].width, delta=tolerance)
+                self.assertAlmostEqual(20.02 + pw, calculated[1].width, delta=tolerance)
                 self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=tolerance)
 
                 self.assertEqual(Bounds(0, 0, calculated[1].width, calculated[1].height), button.bounds)
@@ -279,9 +279,9 @@ class ButtonTest(UITestCase):
                 self.assertEqual(3, len(calculated))
 
                 self.assertEqual(Nothing, button.minimum_size_override)
-                self.assertAlmostEqual(27.715 + pw, button.minimum_size.width, delta=tolerance)
+                self.assertAlmostEqual(30.03 + pw, button.minimum_size.width, delta=tolerance)
                 self.assertAlmostEqual(10.840 + ph, button.minimum_size.height, delta=tolerance)
-                self.assertAlmostEqual(27.715 + pw, calculated[2].width, delta=tolerance)
+                self.assertAlmostEqual(30.03 + pw, calculated[2].width, delta=tolerance)
                 self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
                 button.bounds = Bounds(10, 20, 60, 40)
@@ -293,7 +293,7 @@ class ButtonTest(UITestCase):
 
                 self.assertEqual(Some(Dimension(80, 50)), button.minimum_size_override)
                 self.assertEqual(Dimension(80, 50), button.minimum_size)
-                self.assertAlmostEqual(27.715 + pw, calculated[2].width, delta=tolerance)
+                self.assertAlmostEqual(30.03 + pw, calculated[2].width, delta=tolerance)
                 self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
                 self.assertEqual(Bounds(10, 20, 80, 50), button.bounds)
@@ -330,10 +330,10 @@ class ButtonTest(UITestCase):
                 self.assertEqual(2, len(calculated))
 
                 self.assertEqual(Nothing, button.preferred_size_override)
-                self.assertAlmostEqual(18.476 + pw, button.preferred_size.width, delta=tolerance)
+                self.assertAlmostEqual(20.02 + pw, button.preferred_size.width, delta=tolerance)
                 self.assertAlmostEqual(7.227 + ph, button.preferred_size.height, delta=tolerance)
                 self.assertEqual(2, len(calculated))
-                self.assertAlmostEqual(18.476 + pw, calculated[1].width, delta=tolerance)
+                self.assertAlmostEqual(20.02 + pw, calculated[1].width, delta=tolerance)
                 self.assertAlmostEqual(7.227 + ph, calculated[1].height, delta=tolerance)
 
                 button.text_size = 15
@@ -342,10 +342,10 @@ class ButtonTest(UITestCase):
                 self.assertEqual(3, len(calculated))
 
                 self.assertEqual(Nothing, button.preferred_size_override)
-                self.assertAlmostEqual(27.715 + pw, button.preferred_size.width, delta=tolerance)
+                self.assertAlmostEqual(30.03 + pw, button.preferred_size.width, delta=tolerance)
                 self.assertAlmostEqual(10.840 + ph, button.preferred_size.height, delta=tolerance)
                 self.assertEqual(3, len(calculated))
-                self.assertAlmostEqual(27.715 + pw, calculated[2].width, delta=tolerance)
+                self.assertAlmostEqual(30.03 + pw, calculated[2].width, delta=tolerance)
                 self.assertAlmostEqual(10.840 + ph, calculated[2].height, delta=tolerance)
 
                 button.preferred_size_override = Some(Dimension(80, 50))
