@@ -1,10 +1,16 @@
 import unittest
+from pathlib import Path
+from typing import Final
 
 from returns.maybe import Some
 
 from alleycat.ui import Bounds, Canvas, Dimension, Frame, Insets, RGBA, StyleLookup
 from alleycat.ui.glass import StyleKeys
 from ui import UITestCase
+
+Tolerance: Final = 3
+
+FixturePath: Final = str(Path(__file__).parent.joinpath("fixtures/cat.png"))
 
 
 # noinspection DuplicatedCode
@@ -25,7 +31,7 @@ class CanvasTest(UITestCase):
 
         self.assertEqual(True, canvas.valid)
 
-        image = self.context.toolkit.images["fixtures/cat.png"]
+        image = self.context.toolkit.images[FixturePath]
 
         canvas.image = Some(image)
 
@@ -51,7 +57,7 @@ class CanvasTest(UITestCase):
         test_style(canvas)
 
     def test_draw(self):
-        image = self.context.toolkit.images["fixtures/cat.png"]
+        image = self.context.toolkit.images[FixturePath]
 
         window = Frame(self.context)
         window.bounds = Bounds(0, 0, 100, 100)
@@ -73,10 +79,10 @@ class CanvasTest(UITestCase):
 
         self.context.process()
 
-        self.assertImage("draw", self.context, tolerance=50)
+        self.assertImage("draw", self.context, tolerance=Tolerance)
 
     def test_draw_with_padding(self):
-        image = self.context.toolkit.images["fixtures/cat.png"]
+        image = self.context.toolkit.images[FixturePath]
 
         window = Frame(self.context)
         window.bounds = Bounds(0, 0, 100, 100)
@@ -95,7 +101,8 @@ class CanvasTest(UITestCase):
 
             self.context.process()
 
-            self.assertImage(f"draw_with_padding-{top},{right},{bottom},{left}-{w}x{h}", self.context, tolerance=50)
+            self.assertImage(
+                f"draw_with_padding-{top},{right},{bottom},{left}-{w}x{h}", self.context, tolerance=Tolerance)
 
         assert_padding(Dimension(100, 100), Insets(0, 0, 0, 0))
         assert_padding(Dimension(100, 100), Insets(10, 5, 3, 15))

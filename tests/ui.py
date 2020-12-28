@@ -118,8 +118,12 @@ class UITestCase(unittest.TestCase, ABC):
     def __init__(self, name: str, fixture_dir: Optional[Path] = None, output_dir: Optional[Path] = None):
         super().__init__(name)
 
-        self.fixture_dir = fixture_dir if fixture_dir is not None else Path("fixtures", self.__module__)
-        self.output_dir = output_dir if output_dir is not None else Path("output", self.__module__)
+        basedir = Path(__file__).parent
+
+        self.fixture_dir = fixture_dir if fixture_dir is not None else \
+            basedir.joinpath(Path("fixtures", self.__module__))
+        self.output_dir = output_dir if output_dir is not None else \
+            basedir.joinpath(Path("output", self.__module__))
 
     def setUp(self) -> None:
         super().setUp()
