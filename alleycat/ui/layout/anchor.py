@@ -1,8 +1,7 @@
-from collections import Callable
 from dataclasses import dataclass
 from enum import Enum
 from functools import reduce
-from typing import Sequence, Set, Tuple
+from typing import Callable, Sequence, Set, Tuple
 
 from alleycat.reactive import RV
 from rx import operators as ops

@@ -1,5 +1,5 @@
-from collections import Callable
 from functools import reduce
+from typing import Callable
 
 import rx
 from alleycat.reactive import RP, functions as rv
