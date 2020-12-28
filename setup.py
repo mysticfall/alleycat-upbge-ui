@@ -8,7 +8,7 @@ setup(
     version="0.0.1",
     author="Xavier Cho",
     author_email="mysticfallband@gmail.com",
-    description="A GUI widget toolkit for UPBGE (Uchronia Project Blender Game Engine).",
+    description="Lightweight GUI widget toolkit for UPBGE (Uchronia Project Blender Game Engine).",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/mysticfall/alleycat-ui",
