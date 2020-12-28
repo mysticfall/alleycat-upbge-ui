@@ -17,12 +17,12 @@ from alleycat.ui.context import ContextBuilder, ErrorHandler
 from alleycat.ui.glass import StyleKeys
 
 
-class TestContext(Context):
+class FixtureContext(Context):
     window_size: RV[Dimension] = rv.new_view()
 
     def __init__(self,
                  size: Dimension,
-                 toolkit: TestToolkit,
+                 toolkit: FixtureToolkit,
                  look_and_feel: Optional[LookAndFeel] = None,
                  font_options: Optional[FontOptions] = None,
                  window_manager: Optional[WindowManager] = None,
@@ -36,14 +36,14 @@ class TestContext(Context):
         super().__init__(toolkit, look_and_feel, font_options, window_manager, error_handler)
 
 
-class TestToolkit(Toolkit[TestContext]):
+class FixtureToolkit(Toolkit[FixtureContext]):
 
     def __init__(self, resource_path: Path = Path("../alleycat/ui"),
                  error_handler: Optional[ErrorHandler] = None) -> None:
         super().__init__(resource_path, error_handler)
 
         self._font_registry = ToyFontRegistry(self.error_handler)
-        self._image_registry = TestImageRegistry(self.error_handler)
+        self._image_registry = FixtureImageRegistry(self.error_handler)
 
     @property
     def fonts(self) -> FontRegistry:
@@ -57,10 +57,10 @@ class TestToolkit(Toolkit[TestContext]):
         return FakeMouseInput(context),
 
 
-class UI(ContextBuilder[TestContext]):
+class UI(ContextBuilder[FixtureContext]):
 
-    def __init__(self, toolkit: Optional[TestToolkit] = None) -> None:
-        super().__init__(toolkit if toolkit is not None else TestToolkit())
+    def __init__(self, toolkit: Optional[FixtureToolkit] = None) -> None:
+        super().__init__(toolkit if toolkit is not None else FixtureToolkit())
 
         self._size: Optional[Dimension] = None
 
@@ -72,10 +72,10 @@ class UI(ContextBuilder[TestContext]):
 
         return self
 
-    def create_context(self) -> TestContext:
+    def create_context(self) -> FixtureContext:
         size = self._size if self._size is not None else Dimension(100, 100)
 
-        return TestContext(size, **self.args)
+        return FixtureContext(size, **self.args)
 
 
 class TestImage(Image):
@@ -97,7 +97,7 @@ class TestImage(Image):
         return self._size
 
 
-class TestImageRegistry(ImageRegistry[TestImage]):
+class FixtureImageRegistry(ImageRegistry[TestImage]):
 
     def __init__(self, error_handler: ErrorHandler) -> None:
         super().__init__(error_handler)

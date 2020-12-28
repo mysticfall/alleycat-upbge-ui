@@ -2,7 +2,7 @@ import unittest
 from typing import Sequence
 
 from alleycat.ui import Context, Dimension, FakeMouseInput, Input, MouseInput
-from ui import TestContext, TestToolkit
+from ui import FixtureContext, FixtureToolkit
 
 
 class ContextTest(unittest.TestCase):
@@ -10,13 +10,13 @@ class ContextTest(unittest.TestCase):
         class TestMouseInput(FakeMouseInput):
             pass
 
-        class ToolkitFixture(TestToolkit):
+        class ToolkitFixture(FixtureToolkit):
 
             def create_inputs(self, ctx: Context) -> Sequence[Input]:
                 return TestMouseInput(ctx),
 
         toolkit = ToolkitFixture()
-        context = TestContext(Dimension(10, 10), toolkit)
+        context = FixtureContext(Dimension(10, 10), toolkit)
 
         mouse_input = MouseInput.input(context)
 
