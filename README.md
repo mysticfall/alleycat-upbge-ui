@@ -1,3 +1,5 @@
+![pytest](https://github.com/mysticfall/alleycat-ui/workflows/pytest/badge.svg)
+[![PyPI version](https://badge.fury.io/py/alleycat-ui.svg)](https://badge.fury.io/py/alleycat-ui)
 # AlleyCat UI
 A lightweight GUI widget toolkit for [UPBGE](https://github.com/UPBGE/upbge)
 (_Uchronia Project Blender Game Engine_) based on [Cairo](https://www.cairographics.org/).
