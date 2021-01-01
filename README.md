@@ -26,6 +26,12 @@ The library can be installed using `pip` as follows:
 pip install alleycat-ui
 ```
 
+You will need to have _Cairo_ library in your library path in order for _AlleyCat UI_ 
+to work. Linux users can install it using a package manager while on Windows, you may 
+get it from [here](https://github.com/preshing/cairo-windows) (rename it to `libcairo-2.dll`
+and put it where Python looks for native libraries, like the value of `PATH` environment 
+variable).
+
 ## How to Use
 
 To use UI components provided by _AlleyCat UI_, you need to create a proper context 
