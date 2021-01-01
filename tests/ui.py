@@ -141,7 +141,7 @@ class UITestCase(unittest.TestCase, ABC):
 
         self.context.dispose()
 
-    def assertImage(self, name: str, context: Context, tolerance: int = 0):
+    def assertImage(self, name: str, context: Context, tolerance: float = 0):
         if name is None:
             raise ValueError("Argument 'name' is required.")
 

@@ -1,5 +1,5 @@
 from math import pi
-from typing import Final, Generic, TypeVar
+from typing import Generic, TypeVar
 
 import rx
 from cairocffi import Context as Graphics, FontFace
@@ -14,7 +14,7 @@ T = TypeVar("T", bound=Component, contravariant=True)
 
 
 class GlassLookAndFeel(LookAndFeel):
-    BorderThickness: Final = 2
+    BorderThickness: float = 2
 
     def __init__(self, toolkit: Toolkit) -> None:
         super().__init__(toolkit)
@@ -352,16 +352,16 @@ class GlassCanvasUI(GlassComponentUI[Canvas], CanvasUI):
 
 
 class StyleKeys:
-    Background: Final = "background"
-    BackgroundHover: Final = "background:hover"
-    BackgroundActive: Final = "background:active"
+    Background: str = "background"
+    BackgroundHover: str = "background:hover"
+    BackgroundActive: str = "background:active"
 
-    Border: Final = "border"
-    BorderHover: Final = "border:hover"
-    BorderActive: Final = "border:active"
+    Border: str = "border"
+    BorderHover: str = "border:hover"
+    BorderActive: str = "border:active"
 
-    Text: Final = "text"
-    TextHover: Final = "text:hover"
-    TextActive: Final = "text:active"
+    Text: str = "text"
+    TextHover: str = "text:hover"
+    TextActive: str = "text:active"
 
-    Padding: Final = "padding"
+    Padding: str = "padding"

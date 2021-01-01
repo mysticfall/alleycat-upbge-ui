@@ -1,6 +1,5 @@
 import unittest
 from pathlib import Path
-from typing import Final
 
 from returns.maybe import Some
 
@@ -8,9 +7,9 @@ from alleycat.ui import Bounds, Canvas, Dimension, Frame, Insets, RGBA, StyleLoo
 from alleycat.ui.glass import StyleKeys
 from ui import UITestCase
 
-Tolerance: Final = 3
+Tolerance: float = 3
 
-FixturePath: Final = str(Path(__file__).parent.joinpath("fixtures/cat.png"))
+FixturePath: str = str(Path(__file__).parent.joinpath("fixtures/cat.png"))
 
 
 # noinspection DuplicatedCode

@@ -1,5 +1,5 @@
 import unittest
-from typing import Final, cast
+from typing import cast
 
 from alleycat.reactive import functions as rv
 from returns.maybe import Nothing, Some
@@ -8,9 +8,9 @@ from alleycat.ui import Bounds, Dimension, Frame, Insets, Label, LabelUI, RGBA, 
 from alleycat.ui.glass import StyleKeys
 from ui import UITestCase
 
-Tolerance: Final = 8
+Tolerance: float = 8
 
-TextTolerance: Final = 2.5
+TextTolerance: float = 2.5
 
 
 # noinspection DuplicatedCode

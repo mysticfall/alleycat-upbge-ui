@@ -3,11 +3,10 @@ from __future__ import annotations
 from abc import ABC
 from enum import Enum
 from itertools import chain
-from typing import Final, cast, Set, Mapping
+from typing import Mapping, Set, cast
 
 from alleycat.reactive import RV
-from rx import Observable
-from rx import operators as ops
+from rx import Observable, operators as ops
 
 from alleycat.ui import Context, Input, InputLookup
 
@@ -19,7 +18,7 @@ class KeyState(Enum):
 
 
 class KeyInput(Input, ABC):
-    ID: Final = "key"
+    ID: str = "key"
 
     pressed: RV[Set[int]]
 

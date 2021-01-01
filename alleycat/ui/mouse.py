@@ -3,17 +3,15 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import IntFlag
-from typing import Final, Any, cast, Sequence
+from typing import Any, Sequence, cast
 
 import rx
-from alleycat.reactive import RV, RP
-from alleycat.reactive import functions as rv
-from rx import Observable
-from rx import operators as ops
+from alleycat.reactive import RP, RV, functions as rv
+from rx import Observable, operators as ops
 from rx.subject import Subject
 
-from alleycat.ui import Point, Context, Input, PositionalEvent, Event, InputLookup, \
-    PropagatingEvent, Bounded, EventHandler
+from alleycat.ui import Bounded, Context, Event, EventHandler, Input, InputLookup, Point, PositionalEvent, \
+    PropagatingEvent
 
 
 class MouseButton(IntFlag):
@@ -215,7 +213,7 @@ class MouseEventHandler(Bounded, EventHandler, ABC):
 
 
 class MouseInput(Input, ABC):
-    ID: Final = "mouse"
+    ID: str = "mouse"
 
     position: RV[Point]
 
