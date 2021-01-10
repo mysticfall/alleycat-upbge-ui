@@ -8,11 +8,11 @@ verify_ssl = true
 "pytest" = "*"
 "mypy" = "*"
 "numpy" = "1.19.4"
-"fake-bpy-module-2.90" = "*"
+"fake-bpy-module-2.91" = "*"
 "fake-bge-module-0.2.5" = "*"
 
 [packages]
-"alleycat-reactive" = "0.4.5"
+"alleycat-reactive" = "0.4.6"
 "rx" = "3.1.1"
 "returns" = "0.15.0"
 "pangocairocffi" = "0.5.0"
