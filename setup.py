@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="alleycat-ui",
-    version="0.0.3",
+    version="0.0.4",
     author="Xavier Cho",
     author_email="mysticfallband@gmail.com",
     description="Lightweight GUI widget toolkit for UPBGE (Uchronia Project Blender Game Engine).",
